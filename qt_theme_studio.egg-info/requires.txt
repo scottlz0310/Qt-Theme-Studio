@@ -1,0 +1,21 @@
+qt-theme-manager@ git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+PySide6>=6.0.0
+Pillow>=8.0.0
+colorama>=0.4.0
+
+[dev]
+pytest>=7.0.0
+pytest-qt>=4.0.0
+pytest-cov>=4.0.0
+black>=22.0.0
+isort>=5.10.0
+flake8>=5.0.0
+autoflake>=1.4.0
+mypy>=1.0.0
+pre-commit>=2.20.0
+
+[qt5]
+PyQt5>=5.15.0
+
+[qt6]
+PyQt6>=6.0.0

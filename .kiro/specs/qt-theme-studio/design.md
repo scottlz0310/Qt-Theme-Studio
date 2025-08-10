@@ -525,6 +525,23 @@ class TestAutomation:
 
 ## Implementation Notes
 
+### qt-theme-manager Library Installation
+
+**重要**: qt-theme-managerライブラリは必ずGitHubリポジトリから直接インストールする必要があります。
+
+```bash
+# 正しいインストール方法
+pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+
+# PyPIからのインストールは使用しない
+# pip install qt-theme-manager  # ❌ 使用禁止
+```
+
+この制約は以下の理由によります：
+- 最新の機能とバグ修正が含まれている
+- Qt-Theme-Studioとの互換性が保証されている
+- 開発版の機能が必要な場合がある
+
 ### Qt Framework Auto-Detection
 ```python
 def detect_qt_framework():

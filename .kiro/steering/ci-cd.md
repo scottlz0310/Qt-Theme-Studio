@@ -74,6 +74,22 @@ pre-commit run --all-files
 - セキュリティアラートの作成
 - 自動修正プルリクエストの作成
 
+## 依存関係管理
+
+**重要な依存関係インストール**:
+```bash
+# qt-theme-managerは必ずGitHubから直接インストール
+pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+
+# その他の開発依存関係
+pip install -e .[dev]
+```
+
+**CI/CDでの依存関係**:
+- GitHubワークフローでは必ずGitリポジトリからqt-theme-managerをインストール
+- PyPIからのインストールは使用しない
+- requirements.txtやpyproject.tomlでGitリポジトリURLを指定
+
 ## 開発ワークフロー
 
 ### 日常開発

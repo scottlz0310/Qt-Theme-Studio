@@ -14,9 +14,14 @@
 - qt-theme-managerライブラリの自動検出機能を活用
 
 **依存ライブラリ**:
-- qt-theme-manager: コアテーマ管理機能
+- qt-theme-manager: コアテーマ管理機能（GitHubから直接インストール）
 - pillow: 画像処理・プレビュー生成
 - colorama: コンソール出力の色付け
+
+**重要なインストール注意事項**:
+- qt-theme-managerは必ずGitHubリポジトリから直接インストールする
+- インストールコマンド: `pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git`
+- PyPIからのインストールは使用しない
 
 ## ビルドシステム
 
@@ -61,7 +66,7 @@
 **開発環境セットアップ**:
 ```bash
 pip install -e .[dev]
-pip install qt-theme-manager
+pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
 ```
 
 **アプリケーション起動**:

@@ -1,0 +1,252 @@
+[32mpython3-pyside2.qtconcurrent[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Concurrent module (Python 3)
+
+[32mpython3-pyside2.qtcore[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 core module (Python 3)
+
+[32mpython3-pyside2.qtgui[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Gui module (Python 3)
+
+[32mpython3-pyside2.qthelp[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Help module (Python 3)
+
+[32mpython3-pyside2.qtmultimedia[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Multimedia module (Python 3)
+
+[32mpython3-pyside2.qtmultimediawidgets[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 MultimediaWidgets module (Python 3)
+
+[32mpython3-pyside2.qtnetwork[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Network module (Python 3)
+
+[32mpython3-pyside2.qtopengl[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 OpenGL module (Python 3)
+
+[32mpython3-pyside2.qtopenglfunctions[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Open GL Functions (Python 3)
+
+[32mpython3-pyside2.qtprintsupport[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 PrintSupport module (Python 3)
+
+[32mpython3-pyside2.qtqml[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Qml module (Python 3)
+
+[32mpython3-pyside2.qtquick[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Quick module (Python 3)
+
+[32mpython3-pyside2.qtsql[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Sql module (Python 3)
+
+[32mpython3-pyside2.qtsvg[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Svg module (Python 3)
+
+[32mpython3-pyside2.qttest[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Test module (Python 3)
+
+[32mpython3-pyside2.qtuitools[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 UiTools module (Python 3)
+
+[32mpython3-pyside2.qtwebchannel[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 WebChannel module (Python 3)
+
+[32mpython3-pyside2.qtwebengine[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Web Engine (Python 3)
+
+[32mpython3-pyside2.qtwebenginecore[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 WebEngineCore module (Python 3)
+
+[32mpython3-pyside2.qtwebenginewidgets[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 WebEngineWidgets module (Python 3)
+
+[32mpython3-pyside2.qtwebsockets[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 WebSockets module (Python 3)
+
+[32mpython3-pyside2.qtwidgets[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Widgets module (Python 3)
+
+[32mpython3-pyside2.qtxml[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 Xml module (Python 3)
+
+[32mpython3-pyside2.qtxmlpatterns[0m/plucky 5.15.16-3.1build1 amd64
+  Python bindings for Qt5 XmlPatterns module (Python 3)
+
+[32mpython3-pyside6.qt3danimation[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 3DAnimation module (Python 3)
+
+[32mpython3-pyside6.qt3dcore[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 3DCore module (Python 3)
+
+[32mpython3-pyside6.qt3dextras[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 3DExtras module (Python 3)
+
+[32mpython3-pyside6.qt3dinput[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 3DInput module (Python 3)
+
+[32mpython3-pyside6.qt3dlogic[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 3DLogic module (Python 3)
+
+[32mpython3-pyside6.qt3drender[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 3DRender module (Python 3)
+
+[32mpython3-pyside6.qtasyncio[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 ASyncIO (Python 3)
+
+[32mpython3-pyside6.qtbluetooth[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Bluetooth (Python 3)
+
+[32mpython3-pyside6.qtcharts[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Charts module (Python 3)
+
+[32mpython3-pyside6.qtconcurrent[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Concurrent module (Python 3)
+
+[32mpython3-pyside6.qtcore[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 core module (Python 3)
+
+[32mpython3-pyside6.qtdatavisualization[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Data Visualization (Python 3)
+
+[32mpython3-pyside6.qtdbus[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 DBus (Python 3)
+
+[32mpython3-pyside6.qtdesigner[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Designer (Python 3)
+
+[32mpython3-pyside6.qtgraphs[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Graphs (Python 3)
+
+[32mpython3-pyside6.qtgraphswidgets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 GraphsWidgets (Python 3)
+
+[32mpython3-pyside6.qtgui[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Gui module (Python 3)
+
+[32mpython3-pyside6.qthelp[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Help module (Python 3)
+
+[32mpython3-pyside6.qthttpserver[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 HttpServer (Python 3)
+
+[32mpython3-pyside6.qtlocation[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Location module (Python 3)
+
+[32mpython3-pyside6.qtmultimedia[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Multimedia module (Python 3)
+
+[32mpython3-pyside6.qtmultimediawidgets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 MultimediaWidgets module (Python 3)
+
+[32mpython3-pyside6.qtnetwork[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Network module (Python 3)
+
+[32mpython3-pyside6.qtnetworkauth[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 NetworkAuth (Python 3)
+
+[32mpython3-pyside6.qtnfc[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 NFC (Python 3)
+
+[32mpython3-pyside6.qtopengl[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 OpenGL module (Python 3)
+
+[32mpython3-pyside6.qtopenglwidgets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 OpenGLWidgets module (Python 3)
+
+[32mpython3-pyside6.qtpdf[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 PDF module (Python 3)
+
+[32mpython3-pyside6.qtpdfwidgets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 PDF Widgets module (Python 3)
+
+[32mpython3-pyside6.qtpositioning[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Positioning module (Python 3)
+
+[32mpython3-pyside6.qtprintsupport[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 PrintSupport module (Python 3)
+
+[32mpython3-pyside6.qtqml[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Qml module (Python 3)
+
+[32mpython3-pyside6.qtquick[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Quick module (Python 3)
+
+[32mpython3-pyside6.qtquick3d[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Quick3D (Python 3)
+
+[32mpython3-pyside6.qtquickcontrols2[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 QuickControls2 (Python 3)
+
+[32mpython3-pyside6.qtquicktest[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 QuickTest (Python 3)
+
+[32mpython3-pyside6.qtquickwidgets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 QuickWidgets module (Python 3)
+
+[32mpython3-pyside6.qtremoteobjects[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 RemoteObjects (Python 3)
+
+[32mpython3-pyside6.qtscxml[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Scxml (Python 3)
+
+[32mpython3-pyside6.qtsensors[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Sensors module (Python 3)
+
+[32mpython3-pyside6.qtserialbus[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 SerialBus (Python 3)
+
+[32mpython3-pyside6.qtserialport[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 SerialPort (Python 3)
+
+[32mpython3-pyside6.qtspatialaudio[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Spatial Audio (Python 3)
+
+[32mpython3-pyside6.qtsql[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Sql module (Python 3)
+
+[32mpython3-pyside6.qtstatemachine[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 State Machine (Python 3)
+
+[32mpython3-pyside6.qtsvg[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Svg module (Python 3)
+
+[32mpython3-pyside6.qtsvgwidgets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 SvgWidgets module (Python 3)
+
+[32mpython3-pyside6.qttest[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Test module (Python 3)
+
+[32mpython3-pyside6.qttexttospeech[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 TextToSpeech module (Python 3)
+
+[32mpython3-pyside6.qtuitools[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 UiTools module (Python 3)
+
+[32mpython3-pyside6.qtwebchannel[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 WebChannel module (Python 3)
+
+[32mpython3-pyside6.qtwebenginecore[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 WebEngineCore module (Python 3)
+
+[32mpython3-pyside6.qtwebenginequick[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 WebEngineQuick module (Python 3)
+
+[32mpython3-pyside6.qtwebenginewidgets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 WebEngineWidgets module (Python 3)
+
+[32mpython3-pyside6.qtwebsockets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 WebSockets module (Python 3)
+
+[32mpython3-pyside6.qtwebview[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 WebView module (Python 3)
+
+[32mpython3-pyside6.qtwidgets[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Widgets module (Python 3)
+
+[32mpython3-pyside6.qtxml[0m/plucky 6.8.3-0ubuntu1 amd64
+  Python bindings for Qt 6 Xml module (Python 3)
+
+[32mpython3-qdarkstyle[0m/plucky 3.2.3+ds1-3 all
+  Dark stylesheet for Python-based Qt applications
+
+[32mpython3-qtawesome[0m/plucky 1.3.1+dfsg-3syncable3 all
+  iconic fonts in PyQt and PySide applications (Python 3)
+
