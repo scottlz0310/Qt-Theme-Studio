@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qt-Theme-Studio ユーザーマニュアル</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        
+        h3 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .toc {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-left: none;
+            padding-left: 0;
+        }
+        
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            margin-bottom: 8px;
+        }
+        
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        .feature-box {
+            background-color: #e8f4fd;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .tip-box {
+            background-color: #d4edda;
+            border: 1px solid #28a745;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        
+        pre {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .screenshot {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .screenshot img {
+            max-width: 100%;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .keyboard-shortcut {
+            background-color: #6c757d;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Qt-Theme-Studio ユーザーマニュアル</h1>
+        
+        <div class="toc">
+            <h2>目次</h2>
+            <ul>
+                <li><a href="#introduction">1. はじめに</a></li>
+                <li><a href="#installation">2. インストールと起動</a></li>
+                <li><a href="#interface">3. インターフェース概要</a></li>
+                <li><a href="#basic-usage">4. 基本的な使い方</a></li>
+                <li><a href="#theme-editor">5. テーマエディター</a></li>
+                <li><a href="#zebra-editor">6. ゼブラパターンエディター</a></li>
+                <li><a href="#preview-system">7. プレビューシステム</a></li>
+                <li><a href="#theme-management">8. テーマ管理</a></li>
+                <li><a href="#import-export">9. インポート・エクスポート</a></li>
+                <li><a href="#accessibility">10. アクセシビリティ機能</a></li>
+                <li><a href="#shortcuts">11. キーボードショートカット</a></li>
+                <li><a href="#troubleshooting">12. トラブルシューティング</a></li>
+            </ul>
+        </div>
+        
+        <h2 id="introduction">1. はじめに</h2>
+        
+        <p>Qt-Theme-Studioは、Qtアプリケーション向けの統合テーマエディターです。直感的なビジュアルインターフェースを使用して、美しくアクセシブルなテーマを効率的に作成できます。</p>
+        
+        <div class="feature-box">
+            <h3>主な機能</h3>
+            <ul>
+                <li><strong>統合テーマエディター</strong>: 色、フォント、プロパティの直感的な編集</li>
+                <li><strong>ゼブラパターンエディター</strong>: WCAG準拠のアクセシブルなテーマ作成</li>
+                <li><strong>ライブプレビュー</strong>: リアルタイムでのテーマ確認</li>
+                <li><strong>テーマ管理</strong>: インポート、エクスポート、テンプレート機能</li>
+                <li><strong>多形式対応</strong>: JSON、QSS、CSS形式での入出力</li>
+            </ul>
+        </div>
+        
+        <h3>対応フレームワーク</h3>
+        <ul>
+            <li>PySide6（推奨）</li>
+            <li>PyQt6</li>
+            <li>PyQt5</li>
+        </ul>
+        
+        <h2 id="installation">2. インストールと起動</h2>
+        
+        <h3>システム要件</h3>
+        <ul>
+            <li>Python 3.8以上</li>
+            <li>PySide6、PyQt6、またはPyQt5のいずれか</li>
+            <li>qt-theme-managerライブラリ</li>
+        </ul>
+        
+        <h3>インストール手順</h3>
+        
+        <div class="warning-box">
+            <strong>重要:</strong> qt-theme-managerライブラリは必ずGitHubリポジトリから直接インストールしてください。
+        </div>
+        
+        <pre><code># 1. Qt-Theme-Studioのインストール
+pip install -e .
+
+# 2. qt-theme-managerライブラリのインストール（必須）
+pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+
+# 3. Qtフレームワークのインストール（いずれか一つ）
+pip install PySide6  # 推奨
+# または
+pip install PyQt6
+# または
+pip install PyQt5</code></pre>
+        
+        <h3>アプリケーションの起動</h3>
+        
+        <p>以下のいずれかの方法でアプリケーションを起動できます：</p>
+        
+        <pre><code># 統合ランチャーを使用
+python launch_theme_studio.py
+
+# モジュールとして実行
+python -m qt_theme_studio</code></pre>
+        
+        <div class="tip-box">
+            <strong>ヒント:</strong> 初回起動時には、利用可能なQtフレームワークの自動検出が行われます。
+        </div>
+        
+        <h2 id="interface">3. インターフェース概要</h2>
+        
+        <h3>メインウィンドウの構成</h3>
+        
+        <p>Qt-Theme-Studioのメインウィンドウは以下の要素で構成されています：</p>
+        
+        <ul>
+            <li><strong>メニューバー</strong>: 主要な機能へのアクセス</li>
+            <li><strong>ツールバー</strong>: よく使用する機能のクイックアクセス</li>
+            <li><strong>作業エリア</strong>: エディターとプレビューの表示領域</li>
+            <li><strong>ステータスバー</strong>: 現在の状態と操作結果の表示</li>
+        </ul>
+        
+        <h3>メニュー構成</h3>
+        
+        <table>
+            <tr>
+                <th>メニュー</th>
+                <th>主な機能</th>
+            </tr>
+            <tr>
+                <td>ファイル</td>
+                <td>新規作成、開く、保存、エクスポート、インポート</td>
+            </tr>
+            <tr>
+                <td>編集</td>
+                <td>Undo/Redo、設定</td>
+            </tr>
+            <tr>
+                <td>表示</td>
+                <td>プレビュー、ツールバー、ステータスバーの表示切り替え</td>
+            </tr>
+            <tr>
+                <td>ツール</td>
+                <td>ゼブラパターンエディター、テーマギャラリー</td>
+            </tr>
+            <tr>
+                <td>ヘルプ</td>
+                <td>ヘルプ、ユーザーマニュアル、バージョン情報</td>
+            </tr>
+        </table>
+        
+        <h2 id="basic-usage">4. 基本的な使い方</h2>
+        
+        <h3>新規テーマの作成</h3>
+        
+        <ol>
+            <li><strong>新規テーマの開始</strong>
+                <ul>
+                    <li>「ファイル」→「新規テーマ」を選択</li>
+                    <li>またはツールバーの「新規」ボタンをクリック</li>
+                    <li>キーボードショートカット: <span class="keyboard-shortcut">Ctrl+N</span></li>
+                </ul>
+            </li>
+            <li><strong>テーマ名の設定</strong>
+                <p>テーマ名入力ダイアログが表示されます。わかりやすい名前を入力してください。</p>
+            </li>
+            <li><strong>ベーステンプレートの選択</strong>
+                <ul>
+                    <li>空のテーマ: ゼロから作成</li>
+                    <li>ライトテーマ: 明るい色調のベース</li>
+                    <li>ダークテーマ: 暗い色調のベース</li>
+                    <li>ハイコントラスト: アクセシビリティ重視</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <h3>テーマの保存</h3>
+        
+        <ul>
+            <li><strong>基本的な保存</strong>: <span class="keyboard-shortcut">Ctrl+S</span></li>
+            <li><strong>名前を付けて保存</strong>: <span class="keyboard-shortcut">Ctrl+Shift+S</span></li>
+        </ul>
+        
+        <div class="tip-box">
+            <strong>ヒント:</strong> 作業内容は定期的に自動保存されます。予期しない終了時でも、次回起動時に復旧オプションが表示されます。
+        </div>
+        
+        <h2 id="theme-editor">5. テーマエディター</h2>
+        
+        <p>テーマエディターは、テーマの色、フォント、プロパティを直感的に編集するためのメイン機能です。</p>
+        
+        <h3>色の設定</h3>
+        
+        <h4>カラーピッカーの使用</h4>
+        <ul>
+            <li><strong>カラーホイール</strong>: 直感的な色選択</li>
+            <li><strong>RGB値入力</strong>: 数値での正確な指定</li>
+            <li><strong>16進値入力</strong>: #RRGGBB形式での指定</li>
+            <li><strong>HSV値入力</strong>: 色相・彩度・明度での指定</li>
+        </ul>
+        
+        <h4>設定可能な色の種類</h4>
+        <ul>
+            <li>プライマリ色: メインの色調</li>
+            <li>セカンダリ色: アクセント色</li>
+            <li>背景色: ウィンドウの背景</li>
+            <li>テキスト色: 文字の色</li>
+            <li>ボーダー色: 境界線の色</li>
+            <li>選択色: 選択時のハイライト</li>
+        </ul>
+        
+        <h3>フォントの設定</h3>
+        
+        <h4>フォント選択オプション</h4>
+        <ul>
+            <li><strong>フォントファミリー</strong>: システムフォントから選択</li>
+            <li><strong>フォントサイズ</strong>: ポイント単位またはピクセル単位</li>
+            <li><strong>フォントスタイル</strong>: 太字、斜体、下線、取り消し線</li>
+        </ul>
+        
+        <h4>用途別フォント設定</h4>
+        <ul>
+            <li>メニューフォント: メニューバー、コンテキストメニュー</li>
+            <li>ボタンフォント: プッシュボタン、チェックボックス</li>
+            <li>ラベルフォント: 静的テキスト表示</li>
+            <li>入力フォント: テキストフィールド、テキストエリア</li>
+            <li>リストフォント: リスト、ツリー、テーブル</li>
+        </ul>
+        
+        <h3>プロパティの編集</h3>
+        
+        <p>プロパティエディターでは、テーマの詳細な設定を行えます。</p>
+        
+        <h4>プロパティの種類</h4>
+        <ul>
+            <li><strong>色プロパティ</strong>: 背景色、文字色、ボーダー色など</li>
+            <li><strong>サイズプロパティ</strong>: 幅、高さ、マージン、パディング</li>
+            <li><strong>フォントプロパティ</strong>: フォントファミリー、サイズ、スタイル</li>
+            <li><strong>効果プロパティ</strong>: 影、グラデーション、透明度</li>
+        </ul>
+        
+        <h2 id="zebra-editor">6. ゼブラパターンエディター</h2>
+        
+        <p>ゼブラパターンエディターは、WCAG準拠のアクセシブルなテーマを作成するための専用機能です。</p>
+        
+        <h3>WCAG準拠について</h3>
+        
+        <p>WCAG（Web Content Accessibility Guidelines）は、Webコンテンツのアクセシビリティに関する国際的なガイドラインです。</p>
+        
+        <h4>アクセシビリティレベル</h4>
+        <ul>
+            <li><strong>レベルAA（推奨）</strong>
+                <ul>
+                    <li>コントラスト比: 4.5:1以上（通常テキスト）</li>
+                    <li>コントラスト比: 3:1以上（大きなテキスト）</li>
+                </ul>
+            </li>
+            <li><strong>レベルAAA（最高レベル）</strong>
+                <ul>
+                    <li>コントラスト比: 7:1以上（通常テキスト）</li>
+                    <li>コントラスト比: 4.5:1以上（大きなテキスト）</li>
+                </ul>
+            </li>
+        </ul>
+        
+        <h3>コントラスト比の計算</h3>
+        
+        <p>システムが自動的にコントラスト比を計算し、WCAG適合レベルを表示します。</p>
+        
+        <h4>判定基準の色分け</h4>
+        <ul>
+            <li><strong>緑色</strong>: WCAG AAA準拠（7:1以上）</li>
+            <li><strong>黄色</strong>: WCAG AA準拠（4.5:1以上）</li>
+            <li><strong>赤色</strong>: 基準未満（改善が必要）</li>
+        </ul>
+        
+        <h3>色の改善提案</h3>
+        
+        <p>コントラスト比が不十分な場合、システムが自動的に改善案を提案します。</p>
+        
+        <h4>改善方法</h4>
+        <ul>
+            <li>明度調整: 色の明るさを調整</li>
+            <li>彩度調整: 色の鮮やかさを調整</li>
+            <li>色相変更: 近い色相への変更</li>
+            <li>代替色提案: 全く異なる色の提案</li>
+        </ul>
+        
+        <h2 id="preview-system">7. プレビューシステム</h2>
+        
+        <p>ライブプレビューシステムでは、作成中のテーマが実際のQtアプリケーションでどのように表示されるかを確認できます。</p>
+        
+        <h3>プレビュー機能</h3>
+        
+        <ul>
+            <li><strong>リアルタイム更新</strong>: テーマ変更時の自動反映（500ms以内）</li>
+            <li><strong>包括的なウィジェット表示</strong>: 主要なQtウィジェットを網羅</li>
+            <li><strong>状態テスト</strong>: 有効/無効、選択/非選択状態の確認</li>
+        </ul>
+        
+        <h3>表示ウィジェット</h3>
+        
+        <p>プレビューでは以下のウィジェットが表示されます：</p>
+        
+        <ul>
+            <li>QPushButton（通常、無効状態）</li>
+            <li>QLineEdit（通常、フォーカス状態）</li>
+            <li>QComboBox（開閉状態）</li>
+            <li>QCheckBox、QRadioButton</li>
+            <li>QSlider、QProgressBar</li>
+            <li>QListWidget、QTreeWidget、QTableWidget</li>
+            <li>QTabWidget、QGroupBox</li>
+        </ul>
+        
+        <h3>プレビュー画像のエクスポート</h3>
+        
+        <p>作成したテーマのプレビュー画像を保存できます。</p>
+        
+        <h4>対応形式</h4>
+        <ul>
+            <li><strong>PNG</strong>: 高品質、透明度対応（推奨）</li>
+            <li><strong>JPEG</strong>: 小サイズ、写真向け</li>
+            <li><strong>BMP</strong>: 無圧縮、高品質</li>
+            <li><strong>SVG</strong>: ベクター形式、拡大縮小対応</li>
+        </ul>
+        
+        <h2 id="theme-management">8. テーマ管理</h2>
+        
+        <h3>テーマギャラリー</h3>
+        
+        <p>保存されたテーマを一覧表示し、効率的に管理できます。</p>
+        
+        <h4>アクセス方法</h4>
+        <ul>
+            <li>「ツール」→「テーマギャラリー」</li>
+            <li>キーボードショートカット: <span class="keyboard-shortcut">Ctrl+G</span></li>
+        </ul>
+        
+        <h4>表示形式</h4>
+        <ul>
+            <li><strong>サムネイル表示</strong>: 大、中、小サイズでの表示</li>
+            <li><strong>リスト表示</strong>: テーマ名、作成日、サイズを表示</li>
+        </ul>
+        
+        <h3>検索・フィルタリング</h3>
+        
+        <ul>
+            <li><strong>名前検索</strong>: テーマ名での検索</li>
+            <li><strong>タグ検索</strong>: 設定されたタグでの検索</li>
+            <li><strong>カテゴリフィルター</strong>: ライト、ダーク、ハイコントラスト</li>
+            <li><strong>アクセシビリティレベル</strong>: AA、AAA準拠での絞り込み</li>
+        </ul>
+        
+        <h3>最近使用したテーマ</h3>
+        
+        <p>最近編集したテーマに素早くアクセスできます。</p>
+        
+        <ul>
+            <li>「ファイル」→「最近使用したテーマ」</li>
+            <li>最大10個のテーマが記録されます</li>
+            <li>キーボードショートカット: <span class="keyboard-shortcut">Ctrl+1〜9</span></li>
+        </ul>
+        
+        <h2 id="import-export">9. インポート・エクスポート</h2>
+        
+        <h3>対応形式</h3>
+        
+        <table>
+            <tr>
+                <th>形式</th>
+                <th>インポート</th>
+                <th>エクスポート</th>
+                <th>用途</th>
+            </tr>
+            <tr>
+                <td>JSON</td>
+                <td>○</td>
+                <td>○</td>
+                <td>Qt-Theme-Studio標準形式</td>
+            </tr>
+            <tr>
+                <td>QSS</td>
+                <td>○</td>
+                <td>○</td>
+                <td>Qt Style Sheet形式</td>
+            </tr>
+            <tr>
+                <td>CSS</td>
+                <td>○</td>
+                <td>○</td>
+                <td>Webアプリケーション用</td>
+            </tr>
+            <tr>
+                <td>Python</td>
+                <td>×</td>
+                <td>○</td>
+                <td>プログラムコード形式</td>
+            </tr>
+            <tr>
+                <td>C++</td>
+                <td>×</td>
+                <td>○</td>
+                <td>Qt C++アプリケーション用</td>
+            </tr>
+        </table>
+        
+        <h3>エクスポート手順</h3>
+        
+        <ol>
+            <li>「ファイル」→「エクスポート」を選択</li>
+            <li>出力形式を選択</li>
+            <li>保存場所とファイル名を指定</li>
+            <li>エクスポート設定を調整（オプション）</li>
+            <li>「保存」をクリック</li>
+        </ol>
+        
+        <h3>インポート手順</h3>
+        
+        <ol>
+            <li>「ファイル」→「インポート」を選択</li>
+            <li>インポートする形式を選択</li>
+            <li>ファイルを選択</li>
+            <li>インポート設定を調整（オプション）</li>
+            <li>「開く」をクリック</li>
+        </ol>
+        
+        <div class="warning-box">
+            <strong>注意:</strong> インポート時に現在のテーマは上書きされます。必要に応じて事前に保存してください。
+        </div>
+        
+        <h2 id="accessibility">10. アクセシビリティ機能</h2>
+        
+        <h3>色覚サポート</h3>
+        
+        <ul>
+            <li><strong>色覚異常シミュレーション</strong>: 異なる色覚での表示確認</li>
+            <li><strong>推奨色の組み合わせ</strong>: 色覚に配慮した色選択</li>
+            <li><strong>パターンと形状の活用</strong>: 色のみに依存しない情報伝達</li>
+        </ul>
+        
+        <h3>視認性の向上</h3>
+        
+        <ul>
+            <li><strong>高コントラスト設定</strong>: 視認性を重視した色設定</li>
+            <li><strong>大きなフォント対応</strong>: 読みやすいフォントサイズ</li>
+            <li><strong>明確な境界線</strong>: 要素の区別を明確にする</li>
+        </ul>
+        
+        <h3>操作性の向上</h3>
+        
+        <ul>
+            <li><strong>キーボードナビゲーション</strong>: マウスなしでの操作</li>
+            <li><strong>フォーカス表示</strong>: 現在の操作位置を明確に表示</li>
+            <li><strong>適切なクリック領域</strong>: 操作しやすいボタンサイズ</li>
+        </ul>
+        
+        <h2 id="shortcuts">11. キーボードショートカット</h2>
+        
+        <h3>ファイル操作</h3>
+        <table>
+            <tr>
+                <th>操作</th>
+                <th>ショートカット</th>
+            </tr>
+            <tr>
+                <td>新規テーマ作成</td>
+                <td><span class="keyboard-shortcut">Ctrl+N</span></td>
+            </tr>
+            <tr>
+                <td>テーマを開く</td>
+                <td><span class="keyboard-shortcut">Ctrl+O</span></td>
+            </tr>
+            <tr>
+                <td>テーマを保存</td>
+                <td><span class="keyboard-shortcut">Ctrl+S</span></td>
+            </tr>
+            <tr>
+                <td>名前を付けて保存</td>
+                <td><span class="keyboard-shortcut">Ctrl+Shift+S</span></td>
+            </tr>
+            <tr>
+                <td>エクスポート</td>
+                <td><span class="keyboard-shortcut">Ctrl+E</span></td>
+            </tr>
+        </table>
+        
+        <h3>編集操作</h3>
+        <table>
+            <tr>
+                <th>操作</th>
+                <th>ショートカット</th>
+            </tr>
+            <tr>
+                <td>元に戻す（Undo）</td>
+                <td><span class="keyboard-shortcut">Ctrl+Z</span></td>
+            </tr>
+            <tr>
+                <td>やり直し（Redo）</td>
+                <td><span class="keyboard-shortcut">Ctrl+Y</span></td>
+            </tr>
+            <tr>
+                <td>コピー</td>
+                <td><span class="keyboard-shortcut">Ctrl+C</span></td>
+            </tr>
+            <tr>
+                <td>貼り付け</td>
+                <td><span class="keyboard-shortcut">Ctrl+V</span></td>
+            </tr>
+        </table>
+        
+        <h3>表示操作</h3>
+        <table>
+            <tr>
+                <th>操作</th>
+                <th>ショートカット</th>
+            </tr>
+            <tr>
+                <td>プレビュー表示切り替え</td>
+                <td><span class="keyboard-shortcut">F5</span></td>
+            </tr>
+            <tr>
+                <td>フルスクリーン切り替え</td>
+                <td><span class="keyboard-shortcut">F11</span></td>
+            </tr>
+            <tr>
+                <td>テーマギャラリー</td>
+                <td><span class="keyboard-shortcut">Ctrl+G</span></td>
+            </tr>
+            <tr>
+                <td>設定を開く</td>
+                <td><span class="keyboard-shortcut">Ctrl+,</span></td>
+            </tr>
+        </table>
+        
+        <h3>ヘルプ</h3>
+        <table>
+            <tr>
+                <th>操作</th>
+                <th>ショートカット</th>
+            </tr>
+            <tr>
+                <td>ヘルプを開く</td>
+                <td><span class="keyboard-shortcut">F1</span></td>
+            </tr>
+        </table>
+        
+        <h2 id="troubleshooting">12. トラブルシューティング</h2>
+        
+        <h3>起動時の問題</h3>
+        
+        <h4>アプリケーションが起動しない</h4>
+        <ol>
+            <li><strong>Qtフレームワークの確認</strong>
+                <pre><code>python -c "import PySide6; print('PySide6 OK')"</code></pre>
+            </li>
+            <li><strong>qt-theme-managerの確認</strong>
+                <pre><code>python -c "import qt_theme_manager; print('qt-theme-manager OK')"</code></pre>
+            </li>
+            <li><strong>Pythonバージョンの確認</strong>
+                <pre><code>python --version</code></pre>
+                <p>Python 3.8以上が必要です。</p>
+            </li>
+        </ol>
+        
+        <h4>「Qtフレームワークが見つかりません」エラー</h4>
+        <p>以下のコマンドでQtフレームワークをインストールしてください：</p>
+        <pre><code>pip install PySide6</code></pre>
+        
+        <h3>テーマ編集の問題</h3>
+        
+        <h4>色が正しく表示されない</h4>
+        <ul>
+            <li>プレビューを手動更新: <span class="keyboard-shortcut">F5</span></li>
+            <li>ディスプレイの色設定を確認</li>
+            <li>色空間設定（RGB、HSV）を確認</li>
+        </ul>
+        
+        <h4>プレビューが更新されない</h4>
+        <ul>
+            <li>設定で自動更新が有効か確認</li>
+            <li>メモリ不足の場合は他のアプリケーションを終了</li>
+            <li>アプリケーションを再起動</li>
+        </ul>
+        
+        <h3>ファイル操作の問題</h3>
+        
+        <h4>テーマファイルが開けない</h4>
+        <ul>
+            <li>ファイル形式が対応形式（JSON、QSS、CSS）か確認</li>
+            <li>ファイルの読み取り権限があるか確認</li>
+            <li>ファイルが破損していないか確認</li>
+            <li>UTF-8エンコーディングで保存されているか確認</li>
+        </ul>
+        
+        <h4>保存ができない</h4>
+        <ul>
+            <li>保存先フォルダの書き込み権限を確認</li>
+            <li>十分なディスク容量があるか確認</li>
+            <li>ファイル名に使用できない文字が含まれていないか確認</li>
+        </ul>
+        
+        <h3>パフォーマンスの問題</h3>
+        
+        <h4>動作が重い</h4>
+        <ul>
+            <li>メモリ使用量をタスクマネージャーで確認</li>
+            <li>プレビューの更新間隔を調整（設定画面）</li>
+            <li>GPU加速を有効にする（設定画面）</li>
+            <li>Undo/Redo履歴の上限を下げる（設定画面）</li>
+        </ul>
+        
+        <h3>設定のリセット</h3>
+        
+        <p>問題が解決しない場合は、設定をリセットしてください：</p>
+        
+        <ol>
+            <li>アプリケーションを終了</li>
+            <li>設定ファイルを削除:
+                <ul>
+                    <li>Windows: <code>%USERPROFILE%\.qt_theme_studio\settings.json</code></li>
+                    <li>macOS/Linux: <code>~/.qt_theme_studio/settings.json</code></li>
+                </ul>
+            </li>
+            <li>アプリケーションを再起動</li>
+        </ol>
+        
+        <h3>サポート</h3>
+        
+        <p>問題が解決しない場合は、以下のリソースをご利用ください：</p>
+        
+        <ul>
+            <li><strong>GitHub Issues</strong>: バグレポートや機能要望</li>
+            <li><strong>ドキュメント</strong>: 最新のドキュメントを確認</li>
+            <li><strong>ログファイル</strong>: <code>~/.qt_theme_studio/logs/</code> の内容を確認</li>
+        </ul>
+        
+        <div class="footer">
+            <p>Qt-Theme-Studio ユーザーマニュアル v1.0.0</p>
+            <p>© 2024 Qt-Theme-Studio Project</p>
+        </div>
+    </div>
+</body>
+</html>

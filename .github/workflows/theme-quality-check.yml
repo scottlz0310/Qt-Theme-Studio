@@ -1,0 +1,254 @@
+name: Theme Quality Check
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.json'
+      - 'qt_theme_studio/**'
+      - 'tests/**'
+      - '.github/workflows/theme-quality-check.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.json'
+      - 'qt_theme_studio/**'
+      - 'tests/**'
+      - '.github/workflows/theme-quality-check.yml'
+  workflow_dispatch:
+    inputs:
+      theme_file:
+        description: 'テーマファイルパス（例: examples/sample_theme.json）'
+        required: false
+        default: ''
+
+jobs:
+  theme-quality-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, '3.10', 3.11]
+    
+    steps:
+    - name: チェックアウト
+      uses: actions/checkout@v4
+    
+    - name: Python ${{ matrix.python-version }} セットアップ
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: 依存関係のインストール
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]
+        # qt-theme-managerをGitHubから直接インストール
+        pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+    
+    - name: テーマファイル検索
+      id: find-themes
+      run: |
+        # テーマファイルを検索
+        if [ -n "${{ github.event.inputs.theme_file }}" ]; then
+          # 手動実行の場合は指定されたファイルを使用
+          echo "theme_files=${{ github.event.inputs.theme_file }}" >> $GITHUB_OUTPUT
+        else
+          # 自動実行の場合は変更されたJSONファイルを検索
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # PRの場合は変更されたファイルのみ
+            theme_files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.json$' | head -10 || echo "")
+          else
+            # pushの場合は最近のコミットで変更されたファイル
+            theme_files=$(git diff --name-only HEAD~1 HEAD | grep '\.json$' | head -10 || echo "")
+          fi
+          
+          # テーマファイルが見つからない場合はサンプルファイルを使用
+          if [ -z "$theme_files" ]; then
+            if [ -f "examples/sample_theme.json" ]; then
+              theme_files="examples/sample_theme.json"
+            elif [ -f "tests/fixtures/test_theme.json" ]; then
+              theme_files="tests/fixtures/test_theme.json"
+            else
+              theme_files=""
+            fi
+          fi
+          
+          echo "theme_files=$theme_files" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: テーマ品質チェック実行
+      if: steps.find-themes.outputs.theme_files != ''
+      run: |
+        echo "検出されたテーマファイル: ${{ steps.find-themes.outputs.theme_files }}"
+        
+        # 各テーマファイルに対して品質チェックを実行
+        exit_code=0
+        for theme_file in ${{ steps.find-themes.outputs.theme_files }}; do
+          if [ -f "$theme_file" ]; then
+            echo "===================="
+            echo "品質チェック: $theme_file"
+            echo "===================="
+            
+            # 品質チェック実行
+            python -m qt_theme_studio.cli quality-check "$theme_file" \
+              --output "quality_report_$(basename $theme_file .json).json" \
+              --threshold 70.0
+            
+            # 終了コードを保存
+            if [ $? -ne 0 ]; then
+              exit_code=1
+            fi
+            
+            echo ""
+          else
+            echo "警告: テーマファイルが見つかりません: $theme_file"
+          fi
+        done
+        
+        exit $exit_code
+    
+    - name: 自動テストスイート実行
+      if: steps.find-themes.outputs.theme_files != ''
+      run: |
+        # 各テーマファイルに対して自動テストを実行
+        exit_code=0
+        for theme_file in ${{ steps.find-themes.outputs.theme_files }}; do
+          if [ -f "$theme_file" ]; then
+            echo "===================="
+            echo "自動テスト: $theme_file"
+            echo "===================="
+            
+            # 自動テスト実行
+            python -m qt_theme_studio.cli test "$theme_file" \
+              --output "test_results_$(basename $theme_file .json).json" \
+              --iterations 3
+            
+            # 終了コードを保存
+            if [ $? -ne 0 ]; then
+              exit_code=1
+            fi
+            
+            echo ""
+          fi
+        done
+        
+        exit $exit_code
+    
+    - name: CI/CD統合レポート生成
+      if: steps.find-themes.outputs.theme_files != ''
+      run: |
+        # 最初のテーマファイルに対してCI/CDレポートを生成
+        first_theme=$(echo "${{ steps.find-themes.outputs.theme_files }}" | cut -d' ' -f1)
+        if [ -f "$first_theme" ]; then
+          echo "CI/CDレポート生成: $first_theme"
+          
+          python -m qt_theme_studio.cli ci-report "$first_theme" \
+            --output "ci_report.json" \
+            --quality-threshold 70.0 \
+            --test-threshold 80.0
+        fi
+    
+    - name: レポートファイルのアップロード
+      if: always() && steps.find-themes.outputs.theme_files != ''
+      uses: actions/upload-artifact@v3
+      with:
+        name: theme-quality-reports-python-${{ matrix.python-version }}
+        path: |
+          quality_report_*.json
+          test_results_*.json
+          ci_report.json
+        retention-days: 30
+    
+    - name: PR コメント作成
+      if: github.event_name == 'pull_request' && steps.find-themes.outputs.theme_files != ''
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // CI/CDレポートファイルを読み込み
+          let reportContent = '';
+          try {
+            if (fs.existsSync('ci_report.json')) {
+              const report = JSON.parse(fs.readFileSync('ci_report.json', 'utf8'));
+              const summary = report.ci_summary;
+              
+              reportContent = `## 🎨 テーマ品質チェック結果
+              
+**総合判定**: ${summary.overall_status === 'PASS' ? '✅ 合格' : '❌ 不合格'}
+**品質スコア**: ${summary.quality_score.toFixed(1)}/100
+**テスト成功率**: ${summary.test_success_rate.toFixed(1)}%
+
+### 📊 詳細結果
+- Python バージョン: ${{ matrix.python-version }}
+- 検査対象: \`${{ steps.find-themes.outputs.theme_files }}\`
+
+### 💡 推奨事項
+${summary.recommendations.length > 0 ? 
+  summary.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\n') : 
+  '特に推奨事項はありません。'}
+
+---
+*このレポートは自動生成されました。詳細は [Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。*`;
+            } else {
+              reportContent = `## 🎨 テーマ品質チェック結果
+              
+**状態**: ⚠️ レポートファイルが生成されませんでした
+**Python バージョン**: ${{ matrix.python-version }}
+
+詳細は [Actions ログ](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。`;
+            }
+          } catch (error) {
+            reportContent = `## 🎨 テーマ品質チェック結果
+            
+**状態**: ❌ エラーが発生しました
+**Python バージョン**: ${{ matrix.python-version }}
+**エラー**: ${error.message}
+
+詳細は [Actions ログ](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。`;
+          }
+          
+          // 既存のコメントを検索
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const botComment = comments.data.find(comment => 
+            comment.user.type === 'Bot' && 
+            comment.body.includes('🎨 テーマ品質チェック結果')
+          );
+          
+          if (botComment) {
+            // 既存のコメントを更新
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: reportContent
+            });
+          } else {
+            // 新しいコメントを作成
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: reportContent
+            });
+          }
+    
+    - name: 品質チェック失敗時の処理
+      if: failure() && steps.find-themes.outputs.theme_files != ''
+      run: |
+        echo "❌ テーマ品質チェックが失敗しました"
+        echo "詳細なエラー情報は上記のログを確認してください"
+        echo ""
+        echo "一般的な解決方法:"
+        echo "1. テーマファイルの構造を確認してください"
+        echo "2. 必須フィールド（name、version、colors、fonts）が存在することを確認してください"
+        echo "3. 色のコントラスト比がWCAG基準を満たしていることを確認してください"
+        echo "4. ローカルで 'python -m qt_theme_studio.cli quality-check <theme_file>' を実行して詳細を確認してください"
+        
+        exit 1

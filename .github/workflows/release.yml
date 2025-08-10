@@ -1,0 +1,228 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, '3.10', '3.11']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+        pip install -e .[dev]
+    
+    - name: Run tests
+      run: |
+        pytest tests/ -v --tb=short
+      env:
+        QT_QPA_PLATFORM: offscreen
+
+  build:
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+        pip install -e .[dev]
+        pip install build pyinstaller
+    
+    - name: Build package
+      run: |
+        python -m build
+    
+    - name: Build executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        pyinstaller --onefile --windowed --name qt-theme-studio launch_theme_studio.py
+        mkdir dist-exe
+        copy dist\qt-theme-studio.exe dist-exe\
+        copy README.md dist-exe\
+        copy INSTALL.md dist-exe\
+        copy RELEASE_NOTES.md dist-exe\
+    
+    - name: Build executable (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        pyinstaller --onefile --windowed --name qt-theme-studio launch_theme_studio.py
+        mkdir dist-exe
+        cp dist/qt-theme-studio dist-exe/
+        cp README.md dist-exe/
+        cp INSTALL.md dist-exe/
+        cp RELEASE_NOTES.md dist-exe/
+    
+    - name: Build executable (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        pyinstaller --onefile --name qt-theme-studio launch_theme_studio.py
+        mkdir dist-exe
+        cp dist/qt-theme-studio dist-exe/
+        cp README.md dist-exe/
+        cp INSTALL.md dist-exe/
+        cp RELEASE_NOTES.md dist-exe/
+    
+    - name: Create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd dist-exe
+        7z a ../qt-theme-studio-windows.zip *
+    
+    - name: Create archive (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        cd dist-exe
+        tar -czf ../qt-theme-studio-macos.tar.gz *
+    
+    - name: Create archive (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd dist-exe
+        tar -czf ../qt-theme-studio-linux.tar.gz *
+    
+    - name: Upload wheel artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheel-${{ matrix.os }}
+        path: dist/*.whl
+    
+    - name: Upload executable artifact (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: executable-windows
+        path: qt-theme-studio-windows.zip
+    
+    - name: Upload executable artifact (macOS)
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: executable-macos
+        path: qt-theme-studio-macos.tar.gz
+    
+    - name: Upload executable artifact (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: executable-linux
+        path: qt-theme-studio-linux.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Get tag name
+      id: tag
+      run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        release_name: Qt-Theme-Studio ${{ steps.tag.outputs.tag }}
+        body_path: RELEASE_NOTES.md
+        draft: false
+        prerelease: false
+    
+    - name: Upload Windows executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: executable-windows/qt-theme-studio-windows.zip
+        asset_name: qt-theme-studio-${{ steps.tag.outputs.tag }}-windows.zip
+        asset_content_type: application/zip
+    
+    - name: Upload macOS executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: executable-macos/qt-theme-studio-macos.tar.gz
+        asset_name: qt-theme-studio-${{ steps.tag.outputs.tag }}-macos.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload Linux executable
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: executable-linux/qt-theme-studio-linux.tar.gz
+        asset_name: qt-theme-studio-${{ steps.tag.outputs.tag }}-linux.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload Python wheel (Ubuntu)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: wheel-ubuntu-latest/qt_theme_studio-1.0.0-py3-none-any.whl
+        asset_name: qt_theme_studio-${{ steps.tag.outputs.tag }}-py3-none-any.whl
+        asset_content_type: application/zip
+
+  publish-pypi:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: python -m build
+    
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        twine upload dist/*

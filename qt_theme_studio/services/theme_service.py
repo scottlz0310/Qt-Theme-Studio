@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from ..adapters.theme_adapter import ThemeAdapter, ThemeManagerError
 from ..exceptions import ThemeStudioException
+from ..utilities.japanese_file_handler import JapaneseFileHandler
 
 
 class ThemeValidationError(ThemeStudioException):
@@ -139,14 +140,17 @@ class ThemeService:
     テーマ関連のビジネスロジックを提供します。
     """
     
-    def __init__(self, theme_adapter: Optional[ThemeAdapter] = None):
+    def __init__(self, theme_adapter: Optional[ThemeAdapter] = None, 
+                 file_handler: Optional[JapaneseFileHandler] = None):
         """ThemeServiceを初期化する
         
         Args:
             theme_adapter (Optional[ThemeAdapter]): テーマアダプター
+            file_handler (Optional[JapaneseFileHandler]): 日本語ファイル処理
         """
         self.logger = logging.getLogger(__name__)
         self.theme_adapter = theme_adapter or ThemeAdapter()
+        self.file_handler = file_handler or JapaneseFileHandler()
         self._templates_cache: Optional[List[ThemeTemplate]] = None
         
         # 必須プロパティの定義
@@ -167,6 +171,112 @@ class ThemeService:
         }
         
         self.logger.info("テーマサービスを初期化しました")
+    
+    def load_theme_from_file(self, file_path: str) -> Optional[Dict[str, Any]]:
+        """
+        日本語ファイルパスからテーマを読み込みます
+        
+        Args:
+            file_path: テーマファイルのパス
+            
+        Returns:
+            Dict[str, Any]: テーマデータ（失敗時はNone）
+        """
+        try:
+            # パスを正規化
+            normalized_path = self.file_handler.normalize_path(file_path)
+            
+            # ファイルを安全に読み込み
+            content = self.file_handler.safe_read(normalized_path)
+            if content is None:
+                self.logger.error(f"テーマファイルの読み込みに失敗しました: {file_path}")
+                return None
+            
+            # JSONとしてパース
+            theme_data = json.loads(content)
+            
+            self.logger.info(f"テーマファイルを読み込みました: {file_path}")
+            return theme_data
+            
+        except json.JSONDecodeError as e:
+            self.logger.error(f"テーマファイルのJSON解析に失敗しました: {str(e)}")
+            return None
+        except Exception as e:
+            self.logger.error(f"テーマファイルの読み込み中にエラーが発生しました: {str(e)}")
+            return None
+    
+    def save_theme_to_file(self, theme_data: Dict[str, Any], file_path: str) -> bool:
+        """
+        テーマを日本語ファイルパスに保存します
+        
+        Args:
+            theme_data: テーマデータ
+            file_path: 保存先ファイルパス
+            
+        Returns:
+            bool: 成功した場合True
+        """
+        try:
+            # パスを正規化
+            normalized_path = self.file_handler.normalize_path(file_path)
+            
+            # 安全なファイル名を生成
+            safe_filename = self.file_handler.get_safe_filename(Path(normalized_path).name)
+            safe_path = str(Path(normalized_path).parent / safe_filename)
+            
+            # JSONとして整形
+            content = json.dumps(theme_data, ensure_ascii=False, indent=2)
+            
+            # ファイルを安全に書き込み
+            success = self.file_handler.safe_write(safe_path, content)
+            
+            if success:
+                self.logger.info(f"テーマファイルを保存しました: {safe_path}")
+            else:
+                self.logger.error(f"テーマファイルの保存に失敗しました: {safe_path}")
+            
+            return success
+            
+        except Exception as e:
+            self.logger.error(f"テーマファイルの保存中にエラーが発生しました: {str(e)}")
+            return False
+    
+    def validate_japanese_theme_path(self, file_path: str) -> bool:
+        """
+        日本語テーマファイルパスの妥当性を検証します
+        
+        Args:
+            file_path: 検証するファイルパス
+            
+        Returns:
+            bool: 妥当な場合True
+        """
+        return self.file_handler.validate_path(file_path)
+    
+    def get_theme_encoding_info(self, file_path: str) -> Dict[str, Any]:
+        """
+        テーマファイルのエンコーディング情報を取得します
+        
+        Args:
+            file_path: テーマファイルのパス
+            
+        Returns:
+            Dict[str, Any]: エンコーディング情報
+        """
+        return self.file_handler.get_encoding_info(file_path)
+    
+    def convert_theme_encoding(self, file_path: str, target_encoding: str = 'utf-8') -> bool:
+        """
+        テーマファイルのエンコーディングを変換します
+        
+        Args:
+            file_path: テーマファイルのパス
+            target_encoding: 変換先エンコーディング
+            
+        Returns:
+            bool: 成功した場合True
+        """
+        return self.file_handler.convert_encoding(file_path, target_encoding)
     
     def validate_theme(self, theme_data: Dict[str, Any]) -> ValidationResult:
         """テーマデータを検証する
@@ -326,7 +436,8 @@ class ThemeService:
             return True
         
         return False 
-   def convert_theme_format(self, theme_data: Dict[str, Any], 
+        
+    def convert_theme_format(self, theme_data: Dict[str, Any], 
                            target_format: str) -> Union[str, Dict[str, Any]]:
         """テーマを指定された形式に変換する
         

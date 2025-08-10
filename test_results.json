@@ -1,0 +1,194 @@
+{
+  "summary": {
+    "total_tests": 5,
+    "successful_tests": 2,
+    "failed_tests": 3,
+    "success_rate": 40.0,
+    "total_time": 0.004132270812988281
+  },
+  "individual_results": [
+    {
+      "test_name": "theme_loading_test",
+      "theme_path": "examples/sample_theme.json",
+      "start_time": 1754808169.4697025,
+      "success": true,
+      "error_message": null,
+      "theme_data": {
+        "name": "サンプルテーマ",
+        "version": "1.0.0",
+        "description": "Qt-Theme-Studio用のサンプルテーマです",
+        "author": "Qt-Theme-Studio",
+        "license": "MIT",
+        "colors": {
+          "background": "#ffffff",
+          "text": "#333333",
+          "primary": "#007acc",
+          "secondary": "#6c757d",
+          "surface": "#f8f9fa",
+          "error": "#dc3545",
+          "warning": "#ffc107",
+          "info": "#17a2b8",
+          "success": "#28a745",
+          "text_secondary": "#6c757d",
+          "border": "#dee2e6",
+          "hover": "#e9ecef",
+          "active": "#007acc",
+          "disabled": "#adb5bd"
+        },
+        "fonts": {
+          "default": {
+            "family": "Segoe UI, Arial, sans-serif",
+            "size": 12,
+            "weight": "normal"
+          },
+          "heading": {
+            "family": "Segoe UI, Arial, sans-serif",
+            "size": 16,
+            "weight": "bold"
+          },
+          "small": {
+            "family": "Segoe UI, Arial, sans-serif",
+            "size": 10,
+            "weight": "normal"
+          }
+        },
+        "sizes": {
+          "border_radius": 4,
+          "border_width": 1,
+          "padding": 8,
+          "margin": 4,
+          "button_height": 32,
+          "input_height": 28
+        },
+        "metadata": {
+          "created_date": "2025-01-10",
+          "last_modified": "2025-01-10",
+          "version_history": [
+            {
+              "version": "1.0.0",
+              "date": "2025-01-10",
+              "changes": "初期バージョン"
+            }
+          ],
+          "tags": [
+            "sample",
+            "light",
+            "accessible"
+          ],
+          "wcag_level": "AA"
+        }
+      },
+      "load_time": 0.0002315044403076172,
+      "validation_errors": [],
+      "end_time": 1754808169.470189,
+      "total_time": 0.00048661231994628906
+    },
+    {
+      "test_name": "theme_validation_test",
+      "start_time": 1754808169.4702497,
+      "success": false,
+      "error_message": "アクセシビリティ違反: 10個",
+      "structure_validation": {
+        "success": true,
+        "errors": [],
+        "validation_time": 8.916854858398438e-05
+      },
+      "accessibility_validation": {
+        "success": false,
+        "score": 58.333333333333336,
+        "violations": [
+          "text/primaryのコントラスト比が不十分です: 2.80 (最小: 4.5)",
+          "primaryとsecondaryの色が似すぎています: 1.04",
+          "primaryとerrorの色が似すぎています: 1.00",
+          "primaryとinfoの色が似すぎています: 1.48",
+          "primaryとsuccessの色が似すぎています: 1.44",
+          "secondaryとerrorの色が似すぎています: 1.04",
+          "secondaryとsuccessの色が似すぎています: 1.50",
+          "errorとinfoの色が似すぎています: 1.49",
+          "errorとsuccessの色が似すぎています: 1.45",
+          "infoとsuccessの色が似すぎています: 1.03"
+        ],
+        "validation_time": 0.0010266304016113281
+      },
+      "end_time": 1754808169.47144,
+      "total_time": 0.0011904239654541016
+    },
+    {
+      "test_name": "theme_export_test",
+      "start_time": 1754808169.4715078,
+      "success": false,
+      "error_message": "すべてのエクスポート形式で失敗しました",
+      "export_results": {
+        "json": {
+          "success": false,
+          "output_size": 0,
+          "export_time": 0.0,
+          "error_message": "'ExportService' object has no attribute 'export_to_json'"
+        },
+        "qss": {
+          "success": false,
+          "output_size": 0,
+          "export_time": 0.0,
+          "error_message": "'ExportService' object has no attribute 'export_to_qss'"
+        },
+        "css": {
+          "success": false,
+          "output_size": 0,
+          "export_time": 0.0,
+          "error_message": "'ExportService' object has no attribute 'export_to_css'"
+        }
+      },
+      "total_export_time": 0.0001919269561767578,
+      "end_time": 1754808169.472108,
+      "total_time": 0.0006000995635986328
+    },
+    {
+      "test_name": "roundtrip_test",
+      "start_time": 1754808169.4721978,
+      "success": false,
+      "error_message": "すべての形式でラウンドトリップに失敗しました",
+      "format_results": {
+        "json": {
+          "export_success": false,
+          "import_success": false,
+          "data_integrity": false,
+          "differences": [],
+          "error_message": "'ExportService' object has no attribute 'export_to_json'"
+        }
+      },
+      "end_time": 1754808169.4722838,
+      "total_time": 8.606910705566406e-05
+    },
+    {
+      "test_name": "performance_test",
+      "start_time": 1754808169.4723108,
+      "success": true,
+      "error_message": null,
+      "iterations": 5,
+      "validation_times": [
+        9.274482727050781e-05,
+        0.00012493133544921875,
+        9.036064147949219e-05,
+        0.00012087821960449219,
+        0.00022602081298828125
+      ],
+      "export_times": {
+        "json": [],
+        "qss": [],
+        "css": []
+      },
+      "statistics": {
+        "validation": {
+          "min": 9.036064147949219e-05,
+          "max": 0.00022602081298828125,
+          "avg": 0.00013098716735839843,
+          "median": 0.00012087821960449219
+        },
+        "export": {}
+      },
+      "end_time": 1754808169.4740798,
+      "total_time": 0.0017690658569335938
+    }
+  ],
+  "export_time": 1754808169.4743023
+}

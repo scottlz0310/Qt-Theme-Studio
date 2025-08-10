@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Union
 from ..adapters.qt_adapter import QtAdapter
 from ..adapters.theme_adapter import ThemeAdapter
 from ..exceptions import ThemeStudioException
+from ..utilities.japanese_file_handler import JapaneseFileHandler
 
 
 class ExportError(ThemeStudioException):
@@ -111,16 +112,19 @@ class ExportService:
     """
     
     def __init__(self, theme_adapter: Optional[ThemeAdapter] = None,
-                 qt_adapter: Optional[QtAdapter] = None):
+                 qt_adapter: Optional[QtAdapter] = None,
+                 file_handler: Optional[JapaneseFileHandler] = None):
         """ExportServiceを初期化する
         
         Args:
             theme_adapter (Optional[ThemeAdapter]): テーマアダプター
             qt_adapter (Optional[QtAdapter]): Qtアダプター
+            file_handler (Optional[JapaneseFileHandler]): 日本語ファイル処理
         """
         self.logger = logging.getLogger(__name__)
         self.theme_adapter = theme_adapter or ThemeAdapter()
         self.qt_adapter = qt_adapter or QtAdapter()
+        self.file_handler = file_handler or JapaneseFileHandler()
         
         # サポートされているエクスポート形式
         self.supported_formats = ['json', 'qss', 'css', 'yaml']
@@ -164,13 +168,22 @@ class ExportService:
             
             # ファイルに保存（パスが指定されている場合）
             if output_path:
-                output_path = Path(output_path)
-                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path_str = str(output_path)
                 
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    f.write(exported_data)
+                # 日本語ファイルパスを正規化
+                normalized_path = self.file_handler.normalize_path(output_path_str)
                 
-                self.logger.info(f"テーマを{output_path}にエクスポートしました")
+                # 安全なファイル名を生成
+                safe_filename = self.file_handler.get_safe_filename(Path(normalized_path).name)
+                safe_path = str(Path(normalized_path).parent / safe_filename)
+                
+                # ファイルを安全に書き込み
+                success = self.file_handler.safe_write(safe_path, exported_data)
+                
+                if success:
+                    self.logger.info(f"テーマを{safe_path}にエクスポートしました")
+                else:
+                    raise ExportError(f"ファイルの書き込みに失敗しました: {safe_path}")
             
             return exported_data
             
@@ -518,16 +531,24 @@ class ExportService:
         self.logger.debug(f"プレビュー画像を{format_type}形式でエクスポートします")
         
         try:
-            output_path = Path(output_path)
-            output_path.parent.mkdir(parents=True, exist_ok=True)
+            # 日本語ファイルパスを正規化
+            output_path_str = str(output_path)
+            normalized_path = self.file_handler.normalize_path(output_path_str)
+            
+            # 安全なファイル名を生成
+            safe_filename = self.file_handler.get_safe_filename(Path(normalized_path).name)
+            safe_path = str(Path(normalized_path).parent / safe_filename)
+            
+            # ディレクトリを作成
+            Path(safe_path).parent.mkdir(parents=True, exist_ok=True)
             
             # Qtウィジェットから画像を生成
             if hasattr(preview_widget, 'grab'):
                 pixmap = preview_widget.grab()
-                success = pixmap.save(str(output_path), format_type.upper())
+                success = pixmap.save(safe_path, format_type.upper())
                 
                 if success:
-                    self.logger.info(f"プレビュー画像を{output_path}に保存しました")
+                    self.logger.info(f"プレビュー画像を{safe_path}に保存しました")
                     return True
                 else:
                     raise ExportError("画像の保存に失敗しました")

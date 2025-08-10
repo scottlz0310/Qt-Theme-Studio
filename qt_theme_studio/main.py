@@ -14,6 +14,9 @@ from typing import Any, Dict, Optional
 from .adapters.qt_adapter import QtAdapter, QtFrameworkNotFoundError
 from .adapters.theme_adapter import ThemeAdapter, ThemeManagerError
 from .config.settings import ApplicationSettings
+from .utilities.i18n_manager import I18nManager
+from .utilities.japanese_file_handler import JapaneseFileHandler
+from .utilities.accessibility_manager import AccessibilityManager
 
 
 class ThemeStudioApplication:
@@ -42,6 +45,11 @@ class ThemeStudioApplication:
         self.qt_adapter = QtAdapter()
         self.theme_adapter = ThemeAdapter()
         self.settings = ApplicationSettings(config_dir)
+        
+        # 国際化とファイル処理
+        self.i18n_manager = None
+        self.file_handler = JapaneseFileHandler()
+        self.accessibility_manager = None
         
         self.logger.info("Qt-Theme-Studio アプリケーションを初期化しています...")
     
@@ -101,7 +109,17 @@ class ThemeStudioApplication:
             # 4. ログファイルハンドラーの追加（設定ディレクトリが決まった後）
             self._setup_file_logging()
             
-            # 5. アプリケーション情報の設定
+            # 5. 国際化システムの初期化
+            self.logger.info("国際化システムを初期化しています...")
+            self.i18n_manager = I18nManager(self.qt_adapter)
+            self.logger.info("国際化システムの初期化が完了しました")
+            
+            # 6. アクセシビリティシステムの初期化
+            self.logger.info("アクセシビリティシステムを初期化しています...")
+            self.accessibility_manager = AccessibilityManager(self.qt_adapter)
+            self.logger.info("アクセシビリティシステムの初期化が完了しました")
+            
+            # 7. アプリケーション情報の設定
             self._setup_application_info()
             
             self._is_initialized = True
@@ -178,7 +196,10 @@ class ThemeStudioApplication:
             self._main_window = MainWindow(
                 qt_adapter=self.qt_adapter,
                 theme_adapter=self.theme_adapter,
-                settings=self.settings
+                settings=self.settings,
+                i18n_manager=self.i18n_manager,
+                file_handler=self.file_handler,
+                accessibility_manager=self.accessibility_manager
             )
             
             # ウィンドウ状態の復元（実際のQMainWindowインスタンスを渡す）
