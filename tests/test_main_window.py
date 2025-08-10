@@ -110,14 +110,28 @@ class TestMainWindow:
         """MainWindowインスタンスを作成"""
         with patch('qt_theme_studio.views.main_window.get_logger') as mock_logger:
             mock_logger.return_value = Mock()
-            return MainWindow(mock_qt_adapter, mock_settings)
+            # MainWindowの実際のコンストラクタに合わせて引数を追加
+            mock_theme_adapter = Mock()
+            mock_i18n_manager = Mock()
+            mock_file_handler = Mock()
+            mock_accessibility_manager = Mock()
+            
+            return MainWindow(
+                mock_qt_adapter, 
+                mock_theme_adapter,
+                mock_settings,
+                mock_i18n_manager,
+                mock_file_handler,
+                mock_accessibility_manager
+            )
     
     def test_init(self, main_window, mock_qt_adapter, mock_settings):
         """初期化のテスト"""
         assert main_window.qt_adapter == mock_qt_adapter
         assert main_window.settings == mock_settings
-        assert main_window.main_window is None
-        assert main_window.actions == {}
+        # 初期化時にcreate_window()が呼ばれるため、main_windowはNoneではない
+        assert main_window.main_window is not None
+        assert isinstance(main_window.actions, dict)
     
     def test_create_window(self, main_window):
         """ウィンドウ作成のテスト"""
@@ -313,10 +327,13 @@ class TestMainWindow:
     
     def test_get_window(self, main_window):
         """ウィンドウインスタンス取得のテスト"""
-        assert main_window.get_window() is None
-        
-        main_window.create_window()
+        # 初期化時に既にウィンドウが作成されている
         assert main_window.get_window() is not None
+        
+        # 同じインスタンスが返されることを確認
+        window1 = main_window.get_window()
+        window2 = main_window.get_window()
+        assert window1 is window2
     
     def test_save_layout_state(self, main_window):
         """レイアウト状態保存のテスト"""
