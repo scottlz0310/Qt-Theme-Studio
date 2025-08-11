@@ -211,6 +211,7 @@ htmlcov/
 test_*.py
 run_*.py
 tall*
+Reference/
 
 # PyInstaller関連
 *.spec

@@ -87,6 +87,9 @@ class MainWindow:
         # メインウィンドウを作成
         self.create_window()
         
+        # デフォルトテーマを作成して保存ボタンを有効化
+        self._create_default_theme()
+        
         self.logger.info("メインウィンドウを初期化しました", LogCategory.UI)
     
     def tr(self, text: str, context: str = "MainWindow") -> str:
@@ -138,6 +141,9 @@ class MainWindow:
         # アクセシビリティ機能の設定
         if self.accessibility_manager:
             self.accessibility_manager.setup_accessibility_features(self.main_window)
+        
+        # コンポーネント間の連携を設定
+        self._setup_component_connections()
         
         self.logger.info("メインウィンドウを作成しました", LogCategory.UI)
         return self.main_window
@@ -613,8 +619,8 @@ class MainWindow:
             self._create_preview_window()
             
             # レイアウトに配置
-            self.left_splitter.addWidget(self.theme_editor)
             self.left_splitter.addWidget(self.zebra_editor)
+            self.left_splitter.addWidget(self.theme_editor)
             self.main_splitter.addWidget(self.left_splitter)
             self.main_splitter.addWidget(self.preview_window)
             
@@ -647,6 +653,8 @@ class MainWindow:
         try:
             from ..views.theme_editor import ThemeEditor
             self.theme_editor_instance = ThemeEditor(self.qt_adapter, self.theme_adapter)
+            # MainWindowの参照を渡す
+            self.theme_editor_instance.set_main_window_reference(self)
             self.theme_editor = self.theme_editor_instance.create_widget()
             self.logger.debug("テーマエディターを作成しました", LogCategory.UI)
         except Exception as e:
@@ -925,19 +933,19 @@ class MainWindow:
         # 左側スプリッター（垂直分割：テーマエディター + ゼブラエディター）
         self.left_splitter = self.QtWidgets.QSplitter(self.QtCore.Qt.Orientation.Vertical)
         
-        # テーマエディターウィジェットを作成・追加
-        if self.theme_editor:
-            theme_editor_widget = self.theme_editor.create_widget()
-            if theme_editor_widget:
-                theme_editor_dock = self._create_dock_widget("テーマエディター", theme_editor_widget)
-                self.left_splitter.addWidget(theme_editor_dock)
-        
         # ゼブラエディターウィジェットを作成・追加
         if self.zebra_editor:
             zebra_editor_widget = self.zebra_editor
             if zebra_editor_widget:
                 zebra_editor_dock = self._create_dock_widget("オートテーマジェネレーター", zebra_editor_widget)
                 self.left_splitter.addWidget(zebra_editor_dock)
+        
+        # テーマエディターウィジェットを作成・追加
+        if self.theme_editor:
+            theme_editor_widget = self.theme_editor.create_widget()
+            if theme_editor_widget:
+                theme_editor_dock = self._create_dock_widget("テーマエディター", theme_editor_widget)
+                self.left_splitter.addWidget(theme_editor_dock)
         
         # プレビューウィンドウウィジェットを作成・追加
         if self.preview_window:
@@ -951,7 +959,7 @@ class MainWindow:
         
         # スプリッターの初期サイズを設定
         self.main_splitter.setSizes([400, 600])  # 左側40%, 右側60%
-        self.left_splitter.setSizes([300, 200])  # テーマエディター60%, ゼブラエディター40%
+        self.left_splitter.setSizes([800, 200])  # テーマエディター60%, ゼブラエディター40%
         
         # 中央ウィジェットのレイアウトに追加
         layout = self.central_widget.layout()
@@ -1049,17 +1057,18 @@ class MainWindow:
         Args:
             colors_data: 変更された色データ
         """
+        self.logger.debug(f"色変更イベントを受信: {colors_data}", LogCategory.UI)
+        self.logger.debug(f"変更前のcurrent_theme_data: {self.current_theme_data}", LogCategory.UI)
+        
         # 色データをテーマデータに統合
         if 'colors' not in self.current_theme_data:
             self.current_theme_data['colors'] = {}
         
-        # ゼブラパターンの色をテーマデータに反映
-        for label, color_pair in colors_data.items():
-            fg_key = f"zebra_{label.lower().replace(' ', '_')}_fg"
-            bg_key = f"zebra_{label.lower().replace(' ', '_')}_bg"
-            
-            self.current_theme_data['colors'][fg_key] = color_pair['foreground']
-            self.current_theme_data['colors'][bg_key] = color_pair['background']
+        # 色調整スライダーからの色データを直接反映
+        for color_key, color_value in colors_data.items():
+            self.current_theme_data['colors'][color_key] = color_value
+        
+        self.logger.debug(f"変更後のcurrent_theme_data: {self.current_theme_data}", LogCategory.UI)
         
         # プレビューウィンドウを更新
         if hasattr(self, 'preview_window_instance') and self.preview_window_instance:
@@ -1077,8 +1086,13 @@ class MainWindow:
         Args:
             theme_data: 適用するテーマデータ
         """
-        # 現在のテーマデータを更新
-        self.current_theme_data.update(theme_data)
+        self.logger.info(f"テーマ適用要求を受信しました: {theme_data.get('name', '無名テーマ')}", LogCategory.UI)
+        self.logger.debug(f"適用前のcurrent_theme_data: {self.current_theme_data}", LogCategory.UI)
+        
+        # 現在のテーマデータを完全に置き換え（updateではなく）
+        self.current_theme_data = theme_data.copy()
+        
+        self.logger.debug(f"適用後のcurrent_theme_data: {self.current_theme_data}", LogCategory.UI)
         
         # テーマエディターに反映
         if hasattr(self, 'theme_editor_instance') and self.theme_editor_instance:
@@ -1295,6 +1309,42 @@ class MainWindow:
         self.set_status_message("新しいテーマを作成しました", 3000)
         self.logger.info("新規テーマを作成しました", LogCategory.UI)
     
+    def _create_default_theme(self) -> None:
+        """アプリケーション起動時にデフォルトテーマを作成します"""
+        self.logger.info("デフォルトテーマを作成しています", LogCategory.UI)
+        
+        # デフォルトテーマデータを作成
+        default_theme_data = {
+            'name': 'デフォルトテーマ',
+            'version': '1.0.0',
+            'colors': {
+                'background': '#ffffff',
+                'text': '#000000',
+                'primary': '#0078d4',
+                'secondary': '#6c757d'
+            },
+            'fonts': {
+                'default': {
+                    'family': 'Arial',
+                    'size': 12,
+                    'bold': False,
+                    'italic': False
+                }
+            },
+            'properties': {}
+        }
+        
+        # テーマデータを設定
+        self.set_theme_data(default_theme_data)
+        
+        # 保存状態を設定（新規作成なので未保存状態）
+        self._set_theme_saved_state(False)
+        
+        # 保存アクションを有効化
+        self.set_actions_enabled(['save_theme', 'save_as_theme'], True)
+        
+        self.logger.info("デフォルトテーマを作成しました", LogCategory.UI)
+    
     def _open_theme(self) -> None:
         """テーマファイルを開きます"""
         self.logger.info("テーマファイルを開くが呼び出されました", LogCategory.UI)
@@ -1412,6 +1462,9 @@ class MainWindow:
             file_path: 保存先ファイルパス
         """
         try:
+            self.logger.info(f"テーマ保存処理を開始: {file_path}", LogCategory.UI)
+            self.logger.debug(f"保存するテーマデータ: {self.current_theme_data}", LogCategory.UI)
+            
             # テーマデータをJSONファイルに保存（プレースホルダー実装）
             import json
             with open(file_path, 'w', encoding='utf-8') as f:
@@ -1784,6 +1837,10 @@ class MainWindow:
         accessibility_tab = self._create_accessibility_settings_tab()
         tab_widget.addTab(accessibility_tab, "アクセシビリティ")
         
+        # ライブプレビュー設定タブ
+        live_preview_tab = self._create_live_preview_settings_tab()
+        tab_widget.addTab(live_preview_tab, "ライブプレビュー")
+        
         main_layout.addWidget(tab_widget)
         
         # ボタン
@@ -1911,24 +1968,6 @@ class MainWindow:
         widget = self.QtWidgets.QWidget()
         layout = self.QtWidgets.QVBoxLayout(widget)
         
-        # プレビュー設定
-        preview_group = self.QtWidgets.QGroupBox("プレビュー設定")
-        preview_layout = self.QtWidgets.QVBoxLayout(preview_group)
-        
-        live_preview_cb = self.QtWidgets.QCheckBox("リアルタイムプレビューを有効にする")
-        live_preview_cb.setChecked(True)
-        preview_layout.addWidget(live_preview_cb)
-        
-        preview_delay_layout = self.QtWidgets.QFormLayout()
-        preview_delay = self.QtWidgets.QSpinBox()
-        preview_delay.setRange(0, 2000)
-        preview_delay.setValue(300)
-        preview_delay.setSuffix(" ms")
-        preview_delay_layout.addRow("プレビュー更新遅延:", preview_delay)
-        preview_layout.addLayout(preview_delay_layout)
-        
-        layout.addWidget(preview_group)
-        
         # グリッド設定
         grid_group = self.QtWidgets.QGroupBox("グリッド設定")
         grid_layout = self.QtWidgets.QVBoxLayout(grid_group)
@@ -2008,6 +2047,32 @@ class MainWindow:
         font_layout.addRow("フォントサイズ:", font_size_spin)
         
         layout.addWidget(font_group)
+        
+        layout.addStretch()
+        return widget
+    
+    def _create_live_preview_settings_tab(self) -> Any:
+        """ライブプレビュー設定タブを作成します"""
+        widget = self.QtWidgets.QWidget()
+        layout = self.QtWidgets.QVBoxLayout(widget)
+        
+        # ライブプレビュー設定
+        live_preview_group = self.QtWidgets.QGroupBox("ライブプレビュー設定")
+        live_preview_layout = self.QtWidgets.QVBoxLayout(live_preview_group)
+        
+        live_preview_cb = self.QtWidgets.QCheckBox("リアルタイムプレビューを有効にする")
+        live_preview_cb.setChecked(True)
+        live_preview_layout.addWidget(live_preview_cb)
+        
+        preview_delay_layout = self.QtWidgets.QFormLayout()
+        preview_delay = self.QtWidgets.QSpinBox()
+        preview_delay.setRange(0, 2000)
+        preview_delay.setValue(300)
+        preview_delay.setSuffix(" ms")
+        preview_delay_layout.addRow("プレビュー更新遅延:", preview_delay)
+        live_preview_layout.addLayout(preview_delay_layout)
+        
+        layout.addWidget(live_preview_group)
         
         layout.addStretch()
         return widget
