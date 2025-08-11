@@ -361,8 +361,18 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         self.update_timer = self.QtCore.QTimer()
         self.update_timer.timeout.connect(self.update_preview)
         self.update_timer.setSingleShot(True)
+        
+        # デバッグ用: 入力フィールドの状態を定期的にチェック
+        self.debug_timer = self.QtCore.QTimer()
+        self.debug_timer.timeout.connect(self.debug_check_input_fields)
+        self.debug_timer.start(2000)  # 2秒ごとにチェック
+        
         self.setup_ui()
         self.load_default_colors()
+        
+        # 入力フィールドを強制的に有効化
+        self.force_enable_input_fields()
+        
         logger.info("オートテーマジェネレーターを初期化しました")
         
     def setup_ui(self):
@@ -493,6 +503,11 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         self.theme_name_input.setEnabled(True)   # 明示的に有効に設定
         self.theme_name_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
         
+        # デバッグ用: イベントハンドラーを追加
+        self.theme_name_input.mousePressEvent = self.debug_mouse_press_event
+        self.theme_name_input.focusInEvent = self.debug_focus_in_event
+        self.theme_name_input.focusOutEvent = self.debug_focus_out_event
+        
         # デバッグ用: 入力フィールドの状態を確認
         logger.debug(f"テーマ名入力フィールド - ReadOnly: {self.theme_name_input.isReadOnly()}, Enabled: {self.theme_name_input.isEnabled()}")
         
@@ -509,6 +524,11 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         self.theme_description_input.setReadOnly(False)  # 明示的に編集可能に設定
         self.theme_description_input.setEnabled(True)   # 明示的に有効に設定
         self.theme_description_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
+        
+        # デバッグ用: イベントハンドラーを追加
+        self.theme_description_input.mousePressEvent = self.debug_mouse_press_event
+        self.theme_description_input.focusInEvent = self.debug_focus_in_event
+        self.theme_description_input.focusOutEvent = self.debug_focus_out_event
         
         # デバッグ用: 入力フィールドの状態を確認
         logger.debug(f"テーマ概要入力フィールド - ReadOnly: {self.theme_description_input.isReadOnly()}, Enabled: {self.theme_description_input.isEnabled()}")
@@ -533,6 +553,24 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         """)
         apply_btn.clicked.connect(self.apply_to_main_theme)
         theme_info_layout.addWidget(apply_btn)
+        
+        # デバッグ用: テストボタン
+        debug_btn = QtWidgets.QPushButton("🔍 入力フィールド状態確認")
+        debug_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                border: none;
+                padding: 5px;
+                border-radius: 3px;
+                font-size: 10px;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+        debug_btn.clicked.connect(self.debug_check_input_fields)
+        theme_info_layout.addWidget(debug_btn)
         
         layout.addWidget(theme_info_group)
         
@@ -1888,3 +1926,53 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         
         # 色が変更されたことをログに記録
         logger.info(f"プレビューを更新しました: 背景={bg_color}, プライマリ={primary_color}")
+    
+    def debug_mouse_press_event(self, event):
+        """マウスクリックイベントのデバッグ"""
+        logger.debug(f"マウスクリックイベント: {event.__class__.__name__}")
+        logger.debug(f"ウィジェット状態 - ReadOnly: {self.isReadOnly()}, Enabled: {self.isEnabled()}, FocusPolicy: {self.focusPolicy()}")
+        # 元のイベントハンドラーを呼び出し
+        super(type(self), self).mousePressEvent(event)
+    
+    def debug_focus_in_event(self, event):
+        """フォーカスインイベントのデバッグ"""
+        logger.debug(f"フォーカスインイベント: {event.__class__.__name__}")
+        logger.debug(f"ウィジェット状態 - ReadOnly: {self.isReadOnly()}, Enabled: {self.isEnabled()}")
+        # 元のイベントハンドラーを呼び出し
+        super(type(self), self).focusInEvent(event)
+    
+    def debug_focus_out_event(self, event):
+        """フォーカスアウトイベントのデバッグ"""
+        logger.debug(f"フォーカスアウトイベント: {event.__class__.__name__}")
+        # 元のイベントハンドラーを呼び出し
+        super(type(self), self).focusOutEvent(event)
+    
+    def debug_check_input_fields(self):
+        """入力フィールドの状態を定期的にチェック"""
+        if hasattr(self, 'theme_name_input') and hasattr(self, 'theme_description_input'):
+            logger.debug("=== 入力フィールド状態チェック ===")
+            logger.debug(f"テーマ名入力: ReadOnly={self.theme_name_input.isReadOnly()}, "
+                        f"Enabled={self.theme_name_input.isEnabled()}, "
+                        f"FocusPolicy={self.theme_name_input.focusPolicy()}, "
+                        f"HasFocus={self.theme_name_input.hasFocus()}")
+            logger.debug(f"テーマ概要入力: ReadOnly={self.theme_description_input.isReadOnly()}, "
+                        f"Enabled={self.theme_description_input.isEnabled()}, "
+                        f"FocusPolicy={self.theme_description_input.focusPolicy()}, "
+                        f"HasFocus={self.theme_description_input.hasFocus()}")
+            logger.debug("================================")
+    
+    def force_enable_input_fields(self):
+        """入力フィールドを強制的に有効化"""
+        if hasattr(self, 'theme_name_input'):
+            self.theme_name_input.setReadOnly(False)
+            self.theme_name_input.setEnabled(True)
+            self.theme_name_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
+            self.theme_name_input.setAcceptDrops(True)
+            logger.info("テーマ名入力フィールドを強制的に有効化しました")
+        
+        if hasattr(self, 'theme_description_input'):
+            self.theme_description_input.setReadOnly(False)
+            self.theme_description_input.setEnabled(True)
+            self.theme_description_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
+            self.theme_description_input.setAcceptDrops(True)
+            logger.info("テーマ概要入力フィールドを強制的に有効化しました")
