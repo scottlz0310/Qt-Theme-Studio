@@ -1,0 +1,65 @@
+{
+  "name": "サンプルテーマ",
+  "version": "1.0.0",
+  "description": "Qt-Theme-Studio用のサンプルテーマです",
+  "author": "Qt-Theme-Studio",
+  "license": "MIT",
+  "colors": {
+    "background": "#ffffff",
+    "text": "#333333",
+    "primary": "#007acc",
+    "secondary": "#6c757d",
+    "surface": "#f8f9fa",
+    "error": "#dc3545",
+    "warning": "#ffc107",
+    "info": "#17a2b8",
+    "success": "#28a745",
+    "text_secondary": "#6c757d",
+    "border": "#dee2e6",
+    "hover": "#e9ecef",
+    "active": "#007acc",
+    "disabled": "#adb5bd"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI, Arial, sans-serif",
+      "size": 12,
+      "weight": "normal"
+    },
+    "heading": {
+      "family": "Segoe UI, Arial, sans-serif",
+      "size": 16,
+      "weight": "bold"
+    },
+    "small": {
+      "family": "Segoe UI, Arial, sans-serif",
+      "size": 10,
+      "weight": "normal"
+    }
+  },
+  "sizes": {
+    "border_radius": 4,
+    "border_width": 1,
+    "padding": 8,
+    "margin": 4,
+    "button_height": 32,
+    "input_height": 28
+  },
+  "metadata": {
+    "created_date": "2025-01-10",
+    "last_modified": "2025-01-10",
+    "version_history": [
+      {
+        "version": "1.0.0",
+        "date": "2025-01-10",
+        "changes": "初期バージョン"
+      }
+    ],
+    "tags": [
+      "sample",
+      "light",
+      "accessible"
+    ],
+    "wcag_level": "AA"
+  }
+}

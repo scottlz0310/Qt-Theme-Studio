@@ -80,6 +80,10 @@ class MainWindow:
         self.current_theme_path: Optional[str] = None
         self._theme_saved: bool = True
         
+        # 複数テーマファイル対応
+        self.current_source_file: Optional[str] = None
+        self.current_source_theme_key: Optional[str] = None
+        
         # メインウィンドウを作成
         self.create_window()
         
@@ -127,6 +131,9 @@ class MainWindow:
         
         # クローズイベントハンドラーの設定
         self._setup_close_event_handler()
+        
+        # メニューアクションのシグナル接続
+        self._connect_menu_actions()
         
         # アクセシビリティ機能の設定
         if self.accessibility_manager:
@@ -312,10 +319,11 @@ class MainWindow:
         theme_menu.addAction(theme_editor_action)
         self.actions['theme_editor'] = theme_editor_action
         
-        # ゼブラパターンエディター
-        zebra_editor_action = self.QtGui.QAction("ゼブラパターンエディター(&Z)", self.main_window)
-        zebra_editor_action.setStatusTip("WCAG準拠のゼブラパターンエディターを開きます")
+        # オートテーマジェネレーター
+        zebra_editor_action = self.QtGui.QAction("オートテーマジェネレーター(&A)", self.main_window)
+        zebra_editor_action.setStatusTip("WCAG準拠のテーマカラーを自動生成します")
         zebra_editor_action.setCheckable(True)
+        zebra_editor_action.setChecked(True)  # デフォルトで表示
         theme_menu.addAction(zebra_editor_action)
         self.actions['zebra_editor'] = zebra_editor_action
         
@@ -569,17 +577,57 @@ class MainWindow:
             return
         
         # 中央ウィジェットとして空のウィジェットを設定
-        # 実際のコンテンツは後で他のコンポーネントが設定する
         self.central_widget = self.QtWidgets.QWidget()
         self.main_window.setCentralWidget(self.central_widget)
         
-        # 基本レイアウトを設定
-        layout = self.QtWidgets.QHBoxLayout(self.central_widget)
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(5)
+        # メインスプリッターを作成（水平分割）
+        self.main_splitter = self.QtWidgets.QSplitter(self.QtCore.Qt.Orientation.Horizontal)
         
-        # プレースホルダーラベル（統合前の一時的な表示）
-        self.placeholder_label = self.QtWidgets.QLabel("テーマエディターコンポーネントがここに表示されます")
+        # 左側のスプリッター（垂直分割）
+        self.left_splitter = self.QtWidgets.QSplitter(self.QtCore.Qt.Orientation.Vertical)
+        
+        # 実際のコンポーネントを統合
+        self._setup_integrated_components()
+        
+        # メインレイアウトを設定
+        main_layout = self.QtWidgets.QHBoxLayout(self.central_widget)
+        main_layout.setContentsMargins(5, 5, 5, 5)
+        main_layout.addWidget(self.main_splitter)
+        
+        # スプリッターのサイズを設定
+        self.main_splitter.setSizes([400, 800])  # 左側400px、右側800px
+        self.left_splitter.setSizes([300, 300])  # 上下均等
+        
+        self.logger.debug("中央ウィジェットを設定しました", LogCategory.UI)
+    
+    def _setup_integrated_components(self) -> None:
+        """統合コンポーネントを設定します"""
+        try:
+            # テーマエディターを作成
+            self._create_theme_editor()
+            
+            # ゼブラエディターを作成
+            self._create_zebra_editor()
+            
+            # プレビューウィンドウを作成
+            self._create_preview_window()
+            
+            # レイアウトに配置
+            self.left_splitter.addWidget(self.theme_editor)
+            self.left_splitter.addWidget(self.zebra_editor)
+            self.main_splitter.addWidget(self.left_splitter)
+            self.main_splitter.addWidget(self.preview_window)
+            
+            self.logger.info("統合コンポーネントを設定しました", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.error(f"コンポーネント統合に失敗しました: {str(e)}", LogCategory.UI)
+            # フォールバック: プレースホルダーを表示
+            self._setup_placeholder()
+    
+    def _setup_placeholder(self) -> None:
+        """プレースホルダーを設定します（フォールバック用）"""
+        self.placeholder_label = self.QtWidgets.QLabel("テーマエディターコンポーネントを読み込み中...")
         self.placeholder_label.setAlignment(self.QtCore.Qt.AlignmentFlag.AlignCenter)
         self.placeholder_label.setStyleSheet("""
             QLabel {
@@ -592,9 +640,68 @@ class MainWindow:
                 background-color: #f9f9f9;
             }
         """)
-        layout.addWidget(self.placeholder_label)
+        self.main_splitter.addWidget(self.placeholder_label)
+    
+    def _create_theme_editor(self) -> None:
+        """テーマエディターを作成します"""
+        try:
+            from ..views.theme_editor import ThemeEditor
+            self.theme_editor_instance = ThemeEditor(self.qt_adapter, self.theme_adapter)
+            self.theme_editor = self.theme_editor_instance.create_widget()
+            self.logger.debug("テーマエディターを作成しました", LogCategory.UI)
+        except Exception as e:
+            self.logger.warning(f"テーマエディターの作成に失敗しました: {str(e)}", LogCategory.UI)
+            # フォールバック: 簡単なプレースホルダー
+            self.theme_editor_instance = None
+            self.theme_editor = self._create_component_placeholder("テーマエディター")
+    
+    def _create_zebra_editor(self) -> None:
+        """オートテーマジェネレーターを作成します"""
+        try:
+            from ..views.zebra_editor import AutoThemeGenerator
+            self.zebra_editor_instance = AutoThemeGenerator()
+            self.zebra_editor = self.zebra_editor_instance
+            self.logger.debug("オートテーマジェネレーターを作成しました", LogCategory.UI)
+        except Exception as e:
+            self.logger.warning(f"オートテーマジェネレーターの作成に失敗しました: {str(e)}", LogCategory.UI)
+            # フォールバック: 簡単なプレースホルダー
+            self.zebra_editor_instance = None
+            self.zebra_editor = self._create_component_placeholder("オートテーマジェネレーター")
+    
+    def _create_preview_window(self) -> None:
+        """プレビューウィンドウを作成します"""
+        try:
+            from ..views.preview import PreviewWindow
+            self.preview_window_instance = PreviewWindow(self.qt_adapter, self.theme_adapter)
+            self.preview_window = self.preview_window_instance.create_widget()
+            self.logger.debug("プレビューウィンドウを作成しました", LogCategory.UI)
+        except Exception as e:
+            self.logger.warning(f"プレビューウィンドウの作成に失敗しました: {str(e)}", LogCategory.UI)
+            # フォールバック: 簡単なプレースホルダー
+            self.preview_window_instance = None
+            self.preview_window = self._create_component_placeholder("プレビューウィンドウ")
+    
+    def _create_component_placeholder(self, component_name: str) -> Any:
+        """コンポーネントプレースホルダーを作成します"""
+        placeholder = self.QtWidgets.QWidget()
+        layout = self.QtWidgets.QVBoxLayout(placeholder)
         
-        self.logger.debug("中央ウィジェットを設定しました", LogCategory.UI)
+        label = self.QtWidgets.QLabel(f"{component_name}\n（開発中）")
+        label.setAlignment(self.QtCore.Qt.AlignmentFlag.AlignCenter)
+        label.setStyleSheet("""
+            QLabel {
+                color: #888888;
+                font-size: 12px;
+                font-style: italic;
+                padding: 15px;
+                border: 1px solid #dddddd;
+                border-radius: 5px;
+                background-color: #f5f5f5;
+            }
+        """)
+        
+        layout.addWidget(label)
+        return placeholder
     
     def _restore_window_state(self) -> None:
         """ウィンドウ状態を復元します"""
@@ -828,7 +935,7 @@ class MainWindow:
         if self.zebra_editor:
             zebra_editor_widget = self.zebra_editor
             if zebra_editor_widget:
-                zebra_editor_dock = self._create_dock_widget("ゼブラパターンエディター", zebra_editor_widget)
+                zebra_editor_dock = self._create_dock_widget("オートテーマジェネレーター", zebra_editor_widget)
                 self.left_splitter.addWidget(zebra_editor_dock)
         
         # プレビューウィンドウウィジェットを作成・追加
@@ -893,11 +1000,15 @@ class MainWindow:
             if hasattr(self.theme_editor, 'set_theme_changed_callback'):
                 self.theme_editor.set_theme_changed_callback(self._on_theme_changed)
         
-        # ゼブラエディターからプレビューウィンドウへの連携
+        # オートテーマジェネレーターからの連携
         if self.zebra_editor and self.preview_window:
             # 色変更時にプレビューを更新
             if hasattr(self.zebra_editor, 'colors_changed'):
                 self.zebra_editor.colors_changed.connect(self._on_zebra_colors_changed)
+            
+            # テーマ適用要求の処理
+            if hasattr(self.zebra_editor, 'theme_apply_requested'):
+                self.zebra_editor.theme_apply_requested.connect(self._on_theme_apply_requested)
         
         # プレビューウィンドウのコールバック設定
         if self.preview_window:
@@ -915,8 +1026,9 @@ class MainWindow:
         self.current_theme_data = theme_data.copy()
         
         # プレビューウィンドウを更新
-        if self.preview_window:
-            self.preview_window.update_preview(theme_data)
+        if hasattr(self, 'preview_window_instance') and self.preview_window_instance:
+            if hasattr(self.preview_window_instance, 'update_preview'):
+                self.preview_window_instance.update_preview(theme_data)
         
         # ステータスバーのテーマ情報を更新
         theme_name = theme_data.get('name', '無題のテーマ')
@@ -949,13 +1061,44 @@ class MainWindow:
             self.current_theme_data['colors'][bg_key] = color_pair['background']
         
         # プレビューウィンドウを更新
-        if self.preview_window:
-            self.preview_window.update_preview(self.current_theme_data)
+        if hasattr(self, 'preview_window_instance') and self.preview_window_instance:
+            if hasattr(self.preview_window_instance, 'update_preview'):
+                self.preview_window_instance.update_preview(self.current_theme_data)
         
         # 未保存状態に設定
         self._set_theme_saved_state(False)
         
-        self.logger.debug("ゼブラパターンの色が変更されました", LogCategory.UI)
+        self.logger.debug("オートテーマジェネレーターの色が変更されました", LogCategory.UI)
+    
+    def _on_theme_apply_requested(self, theme_data: Dict[str, Any]) -> None:
+        """オートテーマジェネレーターからのテーマ適用要求ハンドラ
+        
+        Args:
+            theme_data: 適用するテーマデータ
+        """
+        # 現在のテーマデータを更新
+        self.current_theme_data.update(theme_data)
+        
+        # テーマエディターに反映
+        if hasattr(self, 'theme_editor_instance') and self.theme_editor_instance:
+            if hasattr(self.theme_editor_instance, 'load_theme'):
+                self.theme_editor_instance.load_theme(theme_data)
+        
+        # プレビューウィンドウを更新
+        if hasattr(self, 'preview_window_instance') and self.preview_window_instance:
+            if hasattr(self.preview_window_instance, 'update_theme'):
+                self.preview_window_instance.update_theme(theme_data)
+        
+        # 保存状態をリセット（変更があったことを示す）
+        self._set_theme_saved_state(False)
+        
+        # 保存アクションを有効化
+        self.set_actions_enabled(['save_theme', 'save_as_theme'], True)
+        
+        # ステータスバーに通知
+        self.set_status_message("オートテーマジェネレーターからテーマが適用されました", 3000)
+        
+        self.logger.info(f"オートテーマジェネレーターからテーマを適用しました: {theme_data.get('name', '無名テーマ')}", LogCategory.UI)
     
     def _on_preview_theme_applied(self, theme_data: Dict[str, Any]) -> None:
         """プレビューテーマ適用イベントハンドラ
@@ -984,7 +1127,16 @@ class MainWindow:
         
         # プレビュー画像エクスポート
         if 'export_preview' in self.actions and self.preview_window:
-            self.actions['export_preview'].triggered.connect(self.preview_window.export_preview_image)
+            # プレビューウィンドウインスタンスが存在し、メソッドが利用可能な場合のみ接続
+            if hasattr(self, 'preview_window_instance') and self.preview_window_instance:
+                if hasattr(self.preview_window_instance, 'export_preview_image'):
+                    self.actions['export_preview'].triggered.connect(self.preview_window_instance.export_preview_image)
+                else:
+                    # メソッドが存在しない場合は代替処理
+                    self.actions['export_preview'].triggered.connect(self._export_preview_placeholder)
+            else:
+                # インスタンスが存在しない場合は代替処理
+                self.actions['export_preview'].triggered.connect(self._export_preview_placeholder)
         
         # Undo/Redoアクションの連携
         self._connect_undo_redo_actions()
@@ -1000,8 +1152,9 @@ class MainWindow:
     def _connect_undo_redo_actions(self) -> None:
         """Undo/Redoアクションを連携します"""
         # テーマエディターのUndo/Redoスタックと連携
-        if self.theme_editor and hasattr(self.theme_editor, 'undo_stack'):
-            undo_stack = self.theme_editor.undo_stack
+        if (hasattr(self, 'theme_editor_instance') and self.theme_editor_instance and 
+            hasattr(self.theme_editor_instance, 'undo_stack')):
+            undo_stack = self.theme_editor_instance.undo_stack
             
             # Undoアクション
             if 'undo' in self.actions:
@@ -1024,6 +1177,14 @@ class MainWindow:
                 self.actions['undo'].setEnabled(undo_stack.canUndo())
             if 'redo' in self.actions:
                 self.actions['redo'].setEnabled(undo_stack.canRedo())
+        else:
+            # Undo/Redoスタックが利用できない場合はプレースホルダー処理
+            if 'undo' in self.actions:
+                self.actions['undo'].triggered.connect(self._undo_placeholder)
+                self.actions['undo'].setEnabled(False)  # 初期状態では無効
+            if 'redo' in self.actions:
+                self.actions['redo'].triggered.connect(self._redo_placeholder)
+                self.actions['redo'].setEnabled(False)  # 初期状態では無効
         
         self.logger.debug("Undo/Redoアクションを連携しました", LogCategory.UI)
     
@@ -1063,6 +1224,10 @@ class MainWindow:
                     lambda checked, fmt=format_type: self._import_theme(fmt)
                 )
         
+        # 設定アクション
+        if 'preferences' in self.actions:
+            self.actions['preferences'].triggered.connect(self._show_preferences_dialog)
+        
         self.logger.debug("テーマ操作アクションを連携しました", LogCategory.UI)
     
     def _connect_view_actions(self) -> None:
@@ -1083,6 +1248,8 @@ class MainWindow:
     
     def _new_theme(self) -> None:
         """新規テーマを作成します"""
+        self.logger.info("新規テーマ作成が呼び出されました", LogCategory.UI)
+        
         # 未保存の変更がある場合は確認
         if self._has_unsaved_changes():
             reply = self.QtWidgets.QMessageBox.question(
@@ -1129,6 +1296,8 @@ class MainWindow:
     
     def _open_theme(self) -> None:
         """テーマファイルを開きます"""
+        self.logger.info("テーマファイルを開くが呼び出されました", LogCategory.UI)
+        
         # 未保存の変更がある場合は確認
         if self._has_unsaved_changes():
             reply = self.QtWidgets.QMessageBox.question(
@@ -1153,22 +1322,21 @@ class MainWindow:
         
         if file_path:
             try:
-                # テーマファイルを読み込み（プレースホルダー実装）
+                # テーマファイルを読み込み
                 import json
                 with open(file_path, 'r', encoding='utf-8') as f:
-                    theme_data = json.load(f)
+                    file_data = json.load(f)
                 
-                # テーマデータを設定
-                self.set_theme_data(theme_data)
-                
-                # 最近使用したテーマリストに追加
-                self.settings.add_recent_theme(file_path)
-                
-                # 保存状態を設定
-                self._set_theme_saved_state(True)
-                
-                self.set_status_message(f"テーマファイルを開きました: {file_path}", 3000)
-                self.logger.info(f"テーマファイルを開きました: {file_path}", LogCategory.UI)
+                # 複数テーマが含まれているかチェック
+                if self._is_multi_theme_file(file_data):
+                    # 複数テーマファイルの場合、テーマ選択ダイアログを表示
+                    selected_theme = self._show_theme_selection_dialog(file_data, file_path)
+                    if selected_theme:
+                        self._load_selected_theme(selected_theme, file_path)
+                else:
+                    # 単一テーマファイルの場合、直接読み込み
+                    self.set_theme_data(file_data)
+                    self._finalize_theme_loading(file_path)
                 
             except Exception as e:
                 self.logger.error(f"テーマファイルの読み込みに失敗しました: {str(e)}", LogCategory.UI)
@@ -1177,6 +1345,38 @@ class MainWindow:
                     "エラー",
                     f"テーマファイルの読み込みに失敗しました:\\n{str(e)}"
                 )
+    
+    def _load_theme_from_file(self, file_path: str) -> bool:
+        """指定されたファイルパスからテーマを読み込みます（テスト用）
+        
+        Args:
+            file_path: テーマファイルのパス
+            
+        Returns:
+            bool: 読み込み成功時True
+        """
+        try:
+            import json
+            with open(file_path, 'r', encoding='utf-8') as f:
+                theme_data = json.load(f)
+            
+            # テーマデータを設定
+            self.set_theme_data(theme_data)
+            
+            # 最近使用したテーマリストに追加
+            self.settings.add_recent_theme(file_path)
+            
+            # 保存状態を設定
+            self._set_theme_saved_state(True)
+            
+            self.set_status_message(f"テーマファイルを開きました: {file_path}", 3000)
+            self.logger.info(f"テーマファイルを開きました: {file_path}", LogCategory.UI)
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"テーマファイルの読み込みに失敗しました: {str(e)}", LogCategory.UI)
+            return False
     
     def _save_theme(self) -> None:
         """現在のテーマを保存します"""
@@ -1334,6 +1534,510 @@ class MainWindow:
                     f"テーマのインポートに失敗しました:\\n{str(e)}"
                 )
     
+    def _is_multi_theme_file(self, file_data: dict) -> bool:
+        """ファイルが複数テーマを含むかどうかを判定します"""
+        # qt_theme_manager形式の複数テーマファイルかチェック
+        return ('available_themes' in file_data and 
+                isinstance(file_data['available_themes'], dict) and
+                len(file_data['available_themes']) > 1)
+    
+    def _show_theme_selection_dialog(self, file_data: dict, file_path: str) -> dict:
+        """テーマ選択ダイアログを表示します"""
+        available_themes = file_data.get('available_themes', {})
+        
+        # ダイアログを作成
+        dialog = self.QtWidgets.QDialog(self.main_window)
+        dialog.setWindowTitle("テーマを選択")
+        dialog.setModal(True)
+        dialog.resize(500, 400)
+        
+        layout = self.QtWidgets.QVBoxLayout(dialog)
+        
+        # 説明ラベル
+        info_label = self.QtWidgets.QLabel(f"ファイル: {file_path}\n\n利用可能なテーマから1つを選択してください:")
+        layout.addWidget(info_label)
+        
+        # テーマリスト
+        theme_list = self.QtWidgets.QListWidget()
+        
+        for theme_key, theme_data in available_themes.items():
+            display_name = theme_data.get('display_name', theme_key)
+            description = theme_data.get('description', '')
+            
+            item = self.QtWidgets.QListWidgetItem()
+            item.setText(f"{display_name}")
+            item.setToolTip(f"{display_name}\n{description}")
+            item.setData(self.QtCore.Qt.ItemDataRole.UserRole, theme_data)
+            
+            theme_list.addItem(item)
+        
+        layout.addWidget(theme_list)
+        
+        # プレビューエリア
+        preview_group = self.QtWidgets.QGroupBox("プレビュー")
+        preview_layout = self.QtWidgets.QVBoxLayout(preview_group)
+        
+        preview_label = self.QtWidgets.QLabel("テーマを選択するとプレビューが表示されます")
+        preview_label.setAlignment(self.QtCore.Qt.AlignmentFlag.AlignCenter)
+        preview_label.setMinimumHeight(100)
+        preview_label.setStyleSheet("border: 1px solid #ccc; padding: 10px;")
+        preview_layout.addWidget(preview_label)
+        
+        layout.addWidget(preview_group)
+        
+        # ボタン
+        button_layout = self.QtWidgets.QHBoxLayout()
+        
+        ok_button = self.QtWidgets.QPushButton("選択")
+        cancel_button = self.QtWidgets.QPushButton("キャンセル")
+        
+        ok_button.setEnabled(False)  # 初期状態では無効
+        
+        button_layout.addStretch()
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        
+        layout.addLayout(button_layout)
+        
+        # イベント接続
+        def on_selection_changed():
+            current_item = theme_list.currentItem()
+            if current_item:
+                ok_button.setEnabled(True)
+                theme_data = current_item.data(self.QtCore.Qt.ItemDataRole.UserRole)
+                
+                # プレビュー更新
+                preview_text = f"テーマ名: {theme_data.get('display_name', 'N/A')}\n"
+                preview_text += f"説明: {theme_data.get('description', 'N/A')}\n"
+                preview_text += f"主要色: {theme_data.get('primaryColor', 'N/A')}\n"
+                preview_text += f"背景色: {theme_data.get('backgroundColor', 'N/A')}"
+                
+                preview_label.setText(preview_text)
+                preview_label.setStyleSheet(f"""
+                    border: 1px solid #ccc; 
+                    padding: 10px;
+                    background-color: {theme_data.get('backgroundColor', '#ffffff')};
+                    color: {theme_data.get('textColor', '#000000')};
+                """)
+            else:
+                ok_button.setEnabled(False)
+        
+        theme_list.currentItemChanged.connect(on_selection_changed)
+        
+        def on_ok():
+            dialog.accept()
+        
+        def on_cancel():
+            dialog.reject()
+        
+        ok_button.clicked.connect(on_ok)
+        cancel_button.clicked.connect(on_cancel)
+        
+        # ダイアログ実行
+        if dialog.exec() == self.QtWidgets.QDialog.DialogCode.Accepted:
+            current_item = theme_list.currentItem()
+            if current_item:
+                return current_item.data(self.QtCore.Qt.ItemDataRole.UserRole)
+        
+        return None
+    
+    def _load_selected_theme(self, theme_data: dict, file_path: str) -> None:
+        """選択されたテーマを読み込みます"""
+        # qt_theme_manager形式からQt-Theme-Studio形式に変換
+        converted_theme = self._convert_qt_theme_manager_format(theme_data)
+        
+        # テーマデータを設定
+        self.set_theme_data(converted_theme)
+        
+        # 元ファイル情報を保存（将来の保存機能用）
+        self.current_source_file = file_path
+        self.current_source_theme_key = theme_data.get('name', 'unknown')
+        
+        self._finalize_theme_loading(file_path, theme_data.get('display_name', 'テーマ'))
+    
+    def _convert_qt_theme_manager_format(self, theme_data: dict) -> dict:
+        """qt_theme_manager形式をQt-Theme-Studio形式に変換します"""
+        converted = {
+            'name': theme_data.get('display_name', theme_data.get('name', 'テーマ')),
+            'version': '1.0.0',
+            'description': theme_data.get('description', ''),
+            'colors': {},
+            'fonts': {
+                'default': {
+                    'family': 'Arial',
+                    'size': 12,
+                    'bold': False,
+                    'italic': False
+                }
+            },
+            'properties': {}
+        }
+        
+        # 色の変換
+        color_mapping = {
+            'background': theme_data.get('backgroundColor', '#ffffff'),
+            'text': theme_data.get('textColor', '#000000'),
+            'primary': theme_data.get('primaryColor', '#007acc'),
+            'accent': theme_data.get('accentColor', '#0078d4'),
+        }
+        
+        # ボタン色
+        if 'button' in theme_data:
+            button = theme_data['button']
+            color_mapping.update({
+                'button_background': button.get('background', '#f0f0f0'),
+                'button_text': button.get('text', '#000000'),
+                'button_hover': button.get('hover', '#e0e0e0'),
+                'button_pressed': button.get('pressed', '#d0d0d0'),
+                'button_border': button.get('border', '#cccccc'),
+            })
+        
+        # パネル色
+        if 'panel' in theme_data:
+            panel = theme_data['panel']
+            color_mapping.update({
+                'panel_background': panel.get('background', '#f8f8f8'),
+                'panel_border': panel.get('border', '#ddd'),
+            })
+            
+            if 'zebra' in panel:
+                color_mapping['zebra_alternate'] = panel['zebra'].get('alternate', '#e9e9e9')
+        
+        # テキスト色
+        if 'text' in theme_data:
+            text = theme_data['text']
+            color_mapping.update({
+                'text_primary': text.get('primary', '#2d3748'),
+                'text_secondary': text.get('secondary', '#4a5568'),
+                'text_muted': text.get('muted', '#718096'),
+                'text_heading': text.get('heading', '#1a202c'),
+                'text_link': text.get('link', '#0078d4'),
+                'text_success': text.get('success', '#38a169'),
+                'text_warning': text.get('warning', '#d69e2e'),
+                'text_error': text.get('error', '#e53e3e'),
+            })
+        
+        converted['colors'] = color_mapping
+        return converted
+    
+    def _finalize_theme_loading(self, file_path: str, theme_name: str = None) -> None:
+        """テーマ読み込みの最終処理"""
+        # 最近使用したテーマリストに追加
+        self.settings.add_recent_theme(file_path)
+        
+        # 保存状態を設定
+        self._set_theme_saved_state(True)
+        
+        display_name = theme_name or "テーマ"
+        self.set_status_message(f"{display_name}を読み込みました: {file_path}", 3000)
+        self.logger.info(f"{display_name}を読み込みました: {file_path}", LogCategory.UI)
+    
+    def _export_preview_placeholder(self) -> None:
+        """プレビュー画像エクスポートのプレースホルダー処理"""
+        self.logger.info("プレビュー画像エクスポートが呼び出されました（プレースホルダー）", LogCategory.UI)
+        self.QtWidgets.QMessageBox.information(
+            self.main_window,
+            "情報",
+            "プレビュー画像エクスポート機能は現在開発中です。"
+        )
+    
+    def _undo_placeholder(self) -> None:
+        """元に戻すのプレースホルダー処理"""
+        self.logger.info("元に戻すが呼び出されました（プレースホルダー）", LogCategory.UI)
+        self.set_status_message("元に戻す機能は現在利用できません", 2000)
+    
+    def _redo_placeholder(self) -> None:
+        """やり直しのプレースホルダー処理"""
+        self.logger.info("やり直しが呼び出されました（プレースホルダー）", LogCategory.UI)
+        self.set_status_message("やり直し機能は現在利用できません", 2000)
+    
+    def _show_preferences_dialog(self) -> None:
+        """設定ダイアログを表示します"""
+        self.logger.info("設定ダイアログが呼び出されました", LogCategory.UI)
+        
+        # 設定ダイアログを作成
+        dialog = self.QtWidgets.QDialog(self.main_window)
+        dialog.setWindowTitle("設定")
+        dialog.setModal(True)
+        dialog.resize(600, 500)
+        
+        # メインレイアウト
+        main_layout = self.QtWidgets.QVBoxLayout(dialog)
+        
+        # タブウィジェット
+        tab_widget = self.QtWidgets.QTabWidget()
+        
+        # 一般設定タブ
+        general_tab = self._create_general_settings_tab()
+        tab_widget.addTab(general_tab, "一般")
+        
+        # テーマ設定タブ
+        theme_tab = self._create_theme_settings_tab()
+        tab_widget.addTab(theme_tab, "テーマ")
+        
+        # エディター設定タブ
+        editor_tab = self._create_editor_settings_tab()
+        tab_widget.addTab(editor_tab, "エディター")
+        
+        # アクセシビリティ設定タブ
+        accessibility_tab = self._create_accessibility_settings_tab()
+        tab_widget.addTab(accessibility_tab, "アクセシビリティ")
+        
+        main_layout.addWidget(tab_widget)
+        
+        # ボタン
+        button_layout = self.QtWidgets.QHBoxLayout()
+        
+        # デフォルトに戻すボタン
+        reset_button = self.QtWidgets.QPushButton("デフォルトに戻す")
+        reset_button.clicked.connect(lambda: self._reset_settings_to_default(dialog))
+        
+        # OK/キャンセルボタン
+        ok_button = self.QtWidgets.QPushButton("OK")
+        cancel_button = self.QtWidgets.QPushButton("キャンセル")
+        apply_button = self.QtWidgets.QPushButton("適用")
+        
+        button_layout.addWidget(reset_button)
+        button_layout.addStretch()
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        button_layout.addWidget(apply_button)
+        
+        main_layout.addLayout(button_layout)
+        
+        # ボタンイベント
+        ok_button.clicked.connect(lambda: self._apply_settings_and_close(dialog))
+        cancel_button.clicked.connect(dialog.reject)
+        apply_button.clicked.connect(lambda: self._apply_settings(dialog))
+        
+        # ダイアログ表示
+        if dialog.exec() == self.QtWidgets.QDialog.DialogCode.Accepted:
+            self.logger.info("設定が適用されました", LogCategory.UI)
+        else:
+            self.logger.info("設定がキャンセルされました", LogCategory.UI)
+    
+    def _create_general_settings_tab(self) -> Any:
+        """一般設定タブを作成します"""
+        widget = self.QtWidgets.QWidget()
+        layout = self.QtWidgets.QVBoxLayout(widget)
+        
+        # 言語設定
+        lang_group = self.QtWidgets.QGroupBox("言語設定")
+        lang_layout = self.QtWidgets.QFormLayout(lang_group)
+        
+        lang_combo = self.QtWidgets.QComboBox()
+        lang_combo.addItems(["日本語", "English"])
+        lang_combo.setCurrentText("日本語")
+        lang_layout.addRow("表示言語:", lang_combo)
+        
+        layout.addWidget(lang_group)
+        
+        # 起動設定
+        startup_group = self.QtWidgets.QGroupBox("起動設定")
+        startup_layout = self.QtWidgets.QVBoxLayout(startup_group)
+        
+        restore_session_cb = self.QtWidgets.QCheckBox("前回のセッションを復元する")
+        restore_session_cb.setChecked(True)
+        startup_layout.addWidget(restore_session_cb)
+        
+        show_splash_cb = self.QtWidgets.QCheckBox("起動時にスプラッシュスクリーンを表示する")
+        show_splash_cb.setChecked(False)
+        startup_layout.addWidget(show_splash_cb)
+        
+        layout.addWidget(startup_group)
+        
+        # 自動保存設定
+        autosave_group = self.QtWidgets.QGroupBox("自動保存")
+        autosave_layout = self.QtWidgets.QFormLayout(autosave_group)
+        
+        autosave_cb = self.QtWidgets.QCheckBox("自動保存を有効にする")
+        autosave_cb.setChecked(True)
+        autosave_layout.addRow(autosave_cb)
+        
+        autosave_interval = self.QtWidgets.QSpinBox()
+        autosave_interval.setRange(1, 60)
+        autosave_interval.setValue(5)
+        autosave_interval.setSuffix(" 分")
+        autosave_layout.addRow("自動保存間隔:", autosave_interval)
+        
+        layout.addWidget(autosave_group)
+        
+        layout.addStretch()
+        return widget
+    
+    def _create_theme_settings_tab(self) -> Any:
+        """テーマ設定タブを作成します"""
+        widget = self.QtWidgets.QWidget()
+        layout = self.QtWidgets.QVBoxLayout(widget)
+        
+        # アプリケーションテーマ
+        app_theme_group = self.QtWidgets.QGroupBox("アプリケーションテーマ")
+        app_theme_layout = self.QtWidgets.QFormLayout(app_theme_group)
+        
+        app_theme_combo = self.QtWidgets.QComboBox()
+        app_theme_combo.addItems(["システム", "ライト", "ダーク"])
+        app_theme_combo.setCurrentText("システム")
+        app_theme_layout.addRow("テーマ:", app_theme_combo)
+        
+        layout.addWidget(app_theme_group)
+        
+        # デフォルトテーマ設定
+        default_theme_group = self.QtWidgets.QGroupBox("デフォルトテーマ")
+        default_theme_layout = self.QtWidgets.QVBoxLayout(default_theme_group)
+        
+        default_theme_info = self.QtWidgets.QLabel("新規テーマ作成時のデフォルト設定")
+        default_theme_layout.addWidget(default_theme_info)
+        
+        # デフォルト色設定
+        color_layout = self.QtWidgets.QFormLayout()
+        
+        primary_color_btn = self.QtWidgets.QPushButton("#007acc")
+        primary_color_btn.setStyleSheet("background-color: #007acc; color: white;")
+        color_layout.addRow("主要色:", primary_color_btn)
+        
+        bg_color_btn = self.QtWidgets.QPushButton("#ffffff")
+        bg_color_btn.setStyleSheet("background-color: #ffffff; color: black; border: 1px solid #ccc;")
+        color_layout.addRow("背景色:", bg_color_btn)
+        
+        default_theme_layout.addLayout(color_layout)
+        layout.addWidget(default_theme_group)
+        
+        layout.addStretch()
+        return widget
+    
+    def _create_editor_settings_tab(self) -> Any:
+        """エディター設定タブを作成します"""
+        widget = self.QtWidgets.QWidget()
+        layout = self.QtWidgets.QVBoxLayout(widget)
+        
+        # プレビュー設定
+        preview_group = self.QtWidgets.QGroupBox("プレビュー設定")
+        preview_layout = self.QtWidgets.QVBoxLayout(preview_group)
+        
+        live_preview_cb = self.QtWidgets.QCheckBox("リアルタイムプレビューを有効にする")
+        live_preview_cb.setChecked(True)
+        preview_layout.addWidget(live_preview_cb)
+        
+        preview_delay_layout = self.QtWidgets.QFormLayout()
+        preview_delay = self.QtWidgets.QSpinBox()
+        preview_delay.setRange(0, 2000)
+        preview_delay.setValue(300)
+        preview_delay.setSuffix(" ms")
+        preview_delay_layout.addRow("プレビュー更新遅延:", preview_delay)
+        preview_layout.addLayout(preview_delay_layout)
+        
+        layout.addWidget(preview_group)
+        
+        # グリッド設定
+        grid_group = self.QtWidgets.QGroupBox("グリッド設定")
+        grid_layout = self.QtWidgets.QVBoxLayout(grid_group)
+        
+        show_grid_cb = self.QtWidgets.QCheckBox("グリッドを表示する")
+        show_grid_cb.setChecked(False)
+        grid_layout.addWidget(show_grid_cb)
+        
+        snap_to_grid_cb = self.QtWidgets.QCheckBox("グリッドにスナップする")
+        snap_to_grid_cb.setChecked(False)
+        grid_layout.addWidget(snap_to_grid_cb)
+        
+        layout.addWidget(grid_group)
+        
+        # 色選択設定
+        color_group = self.QtWidgets.QGroupBox("色選択設定")
+        color_layout = self.QtWidgets.QFormLayout(color_group)
+        
+        color_format_combo = self.QtWidgets.QComboBox()
+        color_format_combo.addItems(["HEX", "RGB", "HSL", "HSV"])
+        color_format_combo.setCurrentText("HEX")
+        color_layout.addRow("デフォルト色形式:", color_format_combo)
+        
+        show_color_names_cb = self.QtWidgets.QCheckBox("色名を表示する")
+        show_color_names_cb.setChecked(True)
+        color_layout.addRow(show_color_names_cb)
+        
+        layout.addWidget(color_group)
+        
+        layout.addStretch()
+        return widget
+    
+    def _create_accessibility_settings_tab(self) -> Any:
+        """アクセシビリティ設定タブを作成します"""
+        widget = self.QtWidgets.QWidget()
+        layout = self.QtWidgets.QVBoxLayout(widget)
+        
+        # WCAG設定
+        wcag_group = self.QtWidgets.QGroupBox("WCAG準拠設定")
+        wcag_layout = self.QtWidgets.QFormLayout(wcag_group)
+        
+        wcag_level_combo = self.QtWidgets.QComboBox()
+        wcag_level_combo.addItems(["AA", "AAA"])
+        wcag_level_combo.setCurrentText("AA")
+        wcag_layout.addRow("WCAG準拠レベル:", wcag_level_combo)
+        
+        auto_check_cb = self.QtWidgets.QCheckBox("自動アクセシビリティチェックを有効にする")
+        auto_check_cb.setChecked(True)
+        wcag_layout.addRow(auto_check_cb)
+        
+        layout.addWidget(wcag_group)
+        
+        # コントラスト設定
+        contrast_group = self.QtWidgets.QGroupBox("コントラスト設定")
+        contrast_layout = self.QtWidgets.QVBoxLayout(contrast_group)
+        
+        show_contrast_cb = self.QtWidgets.QCheckBox("コントラスト比を常に表示する")
+        show_contrast_cb.setChecked(True)
+        contrast_layout.addWidget(show_contrast_cb)
+        
+        warn_low_contrast_cb = self.QtWidgets.QCheckBox("低コントラストの場合に警告する")
+        warn_low_contrast_cb.setChecked(True)
+        contrast_layout.addWidget(warn_low_contrast_cb)
+        
+        layout.addWidget(contrast_group)
+        
+        # フォント設定
+        font_group = self.QtWidgets.QGroupBox("フォント設定")
+        font_layout = self.QtWidgets.QFormLayout(font_group)
+        
+        ui_font_btn = self.QtWidgets.QPushButton("フォントを選択...")
+        font_layout.addRow("UIフォント:", ui_font_btn)
+        
+        font_size_spin = self.QtWidgets.QSpinBox()
+        font_size_spin.setRange(8, 24)
+        font_size_spin.setValue(12)
+        font_layout.addRow("フォントサイズ:", font_size_spin)
+        
+        layout.addWidget(font_group)
+        
+        layout.addStretch()
+        return widget
+    
+    def _apply_settings_and_close(self, dialog) -> None:
+        """設定を適用してダイアログを閉じます"""
+        self._apply_settings(dialog)
+        dialog.accept()
+    
+    def _apply_settings(self, dialog) -> None:
+        """設定を適用します"""
+        self.logger.info("設定を適用しています", LogCategory.UI)
+        # TODO: 実際の設定適用処理を実装
+        self.set_status_message("設定を適用しました", 2000)
+    
+    def _reset_settings_to_default(self, dialog) -> None:
+        """設定をデフォルトに戻します"""
+        reply = self.QtWidgets.QMessageBox.question(
+            dialog,
+            "設定をリセット",
+            "すべての設定をデフォルト値に戻しますか？",
+            self.QtWidgets.QMessageBox.StandardButton.Yes |
+            self.QtWidgets.QMessageBox.StandardButton.No,
+            self.QtWidgets.QMessageBox.StandardButton.No
+        )
+        
+        if reply == self.QtWidgets.QMessageBox.StandardButton.Yes:
+            self.logger.info("設定をデフォルトにリセットしました", LogCategory.UI)
+            # TODO: 実際のリセット処理を実装
+            self.set_status_message("設定をデフォルトにリセットしました", 2000)
+    
     def _has_unsaved_changes(self) -> bool:
         """未保存の変更があるかどうかを確認します
         
@@ -1387,7 +2091,7 @@ class MainWindow:
                 self.logger.debug(f"テーマエディターの表示を{'有効' if visible else '無効'}にしました", LogCategory.UI)
     
     def _toggle_zebra_editor(self, visible: bool) -> None:
-        """ゼブラエディターの表示/非表示を切り替えます
+        """オートテーマジェネレーターの表示/非表示を切り替えます
         
         Args:
             visible: 表示する場合True
@@ -1396,7 +2100,7 @@ class MainWindow:
             zebra_editor_dock = self.left_splitter.widget(1)
             if zebra_editor_dock:
                 zebra_editor_dock.setVisible(visible)
-                self.logger.debug(f"ゼブラエディターの表示を{'有効' if visible else '無効'}にしました", LogCategory.UI)
+                self.logger.debug(f"オートテーマジェネレーターの表示を{'有効' if visible else '無効'}にしました", LogCategory.UI)
     
     def _toggle_live_preview(self, visible: bool) -> None:
         """ライブプレビューの表示/非表示を切り替えます
@@ -1427,11 +2131,14 @@ class MainWindow:
         self.current_theme_data = theme_data.copy()
         
         # 各コンポーネントにテーマデータを反映
-        if self.theme_editor and hasattr(self.theme_editor, 'load_theme'):
-            self.theme_editor.load_theme(theme_data)
+        if hasattr(self, 'theme_editor_instance') and self.theme_editor_instance:
+            if hasattr(self.theme_editor_instance, 'set_theme_data'):
+                self.theme_editor_instance.set_theme_data(theme_data)
+            elif hasattr(self.theme_editor_instance, 'load_theme'):
+                self.theme_editor_instance.load_theme(theme_data)
         
-        if self.zebra_editor and hasattr(self.zebra_editor, 'set_color_data'):
-            # ゼブラパターンの色データを抽出
+        if hasattr(self, 'zebra_editor_instance') and self.zebra_editor_instance and hasattr(self.zebra_editor_instance, 'set_color_data'):
+            # テーマジェネレーター用の色データを抽出
             zebra_colors = {}
             for key, value in theme_data.get('colors', {}).items():
                 if key.startswith('zebra_'):
@@ -1450,10 +2157,11 @@ class MainWindow:
                             zebra_colors[label]['background'] = value
             
             if zebra_colors:
-                self.zebra_editor.set_color_data(zebra_colors)
+                self.zebra_editor_instance.set_color_data(zebra_colors)
         
-        if self.preview_window:
-            self.preview_window.update_preview(theme_data)
+        if hasattr(self, 'preview_window_instance') and self.preview_window_instance:
+            if hasattr(self.preview_window_instance, 'update_preview'):
+                self.preview_window_instance.update_preview(theme_data)
         
         # ステータスバーを更新
         theme_name = theme_data.get('name', '無題のテーマ')
