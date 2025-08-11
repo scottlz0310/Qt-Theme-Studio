@@ -1,0 +1,245 @@
+# Python関連
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller関連
+*.manifest
+*.spec
+
+# インストーラーログ
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 単体テスト / カバレッジレポート
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# 翻訳
+*.mo
+*.pot
+
+# Django関連
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask関連
+instance/
+.webassets-cache
+
+# Scrapy関連
+.scrapy
+
+# Sphinx関連
+docs/_build/
+
+# PyBuilder関連
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv関連
+.python-version
+
+# pipenv関連
+Pipfile.lock
+
+# poetry関連
+poetry.lock
+
+# pdm関連
+.pdm.toml
+
+# PEP 582関連
+__pypackages__/
+
+# Celery関連
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath関連
+*.sage.py
+
+# 環境変数
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder関連
+.spyderproject
+.spyproject
+
+# Rope関連
+.ropeproject
+
+# mkdocs関連
+/site
+
+# mypy関連
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre関連
+.pyre/
+
+# pytype関連
+.pytype/
+
+# Cython関連
+cython_debug/
+
+# PyCharm関連
+.idea/
+
+# VSCode関連
+.vscode/
+*.code-workspace
+
+# Qt関連
+*.qmlc
+*.jsc
+
+# Qt-Theme-Studio固有
+# テーマファイルのキャッシュ
+themes/cache/
+themes/temp/
+
+# エクスポート/インポート一時ファイル
+exports/temp/
+imports/temp/
+temp_themes/
+
+# ユーザー設定とキャッシュ
+user_settings.json
+user_cache/
+.qt_theme_studio/
+
+# テストレポートとログ
+test_results*.json
+*_test_report.json
+ci_report_test.json
+quality_test_report.json
+test_logs/
+tests/reports/
+
+# プレビュー画像キャッシュ
+previews/cache/
+preview_images/temp/
+
+# バックアップファイル
+*.bak
+*.backup
+*~
+
+# 一時ファイル
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# ログファイル
+*.log
+logs/
+
+# プロファイリング結果
+*.prof
+
+# バージョン情報（自動生成）
+version_info.txt
+
+# CI/CD関連の一時ファイル
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# OS固有
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# エディター関連
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# パッケージング関連
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# デバッグファイル
+debug.log
+debug_*.log
+
+# パフォーマンステスト結果
+performance_results/
+benchmark_results/
+
+# ローカル設定ファイル
+local_config.py
+local_settings.py
+
+# セキュリティ関連
+secrets.json
+.secrets
+credentials.json
+
+# データベースファイル
+*.db
+*.sqlite
+*.sqlite3
+
+# キャッシュディレクトリ
+cache/
+.cache/
+__cache__/

@@ -1,5 +1,0 @@
-[console_scripts]
-qt-theme-studio = qt_theme_studio.main:main
-
-[gui_scripts]
-qt-theme-studio-gui = qt_theme_studio.main:main
