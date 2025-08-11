@@ -504,9 +504,9 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         self.theme_name_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
         
         # デバッグ用: イベントハンドラーを追加
-        self.theme_name_input.mousePressEvent = self.debug_mouse_press_event
-        self.theme_name_input.focusInEvent = self.debug_focus_in_event
-        self.theme_name_input.focusOutEvent = self.debug_focus_out_event
+        self.theme_name_input.mousePressEvent = lambda event: self.debug_mouse_press_event(self.theme_name_input, event)
+        self.theme_name_input.focusInEvent = lambda event: self.debug_focus_in_event(self.theme_name_input, event)
+        self.theme_name_input.focusOutEvent = lambda event: self.debug_focus_out_event(self.theme_name_input, event)
         
         # デバッグ用: 入力フィールドの状態を確認
         logger.debug(f"テーマ名入力フィールド - ReadOnly: {self.theme_name_input.isReadOnly()}, Enabled: {self.theme_name_input.isEnabled()}")
@@ -526,9 +526,9 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         self.theme_description_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
         
         # デバッグ用: イベントハンドラーを追加
-        self.theme_description_input.mousePressEvent = self.debug_mouse_press_event
-        self.theme_description_input.focusInEvent = self.debug_focus_in_event
-        self.theme_description_input.focusOutEvent = self.debug_focus_out_event
+        self.theme_description_input.mousePressEvent = lambda event: self.debug_mouse_press_event(self.theme_description_input, event)
+        self.theme_description_input.focusInEvent = lambda event: self.debug_focus_in_event(self.theme_description_input, event)
+        self.theme_description_input.focusOutEvent = lambda event: self.debug_focus_out_event(self.theme_description_input, event)
         
         # デバッグ用: 入力フィールドの状態を確認
         logger.debug(f"テーマ概要入力フィールド - ReadOnly: {self.theme_description_input.isReadOnly()}, Enabled: {self.theme_description_input.isEnabled()}")
@@ -1927,25 +1927,25 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         # 色が変更されたことをログに記録
         logger.info(f"プレビューを更新しました: 背景={bg_color}, プライマリ={primary_color}")
     
-    def debug_mouse_press_event(self, event):
+    def debug_mouse_press_event(self, widget, event):
         """マウスクリックイベントのデバッグ"""
-        logger.debug(f"マウスクリックイベント: {event.__class__.__name__}")
-        logger.debug(f"ウィジェット状態 - ReadOnly: {self.isReadOnly()}, Enabled: {self.isEnabled()}, FocusPolicy: {self.focusPolicy()}")
+        logger.debug(f"マウスクリックイベント: {event.__class__.__name__} on {widget.__class__.__name__}")
+        logger.debug(f"ウィジェット状態 - ReadOnly: {widget.isReadOnly()}, Enabled: {widget.isEnabled()}, FocusPolicy: {widget.focusPolicy()}")
         # 元のイベントハンドラーを呼び出し
-        super(type(self), self).mousePressEvent(event)
+        widget.mousePressEvent(event)
     
-    def debug_focus_in_event(self, event):
+    def debug_focus_in_event(self, widget, event):
         """フォーカスインイベントのデバッグ"""
-        logger.debug(f"フォーカスインイベント: {event.__class__.__name__}")
-        logger.debug(f"ウィジェット状態 - ReadOnly: {self.isReadOnly()}, Enabled: {self.isEnabled()}")
+        logger.debug(f"フォーカスインイベント: {event.__class__.__name__} on {widget.__class__.__name__}")
+        logger.debug(f"ウィジェット状態 - ReadOnly: {widget.isReadOnly()}, Enabled: {widget.isEnabled()}")
         # 元のイベントハンドラーを呼び出し
-        super(type(self), self).focusInEvent(event)
+        widget.focusInEvent(event)
     
-    def debug_focus_out_event(self, event):
+    def debug_focus_out_event(self, widget, event):
         """フォーカスアウトイベントのデバッグ"""
-        logger.debug(f"フォーカスアウトイベント: {event.__class__.__name__}")
+        logger.debug(f"フォーカスアウトイベント: {event.__class__.__name__} on {widget.__class__.__name__}")
         # 元のイベントハンドラーを呼び出し
-        super(type(self), self).focusOutEvent(event)
+        widget.focusOutEvent(event)
     
     def debug_check_input_fields(self):
         """入力フィールドの状態を定期的にチェック"""
