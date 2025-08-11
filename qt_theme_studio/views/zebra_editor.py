@@ -5,7 +5,7 @@
 WCAG準拠のコントラスト調整機能を通じて、視覚的にアクセシブルなテーマを作成できます。
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Tuple
 import logging
 
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
@@ -94,7 +94,8 @@ class ColorSliderGroup(QtWidgets.QWidget):
     
     colorChanged = QtCore.Signal(str)
     
-    def __init__(self, title: str, initial_color: str = "#ffffff", parent=None):
+    def __init__(self, title: str, initial_color: str = "#ffffff", 
+                 parent=None):
         super().__init__(parent)
         self.title = title
         self.color = initial_color
@@ -337,11 +338,27 @@ class AutoThemeGenerator(QtWidgets.QWidget):
     colors_changed = QtCore.Signal(dict)  # 色変更シグナル
     theme_apply_requested = QtCore.Signal(dict)  # テーマ適用要求シグナル
     
-    def __init__(self, parent=None):
+    def __init__(self, qt_adapter=None, parent=None):
         super().__init__(parent)
+        
+        # QtAdapterが提供されている場合は使用、そうでなければデフォルトのQtモジュールを使用
+        if qt_adapter:
+            self.qt_modules = qt_adapter.get_qt_modules()
+            self.QtWidgets = self.qt_modules['QtWidgets']
+            self.QtCore = self.qt_modules['QtCore']
+            self.QtGui = self.qt_modules['QtGui']
+        else:
+            # デフォルトのQtモジュールを使用（テスト環境用）
+            import PySide6.QtWidgets as QtWidgets
+            import PySide6.QtCore as QtCore
+            import PySide6.QtGui as QtGui
+            self.QtWidgets = QtWidgets
+            self.QtCore = QtCore
+            self.QtGui = QtGui
+        
         self.current_colors = {}
         self.generated_theme_colors = {}  # 生成されたテーマカラーを保存
-        self.update_timer = QtCore.QTimer()
+        self.update_timer = self.QtCore.QTimer()
         self.update_timer.timeout.connect(self.update_preview)
         self.update_timer.setSingleShot(True)
         self.setup_ui()
@@ -474,6 +491,11 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         self.theme_name_input.setPlaceholderText("テーマの名前を入力してください")
         self.theme_name_input.setReadOnly(False)  # 明示的に編集可能に設定
         self.theme_name_input.setEnabled(True)   # 明示的に有効に設定
+        self.theme_name_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
+        
+        # デバッグ用: 入力フィールドの状態を確認
+        logger.debug(f"テーマ名入力フィールド - ReadOnly: {self.theme_name_input.isReadOnly()}, Enabled: {self.theme_name_input.isEnabled()}")
+        
         name_layout.addWidget(self.theme_name_input)
         theme_info_layout.addLayout(name_layout)
         
@@ -486,6 +508,11 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         self.theme_description_input.setMaximumHeight(60)
         self.theme_description_input.setReadOnly(False)  # 明示的に編集可能に設定
         self.theme_description_input.setEnabled(True)   # 明示的に有効に設定
+        self.theme_description_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
+        
+        # デバッグ用: 入力フィールドの状態を確認
+        logger.debug(f"テーマ概要入力フィールド - ReadOnly: {self.theme_description_input.isReadOnly()}, Enabled: {self.theme_description_input.isEnabled()}")
+        
         desc_layout.addWidget(self.theme_description_input)
         theme_info_layout.addLayout(desc_layout)
         

@@ -659,7 +659,8 @@ class MainWindow:
         """オートテーマジェネレーターを作成します"""
         try:
             from ..views.zebra_editor import AutoThemeGenerator
-            self.zebra_editor_instance = AutoThemeGenerator()
+            # QtAdapterを渡してAutoThemeGeneratorを作成
+            self.zebra_editor_instance = AutoThemeGenerator(self.qt_adapter)
             self.zebra_editor = self.zebra_editor_instance
             self.logger.debug("オートテーマジェネレーターを作成しました", LogCategory.UI)
         except Exception as e:

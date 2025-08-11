@@ -108,8 +108,32 @@ class TestMainWindow:
     @pytest.fixture
     def main_window(self, mock_qt_adapter, mock_settings):
         """MainWindowインスタンスを作成"""
-        with patch('qt_theme_studio.views.main_window.get_logger') as mock_logger:
+        with patch('qt_theme_studio.views.main_window.get_logger') as \
+             mock_logger, \
+             patch('qt_theme_studio.views.zebra_editor.AutoThemeGenerator') as \
+             mock_zebra, \
+             patch('qt_theme_studio.views.preview.PreviewWindow') as \
+             mock_preview, \
+             patch('qt_theme_studio.views.theme_editor.ThemeEditor') as \
+             mock_theme_editor:
+            
             mock_logger.return_value = Mock()
+            
+            # モックウィジェットを作成
+            mock_zebra_widget = Mock()
+            mock_zebra.return_value = mock_zebra_widget
+            
+            mock_preview_widget = Mock()
+            mock_preview_instance = Mock()
+            mock_preview_instance.create_widget.return_value = mock_preview_widget
+            mock_preview.return_value = mock_preview_instance
+            
+            mock_theme_editor_widget = Mock()
+            mock_theme_editor_instance = Mock()
+            mock_theme_editor_instance.create_widget.return_value = \
+                mock_theme_editor_widget
+            mock_theme_editor.return_value = mock_theme_editor_instance
+            
             # MainWindowの実際のコンストラクタに合わせて引数を追加
             mock_theme_adapter = Mock()
             mock_i18n_manager = Mock()
@@ -117,7 +141,7 @@ class TestMainWindow:
             mock_accessibility_manager = Mock()
             
             return MainWindow(
-                mock_qt_adapter, 
+                mock_qt_adapter,
                 mock_theme_adapter,
                 mock_settings,
                 mock_i18n_manager,
