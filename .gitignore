@@ -146,16 +146,23 @@ cython_debug/
 # テーマファイルのキャッシュ
 themes/cache/
 themes/temp/
+themes/backup/
+themes/exports/
+themes/imports/
 
 # エクスポート/インポート一時ファイル
-exports/temp/
-imports/temp/
+exports/
+imports/
 temp_themes/
+exported_themes/
+imported_themes/
 
 # ユーザー設定とキャッシュ
 user_settings.json
 user_cache/
 .qt_theme_studio/
+settings_cache/
+workspace_cache/
 
 # テストレポートとログ
 test_results*.json
@@ -164,10 +171,14 @@ ci_report_test.json
 quality_test_report.json
 test_logs/
 tests/reports/
+tests/temp/
+tests/__pycache__/
+tests/fixtures/temp/
 
 # プレビュー画像キャッシュ
 previews/cache/
 preview_images/temp/
+preview_exports/
 
 # バックアップファイル
 *.bak
@@ -183,6 +194,7 @@ Thumbs.db
 # ログファイル
 *.log
 logs/
+debug_logs/
 
 # プロファイリング結果
 *.prof
@@ -194,6 +206,36 @@ version_info.txt
 .coverage.*
 htmlcov/
 .pytest_cache/
+
+# 開発・テスト用スクリプト（ルートレベル）
+test_*.py
+run_*.py
+tall*
+
+# PyInstaller関連
+*.spec
+dist/
+build/
+
+# パッケージング関連
+*.egg-info/
+*.whl
+*.tar.gz
+
+# IDE・エディター設定
+.vscode/
+.idea/
+*.code-workspace
+
+# 仮想環境
+venv/
+.venv/
+env/
+.env/
+
+# Kiro IDE関連
+.kiro/specs/*/temp/
+.kiro/cache/
 
 # OS固有
 .DS_Store
