@@ -35,7 +35,6 @@ class ColorPicker:
         
         # UI要素
         self.widget: Optional[Any] = None
-        self.title_edit: Optional[Any] = None
         self.color_button: Optional[Any] = None
         self.style_combo: Optional[Any] = None
         self.apply_button: Optional[Any] = None
@@ -51,27 +50,14 @@ class ColorPicker:
         Returns:
             QWidget: カラーピッカーウィジェット
         """
-        # QGroupBoxの代わりにQWidgetを使用し、タイトルを編集可能にする
-        self.widget = self.QtWidgets.QWidget()
-        self.widget.setMaximumHeight(120)  # 高さを制限
+        # QGroupBoxを使用してタイトルを表示
+        self.widget = self.QtWidgets.QGroupBox("マニュアル編集")
+        # よりコンパクトな高さに調整
+        self.widget.setMaximumHeight(80)  # 高さを制限（横並びなので高さを削減）
+        self.widget.setMinimumHeight(60)   # 最小高さも設定
         layout = self.QtWidgets.QVBoxLayout(self.widget)
         
-        # タイトル編集フィールド
-        title_layout = self.QtWidgets.QHBoxLayout()
-        title_label = self.QtWidgets.QLabel("タイトル:")
-        title_label.setFixedWidth(50)
-        
-        self.title_edit = self.QtWidgets.QLineEdit("色選択")
-        self.title_edit.setPlaceholderText("ウィジェットのタイトルを入力")
-        self.title_edit.setMaximumWidth(150)
-        
-        title_layout.addWidget(title_label)
-        title_layout.addWidget(self.title_edit)
-        title_layout.addStretch()
-        
-        layout.addLayout(title_layout)
-        
-        # カラーボタンとスタイル選択
+        # カラーボタン、スタイル選択、適用ボタンを横並びに配置
         color_selection_layout = self.QtWidgets.QHBoxLayout()
         
         # 色ラベル
@@ -98,18 +84,19 @@ class ColorPicker:
         self.style_combo.setCurrentText("背景色")
         self.style_combo.currentTextChanged.connect(self._on_style_changed)
         
+        # 適用ボタン
+        self.apply_button = self.QtWidgets.QPushButton("確定")
+        self.apply_button.clicked.connect(self._apply_color)
+        
+        # すべての要素を横並びに配置
         color_selection_layout.addWidget(color_label)
         color_selection_layout.addWidget(self.color_button)
         color_selection_layout.addWidget(style_label)
         color_selection_layout.addWidget(self.style_combo)
+        color_selection_layout.addWidget(self.apply_button)
         color_selection_layout.addStretch()
         
         layout.addLayout(color_selection_layout)
-        
-        # 適用ボタン
-        self.apply_button = self.QtWidgets.QPushButton("適用")
-        self.apply_button.clicked.connect(self._apply_color)
-        layout.addWidget(self.apply_button)
         
         self.logger.debug("カラーピッカーウィジェットを作成しました", 
                           LogCategory.UI)
@@ -146,8 +133,8 @@ class ColorPicker:
         }
         
         self.current_style = style_mapping.get(style_text, "background")
-        # スタイル変更時も即座にプレビューに反映
-        self._notify_color_changed()
+        # スタイル変更時は即座に適用せず、適用ボタンで確定
+        # self._notify_color_changed() を削除
     
     def _update_ui_from_color(self) -> None:
         """現在の色からUIを更新します"""
@@ -177,8 +164,8 @@ class ColorPicker:
         if isinstance(color, self.QtGui.QColor) and color.isValid():
             self.current_color = color
             self._update_ui_from_color()
-            # 色変更時は即座にプレビューに反映
-            self._notify_color_changed()
+            # 色変更時は即座に適用せず、適用ボタンで確定
+            # self._notify_color_changed() を削除
     
     def get_color(self) -> str:
         """現在の色を16進値で取得します
@@ -220,32 +207,13 @@ class ColorPicker:
         if style in style_mapping:
             self.style_combo.setCurrentText(style_mapping[style])
     
-    def get_title(self) -> str:
-        """現在のタイトルを取得します
-        
-        Returns:
-            str: 現在のタイトル
-        """
-        if self.title_edit:
-            return self.title_edit.text()
-        return "色選択"
-    
-    def set_title(self, title: str) -> None:
-        """タイトルを設定します
-        
-        Args:
-            title: 設定するタイトル
-        """
-        if self.title_edit:
-            self.title_edit.setText(title)
-    
     def set_color_changed_callback(self, 
                                  callback: Callable[[str, str], None]) -> None:
         """色変更コールバックを設定します
         
         Args:
             callback: 色変更時に呼び出されるコールバック関数
-                     引数: (color_hex: str, style: str)
+                      引数: (color_hex: str, style: str)
         """
         self.color_changed_callback = callback
 
@@ -325,7 +293,9 @@ class ThemeEditor:
             QWidget: テーマエディターウィジェット
         """
         self.widget = self.QtWidgets.QWidget()
-        self.widget.setMaximumHeight(200)  # 高さを制限
+        # カラーピッカーの高さ（80px）に合わせて調整
+        self.widget.setMaximumHeight(100)  # カラーピッカー + マージン
+        self.widget.setMinimumHeight(80)  # 最小高さも設定
         layout = self.QtWidgets.QVBoxLayout(self.widget)
         
         # スクロールエリアを作成
@@ -359,7 +329,7 @@ class ThemeEditor:
         self._setup_preview_update_timer()
         
         self.logger.info("テーマエディターウィジェットを作成しました", 
-                         LogCategory.UI)
+                          LogCategory.UI)
         return self.widget
     
     def _on_color_changed(self, color: str, style: str) -> None:
