@@ -13,6 +13,7 @@ from ..adapters.qt_adapter import QtAdapter
 from ..config.settings import ApplicationSettings
 from ..logger import get_logger, LogCategory
 from .dialogs.help_dialog import HelpDialog
+# テーマギャラリーは動的インポートで使用
 
 
 class MainWindow:
@@ -338,6 +339,7 @@ class MainWindow:
         # テーマギャラリー
         gallery_action = self.QtGui.QAction("テーマギャラリー(&G)", self.main_window)
         gallery_action.setStatusTip("テーマギャラリーを開きます")
+        gallery_action.setShortcut(self.QtGui.QKeySequence("Ctrl+G"))
         theme_menu.addAction(gallery_action)
         self.actions['theme_gallery'] = gallery_action
         
@@ -410,6 +412,15 @@ class MainWindow:
         export_preview_action.setStatusTip("プレビュー画像をPNG形式で保存します")
         tools_menu.addAction(export_preview_action)
         self.actions['export_preview'] = export_preview_action
+        
+        tools_menu.addSeparator()
+        
+        # テーマギャラリー
+        gallery_action = self.QtGui.QAction("テーマギャラリー(&G)", self.main_window)
+        gallery_action.setStatusTip("テーマギャラリーを開きます")
+        gallery_action.setShortcut(self.QtGui.QKeySequence("Ctrl+3"))
+        tools_menu.addAction(gallery_action)
+        self.actions['theme_gallery_tools'] = gallery_action
     
     def _create_help_menu(self) -> None:
         """ヘルプメニューを作成します"""
@@ -1162,7 +1173,77 @@ class MainWindow:
         # 表示切り替えアクションの連携
         self._connect_view_actions()
         
+        # テーマギャラリーアクションの連携
+        self._connect_gallery_actions()
+        
         self.logger.debug("メニューアクションを連携しました", LogCategory.UI)
+    
+    def _connect_gallery_actions(self) -> None:
+        """テーマギャラリーアクションを連携します"""
+        # テーマメニューのテーマギャラリー
+        if 'theme_gallery' in self.actions:
+            self.actions['theme_gallery'].triggered.connect(self._show_theme_gallery)
+        
+        # ツールメニューのテーマギャラリー
+        if 'theme_gallery_tools' in self.actions:
+            self.actions['theme_gallery_tools'].triggered.connect(self._show_theme_gallery)
+        
+        self.logger.debug("テーマギャラリーアクションを連携しました", LogCategory.UI)
+    
+    def _show_theme_gallery(self) -> None:
+        """テーマギャラリーを表示します"""
+        try:
+            # テーマギャラリーのインポート
+            from .theme_gallery import ThemeGallery
+            
+            # ダイアログが既に存在する場合は前面に表示
+            if hasattr(self, 'gallery_dialog') and self.gallery_dialog:
+                self.gallery_dialog.raise_()
+                self.gallery_dialog.activateWindow()
+            else:
+                # 新しいダイアログを作成
+                self.gallery_dialog = ThemeGallery()
+                self.gallery_dialog.theme_selected.connect(self._on_gallery_theme_selected)
+                self.gallery_dialog.show()
+                
+            self.logger.debug("テーマギャラリーを表示しました", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.log_error(f"テーマギャラリーの表示に失敗しました: {str(e)}", e)
+            # エラーメッセージを表示
+            self.QtWidgets.QMessageBox.critical(
+                self.main_window,
+                "エラー",
+                f"テーマギャラリーの表示に失敗しました:\n{str(e)}"
+            )
+    
+    def _on_gallery_theme_selected(self, theme_path: str) -> None:
+        """ギャラリーでテーマが選択された時の処理"""
+        try:
+            # テーマファイルを読み込み
+            if self._load_theme_from_file(theme_path):
+                # ギャラリーダイアログを閉じる
+                if hasattr(self, 'gallery_dialog') and self.gallery_dialog:
+                    self.gallery_dialog.close()
+                    self.gallery_dialog = None
+                    
+                self.logger.debug(f"ギャラリーからテーマを選択しました: {theme_path}", LogCategory.UI)
+            else:
+                # 読み込みに失敗した場合
+                self.QtWidgets.QMessageBox.warning(
+                    self.main_window,
+                    "テーマ読み込み警告",
+                    f"テーマファイルの読み込みに失敗しました:\n{theme_path}"
+                )
+                
+        except Exception as e:
+            self.logger.log_error(f"ギャラリーからのテーマ選択処理に失敗しました: {str(e)}", e)
+            # エラーメッセージを表示
+            self.QtWidgets.QMessageBox.critical(
+                self.main_window,
+                "エラー",
+                f"ギャラリーからのテーマ選択処理に失敗しました:\n{str(e)}"
+            )
     
     def _connect_undo_redo_actions(self) -> None:
         """Undo/Redoアクションを連携します"""

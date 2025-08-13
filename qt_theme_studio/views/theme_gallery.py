@@ -8,20 +8,20 @@
 import os
 import json
 import re
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, List
 from pathlib import Path
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QScrollArea, QLabel, QPushButton, QLineEdit,
-    QComboBox, QFrame, QSizePolicy, QMessageBox,
-    QFileDialog, QProgressBar, QSplitter
+    QComboBox, QFrame, QMessageBox,
+    QFileDialog, QProgressBar, QDialog, QListWidget, 
+    QDialogButtonBox, QListWidgetItem
 )
-from PySide6.QtCore import Qt, QSize, QThread, Signal, QTimer
-from PySide6.QtGui import QPixmap, QPainter, QFont, QIcon
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QPixmap, QPainter, QFont
 
 from ..logger import Logger
-from ..exceptions import ThemeStudioException
 from ..services.import_service import ThemeImportService, ImportError
 
 
@@ -137,27 +137,77 @@ class ThemeCard(QFrame):
             secondary = colors.get('secondary', '#106ebe')
             background = colors.get('background', '#ffffff')
             surface = colors.get('surface', '#f5f5f5')
+            text_color = colors.get('text', '#000000')
+            text_secondary = colors.get('text_secondary', '#666666')
             
             # 背景色
             painter.fillRect(0, 0, 180, 120, background)
             
-            # プライマリ色のバー
-            painter.fillRect(0, 0, 180, 30, primary)
+            # プライマリ色のバー（上部）
+            painter.fillRect(0, 0, 180, 25, primary)
+            # プライマリ色の説明テキスト
+            painter.setPen(self._get_contrast_color(primary))
+            painter.setFont(QFont("", 7))
+            painter.drawText(5, 18, "プライマリ色")
             
             # セカンダリ色のバー
-            painter.fillRect(0, 30, 180, 30, secondary)
+            painter.fillRect(0, 25, 180, 25, secondary)
+            # セカンダリ色の説明テキスト
+            painter.setPen(self._get_contrast_color(secondary))
+            painter.drawText(5, 43, "セカンダリ色")
             
             # サーフェス色のエリア
-            painter.fillRect(0, 60, 180, 60, surface)
+            painter.fillRect(0, 50, 180, 70, surface)
+            
+            # テキスト色のサンプル表示
+            painter.setPen(text_color)
+            painter.setFont(QFont("", 8))
+            painter.drawText(10, 65, "テキスト色")
+            
+            # セカンダリテキスト色のサンプル
+            painter.setPen(text_secondary)
+            painter.setFont(QFont("", 7))
+            painter.drawText(10, 78, "セカンダリテキスト")
             
             # 簡単なウィジェット風の描画
-            painter.fillRect(10, 70, 50, 20, primary)  # ボタン風
-            painter.fillRect(70, 70, 100, 20, background)  # テキストフィールド風
+            painter.fillRect(10, 85, 50, 20, primary)  # ボタン風
+            painter.fillRect(70, 85, 100, 20, background)  # テキストフィールド風
+            
+            # ボタンとテキストフィールドの説明
+            painter.setPen(self._get_contrast_color(primary))
+            painter.setFont(QFont("", 6))
+            painter.drawText(12, 98, "ボタン")
+            
+            painter.setPen(text_color)
+            painter.drawText(72, 98, "テキストフィールド")
             
         finally:
             painter.end()
             
         return pixmap
+    
+    def _get_contrast_color(self, background_color: str) -> str:
+        """背景色に対して適切なコントラストのテキスト色を返す"""
+        try:
+            # 簡易的なコントラスト計算
+            # 16進数カラーをRGBに変換
+            if background_color.startswith('#'):
+                hex_color = background_color[1:]
+                if len(hex_color) == 6:
+                    r = int(hex_color[0:2], 16)
+                    g = int(hex_color[2:4], 16)
+                    b = int(hex_color[4:6], 16)
+                    
+                    # 明度計算（簡易版）
+                    brightness = (r * 299 + g * 587 + b * 114) / 1000
+                    
+                    # 明度が高い場合は黒、低い場合は白を使用
+                    return "#000000" if brightness > 128 else "#ffffff"
+        except Exception:
+            pass
+        
+        # フォールバック
+        return "#000000"
         
     def on_select_clicked(self):
         """選択ボタンクリック処理"""
@@ -254,7 +304,7 @@ class ThemeGallery(QWidget):
         
         # インポートボタン
         self.import_button = QPushButton("テーマをインポート")
-        self.import_button.clicked.connect(self.import_theme)
+        self.import_button.clicked.connect(self.on_import_clicked)
         header_layout.addWidget(self.import_button)
         
         # 更新ボタン
@@ -475,9 +525,8 @@ class ThemeGallery(QWidget):
                 f"テーマの削除中にエラーが発生しました:\n{str(e)}"
             )
             
-    def import_theme(self):
-        """テーマインポート"""
-        # サポートされる形式のフィルター作成
+    def on_import_clicked(self):
+        """インポートボタンクリック処理"""
         supported_formats = self.import_service.get_supported_formats()
         format_filter = "テーマファイル (" + " ".join([f"*{fmt}" for fmt in supported_formats]) + ")"
         format_filter += ";;JSON ファイル (*.json)"
@@ -499,26 +548,73 @@ class ThemeGallery(QWidget):
                 self.progress_bar.setRange(0, 0)
                 self.status_label.setText("テーマをインポート中...")
                 
-                # テーマインポート実行
-                imported_theme = self.import_service.import_theme(file_path)
+                # ファイルの内容を確認
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = json.load(f)
                 
-                # インポート検証
-                validation_errors = self.import_service.validate_imported_theme(imported_theme)
-                if validation_errors:
-                    error_msg = "インポートされたテーマに問題があります:\n" + "\n".join(validation_errors)
-                    QMessageBox.warning(self, "テーマ検証警告", error_msg)
+                # 複数テーマの場合は選択ダイアログを表示
+                if isinstance(content, list) and len(content) > 1:
+                    selected_themes = self.show_theme_selection_dialog(
+                        content)
+                    if not selected_themes:
+                        return  # ユーザーがキャンセルした場合
+                else:
+                    # 単一テーマまたは配列の最初のテーマ
+                    selected_themes = [
+                        content[0] if isinstance(content, list) else content
+                    ]
                 
-                # テーマファイルを保存
-                self.save_imported_theme(imported_theme, file_path)
+                # 選択されたテーマをインポート
+                imported_count = 0
+                for theme_data in selected_themes:
+                    try:
+                        # テーマデータの正規化
+                        normalized_theme = \
+                            self.import_service.normalize_json_theme(
+                                theme_data)
+                        
+                        # インポート検証
+                        validation_errors = \
+                            self.import_service.validate_imported_theme(
+                                normalized_theme)
+                        if validation_errors:
+                            error_msg = (
+                                f"テーマ '{normalized_theme.get('name', '不明')}' "
+                                f"に問題があります:\n" + "\n".join(validation_errors)
+                            )
+                            QMessageBox.warning(self, "テーマ検証警告", 
+                                               error_msg)
+                        
+                        # テーマファイルを保存
+                        self.save_imported_theme(normalized_theme, file_path)
+                        imported_count += 1
+                        
+                    except Exception as e:
+                        self.logger.log_error(
+                            f"テーマ '{theme_data.get('name', '不明')}' "
+                            f"のインポートエラー: {str(e)}", e)
+                        QMessageBox.warning(
+                            self,
+                            "インポート警告",
+                            f"テーマ '{theme_data.get('name', '不明')}' "
+                            f"のインポートに失敗しました:\n{str(e)}"
+                        )
                 
                 # ギャラリーを更新
                 self.load_themes()
                 
-                QMessageBox.information(
-                    self,
-                    "インポート完了",
-                    f"テーマ '{imported_theme['name']}' が正常にインポートされました。"
-                )
+                if imported_count > 0:
+                    QMessageBox.information(
+                        self,
+                        "インポート完了",
+                        f"{imported_count} 個のテーマが正常にインポートされました。"
+                    )
+                else:
+                    QMessageBox.warning(
+                        self,
+                        "インポート完了",
+                        "インポートされたテーマはありません。"
+                    )
                 
             except ImportError as e:
                 self.logger.log_error(f"テーマインポートエラー: {str(e)}", e)
@@ -536,6 +632,97 @@ class ThemeGallery(QWidget):
                 )
             finally:
                 self.progress_bar.setVisible(False)
+                
+    def show_theme_selection_dialog(self, themes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        複数テーマの選択ダイアログを表示
+        
+        Args:
+            themes: テーマのリスト
+            
+        Returns:
+            選択されたテーマのリスト
+        """
+        dialog = QDialog(self)
+        dialog.setWindowTitle("インポートするテーマを選択")
+        dialog.setModal(True)
+        dialog.resize(600, 400)
+        
+        layout = QVBoxLayout()
+        
+        # 説明ラベル
+        info_label = QLabel(
+            f"{len(themes)} 個のテーマが見つかりました。"
+            "インポートするテーマを選択してください。"
+        )
+        layout.addWidget(info_label)
+        
+        # テーマリスト
+        theme_list = QListWidget()
+        theme_list.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        
+        for theme in themes:
+            name = theme.get('display_name', theme.get('name', '不明'))
+            description = theme.get('description', '')
+            version = theme.get('version', '')
+            
+            item_text = f"{name} (v{version})"
+            if description:
+                item_text += f"\n{description}"
+                
+            item = QListWidgetItem(item_text)
+            item.setData(Qt.ItemDataRole.UserRole, theme)
+            theme_list.addItem(item)
+        
+        layout.addWidget(theme_list)
+        
+        # 全選択/全解除ボタン
+        button_layout = QHBoxLayout()
+        select_all_btn = QPushButton("全選択")
+        deselect_all_btn = QPushButton("全解除")
+        
+        select_all_btn.clicked.connect(
+            lambda: self.select_all_themes(theme_list))
+        deselect_all_btn.clicked.connect(
+            lambda: self.deselect_all_themes(theme_list))
+        
+        button_layout.addWidget(select_all_btn)
+        button_layout.addWidget(deselect_all_btn)
+        button_layout.addStretch()
+        
+        layout.addLayout(button_layout)
+        
+        # OK/キャンセルボタン
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | 
+            QDialogButtonBox.StandardButton.Cancel
+        )
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+        
+        dialog.setLayout(layout)
+        
+        # デフォルトで最初のテーマを選択
+        if theme_list.count() > 0:
+            theme_list.item(0).setSelected(True)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            selected_items = theme_list.selectedItems()
+            return [item.data(Qt.ItemDataRole.UserRole) 
+                   for item in selected_items]
+        
+        return []
+        
+    def select_all_themes(self, theme_list: QListWidget):
+        """すべてのテーマを選択"""
+        for i in range(theme_list.count()):
+            theme_list.item(i).setSelected(True)
+            
+    def deselect_all_themes(self, theme_list: QListWidget):
+        """すべてのテーマの選択を解除"""
+        for i in range(theme_list.count()):
+            theme_list.item(i).setSelected(False)
                 
     def save_imported_theme(self, theme_data: Dict[str, Any], original_path: str):
         """

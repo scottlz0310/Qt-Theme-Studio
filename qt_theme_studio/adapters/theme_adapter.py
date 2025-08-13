@@ -7,9 +7,9 @@ qt-theme-manager ライブラリ統合アダプター
 
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
 
 # カスタム例外クラス
 class ThemeManagerError(Exception):
@@ -68,19 +68,23 @@ class ThemeAdapter:
             self._theme_manager = qt_theme_manager
             self._is_initialized = True
             
-            self.logger.info("qt-theme-managerライブラリを正常に初期化しました")
+            self.logger.info(
+                "qt-theme-managerライブラリを正常に初期化しました")
             return True
             
         except ImportError as e:
             error_msg = (
                 "qt-theme-managerライブラリが見つかりません。"
                 "以下のコマンドでインストールしてください:\n"
-                "pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git"
+                "pip install git+https://github.com/scottlz0310/"
+                "Qt-Theme-Manager.git"
             )
             self.logger.error(f"{error_msg}\n詳細: {str(e)}")
             raise ThemeManagerError(error_msg)
         except Exception as e:
-            error_msg = f"qt-theme-managerライブラリの初期化に失敗しました: {str(e)}"
+            error_msg = (
+                f"qt-theme-managerライブラリの初期化に失敗しました: "
+                f"{str(e)}")
             self.logger.error(error_msg)
             raise ThemeManagerError(error_msg)
     
@@ -171,47 +175,63 @@ class ThemeAdapter:
             self.logger.error(error_msg)
             raise ThemeSaveError(error_msg)
     
-    def export_theme(self, theme_data: Dict[str, Any], format: str) -> str:
-        """テーマをエクスポートする
-        
-        テーマデータを指定された形式（JSON/QSS/CSS）でエクスポートします。
+    def export_theme(self, theme_data: Dict[str, Any], format_type: str) -> str:
+        """テーマを指定された形式でエクスポートする
         
         Args:
-            theme_data (Dict[str, Any]): エクスポートするテーマデータ
-            format (str): エクスポート形式 ('json', 'qss', 'css')
+            theme_data: エクスポートするテーマデータ
+            format_type: エクスポート形式（'json', 'qss', 'css'）
             
         Returns:
-            str: エクスポートされたテーマの文字列表現
+            str: エクスポートされたコンテンツ
             
         Raises:
-            ThemeExportError: テーマのエクスポートに失敗した場合
+            ThemeExportError: エクスポートに失敗した場合
         """
-        if not self._is_initialized:
-            self.initialize_theme_manager()
-            
-        format = format.lower()
-        
         try:
-            # テーマデータの検証
-            self._validate_theme_data(theme_data)
+            format_type = format_type.lower()
             
-            if format == 'json':
-                return self._export_to_json(theme_data)
-            elif format == 'qss':
-                return self._export_to_qss(theme_data)
-            elif format == 'css':
-                return self._export_to_css(theme_data)
+            if format_type == 'json':
+                return json.dumps(theme_data, ensure_ascii=False, indent=2)
+            elif format_type == 'qss':
+                return self._generate_qss_from_theme(theme_data)
+            elif format_type == 'css':
+                return self._generate_css_from_theme(theme_data)
             else:
-                error_msg = f"サポートされていないエクスポート形式: {format}"
-                self.logger.error(error_msg)
-                raise ThemeExportError(error_msg)
+                raise ThemeExportError(f"サポートされていないエクスポート形式: {format_type}")
                 
         except Exception as e:
-            if isinstance(e, (ThemeExportError, ThemeValidationError)):
-                raise
             error_msg = f"テーマのエクスポートに失敗しました: {str(e)}"
             self.logger.error(error_msg)
             raise ThemeExportError(error_msg)
+            
+    def import_theme(self, file_path: str, format_type: str = None) -> Dict[str, Any]:
+        """テーマファイルをインポートする
+        
+        Args:
+            file_path: インポートするファイルのパス
+            format_type: ファイル形式（自動検出の場合はNone）
+            
+        Returns:
+            Dict[str, Any]: インポートされたテーマデータ
+            
+        Raises:
+            ThemeLoadError: インポートに失敗した場合
+        """
+        try:
+            # ImportServiceを使用してインポート
+            from ..services.import_service import ThemeImportService
+            
+            import_service = ThemeImportService()
+            theme_data = import_service.import_theme(file_path)
+            
+            self.logger.info(f"テーマファイルをインポートしました: {file_path}")
+            return theme_data
+            
+        except Exception as e:
+            error_msg = f"テーマのインポートに失敗しました: {str(e)}"
+            self.logger.error(error_msg)
+            raise ThemeLoadError(error_msg)
     
     def get_supported_formats(self) -> List[str]:
         """サポートされているテーマ形式のリストを返す

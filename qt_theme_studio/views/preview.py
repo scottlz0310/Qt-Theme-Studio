@@ -1,17 +1,13 @@
 """
-ライブプレビューシステム
+プレビュー関連のモジュール
 
-このモジュールは、Qt-Theme-Studioのライブプレビューシステムを実装します。
-包括的なQtウィジェットセットのプレビュー表示と、500ms以内のリアルタイム更新機能を提供します。
+このモジュールは、Qt-Theme-Studioアプリケーションのプレビュー機能を提供します。
 """
 
-import logging
-from typing import Any, Dict, Optional, Callable, List
-from pathlib import Path
-
-from ..adapters.qt_adapter import QtAdapter
-from ..adapters.theme_adapter import ThemeAdapter
-from ..logger import get_logger, LogCategory
+from typing import Any, Callable, Dict, List, Optional
+from qt_theme_studio.adapters.qt_adapter import QtAdapter
+from qt_theme_studio.adapters.theme_adapter import ThemeAdapter
+from qt_theme_studio.logger import get_logger, LogCategory
 
 
 class WidgetShowcase:
@@ -324,17 +320,40 @@ class WidgetShowcase:
             
             # 基本的な背景色とテキスト色
             if 'background' in colors:
-                styles.append(f"QWidget {{ background-color: {colors['background']}; }}")
+                bg_color = colors['background']
+                styles.append(
+                    f"QWidget {{ background-color: {bg_color}; }}"
+                )
             
             if 'text' in colors:
-                styles.append(f"QWidget {{ color: {colors['text']}; }}")
+                text_color = colors['text']
+                styles.append(f"QWidget {{ color: {text_color}; }}")
             
             # ボタンのスタイル
             if 'primary' in colors:
+                # 無効状態の色をテーマから取得（フォールバック付き）
+                bg_color = colors.get('background', '#f0f0f0')
+                text_color = colors.get('text', '#333333')
+                
+                disabled_bg = colors.get(
+                    'disabled', 
+                    colors.get(
+                        'surface', 
+                        self._lighten_color(bg_color, 0.1)
+                    )
+                )
+                disabled_text = colors.get(
+                    'text_disabled', 
+                    colors.get(
+                        'text_muted', 
+                        self._darken_color(text_color, 0.5)
+                    )
+                )
+                
                 styles.append(f"""
                 QPushButton {{
                     background-color: {colors['primary']};
-                    color: white;
+                    color: {self._get_optimal_text_color(colors['primary'])};
                     border: 1px solid {colors['primary']};
                     padding: 5px 10px;
                     border-radius: 3px;
@@ -346,30 +365,46 @@ class WidgetShowcase:
                     background-color: {self._darken_color(colors['primary'], 0.2)};
                 }}
                 QPushButton:disabled {{
-                    background-color: #cccccc;
-                    color: #666666;
+                    background-color: {disabled_bg};
+                    color: {disabled_text};
                 }}
                 """)
             
             # 入力フィールドのスタイル
             if 'background' in colors and 'text' in colors:
+                # ボーダー色をテーマから取得（フォールバック付き）
+                bg_color = colors.get('background', '#ffffff')
+                border_color = colors.get(
+                    'border', 
+                    colors.get(
+                        'surface', 
+                        self._darken_color(bg_color, 0.2)
+                    )
+                )
+                focus_color = colors.get(
+                    'primary', 
+                    colors.get('accent', '#0078d4')
+                )
+                
                 styles.append(f"""
                 QLineEdit, QTextEdit, QSpinBox, QComboBox {{
                     background-color: {colors['background']};
                     color: {colors['text']};
-                    border: 1px solid #cccccc;
+                    border: 1px solid {border_color};
                     padding: 3px;
                     border-radius: 2px;
                 }}
                 QLineEdit:focus, QTextEdit:focus, QSpinBox:focus, QComboBox:focus {{
-                    border-color: {colors.get('primary', '#0078d4')};
+                    border-color: {focus_color};
                 }}
                 """)
         
         # フォント設定の適用
         if 'fonts' in theme_data and 'default' in theme_data['fonts']:
             font = theme_data['fonts']['default']
-            font_style = f"font-family: {font.get('family', 'Arial')}; font-size: {font.get('size', 12)}px;"
+            family = font.get('family', 'Arial')
+            size = font.get('size', 12)
+            font_style = f"font-family: {family}; font-size: {size}px;"
             
             if font.get('bold', False):
                 font_style += " font-weight: bold;"
@@ -379,6 +414,63 @@ class WidgetShowcase:
             styles.append(f"QWidget {{ {font_style} }}")
         
         return "\\n".join(styles)
+    
+    def _get_optimal_text_color(self, background_color: str) -> str:
+        """背景色に対して最適なテキスト色を取得します
+        
+        Args:
+            background_color: 背景色（16進数カラーコード）
+            
+        Returns:
+            str: 最適なテキスト色
+        """
+        try:
+            # 背景色の明度を計算
+            if background_color.startswith('#'):
+                background_color = background_color[1:]
+            
+            r = int(background_color[0:2], 16)
+            g = int(background_color[2:4], 16)
+            b = int(background_color[4:6], 16)
+            
+            # 相対輝度を計算（WCAG準拠）
+            luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+            
+            # 明度に基づいてテキスト色を決定
+            if luminance > 0.5:
+                return "#000000"  # 明るい背景には黒いテキスト
+            else:
+                return "#ffffff"  # 暗い背景には白いテキスト
+        except (ValueError, IndexError):
+            return "#000000"  # エラーの場合は黒を返す
+    
+    def _lighten_color(self, color: str, factor: float = 0.1) -> str:
+        """色を明るくします
+        
+        Args:
+            color: 16進数カラーコード
+            factor: 明るくする係数（0.0-1.0）
+            
+        Returns:
+            str: 明るくされた色
+        """
+        try:
+            # 16進数カラーコードをRGBに変換
+            if color.startswith('#'):
+                color = color[1:]
+            
+            r = int(color[0:2], 16)
+            g = int(color[2:4], 16)
+            b = int(color[4:6], 16)
+            
+            # 色を明るくする
+            r = min(255, int(r + (255 - r) * factor))
+            g = min(255, int(g + (255 - g) * factor))
+            b = min(255, int(b + (255 - b) * factor))
+            
+            return f"#{r:02x}{g:02x}{b:02x}"
+        except (ValueError, IndexError):
+            return color  # エラーの場合は元の色を返す
     
     def _darken_color(self, color: str, factor: float = 0.1) -> str:
         """色を暗くします
@@ -405,7 +497,7 @@ class WidgetShowcase:
             b = max(0, int(b * (1 - factor)))
             
             return f"#{r:02x}{g:02x}{b:02x}"
-        except:
+        except (ValueError, IndexError):
             return color  # エラーの場合は元の色を返す
 
 

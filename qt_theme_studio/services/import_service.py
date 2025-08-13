@@ -7,8 +7,7 @@
 
 import json
 import re
-import os
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, List
 from pathlib import Path
 from datetime import datetime
 
@@ -142,7 +141,7 @@ class ThemeImportService:
         except Exception as e:
             raise ImportError(f"CSSファイル読み込みエラー: {str(e)}")
             
-    def normalize_json_theme(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def normalize_json_theme(self, data: Any) -> Dict[str, Any]:
         """
         JSONテーマデータの正規化
         
@@ -152,11 +151,26 @@ class ThemeImportService:
         Returns:
             正規化されたテーマデータ
         """
+        # 配列形式の場合は最初のテーマを使用
+        if isinstance(data, list):
+            if not data:
+                raise ImportError("テーマデータが空です")
+            data = data[0]  # 最初のテーマを使用
+            self.logger.info("配列形式のJSONファイルを検出し、最初のテーマを使用します")
+            
+        if not isinstance(data, dict):
+            raise ImportError("テーマデータが辞書形式ではありません")
+            
         # 基本構造の確保
         normalized = {
             'name': data.get('name', '未命名テーマ'),
+            'display_name': data.get('display_name',
+                                   data.get('name', '未命名テーマ')),
             'version': data.get('version', '1.0.0'),
             'description': data.get('description', ''),
+            'author': data.get('author', ''),
+            'qt_theme_name': data.get('qt_theme_name', ''),
+            'style_sheet': data.get('style_sheet', ''),
             'colors': {},
             'fonts': {},
             'sizes': {},
@@ -164,8 +178,11 @@ class ThemeImportService:
             'metadata': {}
         }
         
-        # 色情報の正規化
-        if 'colors' in data:
+        # color_scheme形式の色情報を正規化
+        if 'color_scheme' in data:
+            normalized['colors'] = self.normalize_color_scheme(
+                data['color_scheme'])
+        elif 'colors' in data:
             normalized['colors'] = self.normalize_colors(data['colors'])
         elif 'palette' in data:  # 別名での色情報
             normalized['colors'] = self.normalize_colors(data['palette'])
@@ -178,14 +195,82 @@ class ThemeImportService:
         if 'sizes' in data:
             normalized['sizes'] = self.normalize_sizes(data['sizes'])
             
+        # アクセシビリティ機能
+        if 'accessibility_features' in data:
+            normalized['accessibility_features'] = \
+                data['accessibility_features']
+            
+        # パフォーマンス設定
+        if 'performance_settings' in data:
+            normalized['performance_settings'] = \
+                data['performance_settings']
+            
         # その他のプロパティ
         if 'properties' in data:
             normalized['properties'] = data['properties']
+            
+        # カスタムプロパティ
+        if 'custom_properties' in data:
+            normalized['custom_properties'] = \
+                data['custom_properties']
             
         # メタデータ
         if 'metadata' in data:
             normalized['metadata'] = data['metadata']
             
+        # 日時情報
+        if 'created_date' in data:
+            normalized['created_at'] = data['created_date']
+        if 'last_modified' in data:
+            normalized['updated_at'] = data['last_modified']
+            
+        return normalized
+        
+    def normalize_color_scheme(self, color_scheme: Dict[str, Any]) -> \
+            Dict[str, str]:
+        """
+        color_scheme形式の色情報を正規化
+        
+        Args:
+            color_scheme: color_scheme形式の色情報
+            
+        Returns:
+            正規化された色情報
+        """
+        normalized = {}
+        
+        # color_schemeの標準的な色名マッピング
+        color_mappings = {
+            'background': ['background', 'bg', 'base'],
+            'foreground': ['foreground', 'fg', 'text'],
+            'primary': ['primary', 'main', 'accent'],
+            'secondary': ['secondary', 'alternate'],
+            'accent': ['accent', 'highlight'],
+            'success': ['success', 'ok', 'green'],
+            'warning': ['warning', 'caution', 'yellow'],
+            'error': ['error', 'danger', 'red'],
+            'info': ['info', 'information', 'blue'],
+            'border': ['border', 'outline'],
+            'hover': ['hover', 'hover_state'],
+            'selected': ['selected', 'selection', 'active'],
+            'disabled': ['disabled', 'inactive']
+        }
+        
+        # 色の正規化
+        for standard_name, possible_names in color_mappings.items():
+            for name in possible_names:
+                if name in color_scheme:
+                    color_value = color_scheme[name]
+                    normalized[standard_name] = \
+                        self.normalize_color_value(color_value)
+                    break
+                    
+        # その他の色もそのまま追加
+        for name, value in color_scheme.items():
+            if name not in [n for names in color_mappings.values()
+                           for n in names]:
+                normalized[name] = self.normalize_color_value(value)
+                
         return normalized
         
     def normalize_colors(self, colors: Dict[str, Any]) -> Dict[str, str]:

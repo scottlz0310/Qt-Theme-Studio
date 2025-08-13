@@ -219,11 +219,14 @@ class ColorSliderGroup(QtWidgets.QWidget):
     def update_preview(self):
         """色プレビューボタンを更新"""
         text_color = ColorUtils.get_optimal_text_color(self.color)
+        # ボーダー色をテーマから取得（フォールバック付き）
+        border_color = getattr(self, 'theme_border_color', '#ccc')
+        
         self.color_preview.setStyleSheet(f"""
             QPushButton {{
                 background-color: {self.color};
                 color: {text_color};
-                border: 1px solid #ccc;
+                border: 1px solid {border_color};
                 border-radius: 3px;
                 font-weight: bold;
             }}
@@ -342,35 +345,43 @@ class AutoThemeGenerator(QtWidgets.QWidget):
     def __init__(self, qt_adapter=None, parent=None):
         super().__init__(parent)
         
-        # QtAdapterが提供されている場合は使用、そうでなければデフォルトのQtモジュールを使用
-        if qt_adapter:
-            self.qt_modules = qt_adapter.get_qt_modules()
-            self.QtWidgets = self.qt_modules['QtWidgets']
-            self.QtCore = self.qt_modules['QtCore']
-            self.QtGui = self.qt_modules['QtGui']
-        else:
-            # デフォルトのQtモジュールを使用（テスト環境用）
-            import PySide6.QtWidgets as QtWidgets
-            import PySide6.QtCore as QtCore
-            import PySide6.QtGui as QtGui
-            self.QtWidgets = QtWidgets
-            self.QtCore = QtCore
-            self.QtGui = QtGui
+        # Qtアダプターを保存
+        self.qt_adapter = qt_adapter
         
-        self.current_colors = {}
-        self.generated_theme_colors = {}  # 生成されたテーマカラーを保存
-        self.update_timer = self.QtCore.QTimer()
-        self.update_timer.timeout.connect(self.update_preview)
+        # 現在の色設定
+        self.current_colors = {
+            "background": "#ffffff",
+            "primary": "#007acc"
+        }
+        
+        # テーマのボーダー色を初期化
+        self.theme_border_color = "#ccc"
+        
+        # 生成されたテーマカラー
+        self.generated_theme_colors = {}
+        
+        # コントラストチェッカー
+        self.contrast_checker = ContrastChecker()
+        
+        # 更新タイマーを初期化
+        self.update_timer = QtCore.QTimer()
         self.update_timer.setSingleShot(True)
+        self.update_timer.timeout.connect(self._on_update_timeout)
         
+        # UIを初期化
         self.setup_ui()
         self.load_default_colors()
+    
+    def set_theme_border_color(self, border_color: str):
+        """テーマのボーダー色を設定します
         
-        # UI初期化完了後に遅延処理で入力フィールドを有効化
-        self.QtCore.QTimer.singleShot(100, self._enable_input_fields)
-        
-        logger.info("オートテーマジェネレーターを初期化しました")
-        
+        Args:
+            border_color: ボーダー色（16進数カラーコード）
+        """
+        self.theme_border_color = border_color
+        # プレビューを更新
+        self.update_preview()
+    
     def setup_ui(self):
         """UIセットアップ（改良版）"""
         layout = QtWidgets.QVBoxLayout(self)
@@ -406,26 +417,26 @@ class AutoThemeGenerator(QtWidgets.QWidget):
     def setup_controls_panel(self, parent):
         """コントロールパネルの設定"""
         # テーマ情報セクション
-        theme_info_group = self.QtWidgets.QGroupBox("テーマ情報")
-        theme_info_layout = self.QtWidgets.QVBoxLayout()
+        theme_info_group = QtWidgets.QGroupBox("テーマ情報")
+        theme_info_layout = QtWidgets.QVBoxLayout()
         
         # テーマ名入力
-        theme_name_layout = self.QtWidgets.QHBoxLayout()
-        theme_name_layout.addWidget(self.QtWidgets.QLabel("テーマ名:"))
-        self.theme_name_input = self.QtWidgets.QLineEdit()
+        theme_name_layout = QtWidgets.QHBoxLayout()
+        theme_name_layout.addWidget(QtWidgets.QLabel("テーマ名:"))
+        self.theme_name_input = QtWidgets.QLineEdit()
         self.theme_name_input.setPlaceholderText("テーマ名を入力してください")
-        self.theme_name_input.setFocusPolicy(self.QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
+        self.theme_name_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
         
         theme_name_layout.addWidget(self.theme_name_input)
         theme_info_layout.addLayout(theme_name_layout)
         
         # テーマ概要入力
-        theme_desc_layout = self.QtWidgets.QHBoxLayout()
-        theme_desc_layout.addWidget(self.QtWidgets.QLabel("テーマ概要:"))
-        self.theme_description_input = self.QtWidgets.QTextEdit()
+        theme_desc_layout = QtWidgets.QHBoxLayout()
+        theme_desc_layout.addWidget(QtWidgets.QLabel("テーマ概要:"))
+        self.theme_description_input = QtWidgets.QTextEdit()
         self.theme_description_input.setPlaceholderText("テーマの概要を入力してください")
         self.theme_description_input.setMaximumHeight(60)
-        self.theme_description_input.setFocusPolicy(self.QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
+        self.theme_description_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)  # フォーカス可能に設定
         
         theme_desc_layout.addWidget(self.theme_description_input)
         theme_info_layout.addLayout(theme_desc_layout)
@@ -433,8 +444,8 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         theme_info_group.setLayout(theme_info_layout)
         
         # 色調整用スライダーグループ
-        color_sliders_group = self.QtWidgets.QGroupBox("色調整")
-        color_sliders_layout = self.QtWidgets.QVBoxLayout()
+        color_sliders_group = QtWidgets.QGroupBox("色調整")
+        color_sliders_layout = QtWidgets.QVBoxLayout()
         
         # 背景色スライダー
         self.bg_slider = ColorSliderGroup("背景色", "#ffffff", self)
@@ -449,25 +460,25 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         color_sliders_group.setLayout(color_sliders_layout)
         
         # テーマ生成ボタン
-        generate_buttons_layout = self.QtWidgets.QHBoxLayout()
+        generate_buttons_layout = QtWidgets.QHBoxLayout()
         
         # WCAG AA準拠テーマ生成
-        aa_button = self.QtWidgets.QPushButton("WCAG AA準拠テーマ生成")
+        aa_button = QtWidgets.QPushButton("WCAG AA準拠テーマ生成")
         aa_button.clicked.connect(lambda: self.auto_generate_theme("AA"))
         generate_buttons_layout.addWidget(aa_button)
         
         # WCAG AAA準拠テーマ生成
-        aaa_button = self.QtWidgets.QPushButton("WCAG AAA準拠テーマ生成")
+        aaa_button = QtWidgets.QPushButton("WCAG AAA準拠テーマ生成")
         aaa_button.clicked.connect(lambda: self.auto_generate_theme("AAA"))
         generate_buttons_layout.addWidget(aaa_button)
         
         # 調和色テーマ生成
-        harmony_button = self.QtWidgets.QPushButton("調和色テーマ生成")
+        harmony_button = QtWidgets.QPushButton("調和色テーマ生成")
         harmony_button.clicked.connect(self.generate_harmonious_palette)
         generate_buttons_layout.addWidget(harmony_button)
         
         # メインテーマに適用ボタン
-        apply_button = self.QtWidgets.QPushButton("メインテーマに適用")
+        apply_button = QtWidgets.QPushButton("メインテーマに適用")
         apply_button.clicked.connect(self.apply_to_main_theme)
         apply_button.setStyleSheet("""
             QPushButton {
@@ -495,7 +506,7 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         parent.addWidget(left_panel)
         
         # コントロールパネル設定完了後に遅延処理で入力フィールドを有効化
-        self.QtCore.QTimer.singleShot(200, self._enable_input_fields)
+        QtCore.QTimer.singleShot(200, self._enable_input_fields)
     
     def setup_preview_panel(self, parent):
         """統合プレビューパネルのセットアップ"""
@@ -685,11 +696,14 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         
         for name, color in colors:
             color_preview = QtWidgets.QLabel(name)
+            # ボーダー色をテーマから取得（フォールバック付き）
+            border_color = getattr(self, 'theme_border_color', '#ccc')
+            
             color_preview.setStyleSheet(f"""
                 QLabel {{
                     background-color: {color};
                     color: {ColorUtils.get_optimal_text_color(color)};
-                    border: 1px solid #ccc;
+                    border: 1px solid {border_color};
                     padding: 8px;
                     border-radius: 4px;
                     font-weight: bold;
@@ -870,9 +884,18 @@ class AutoThemeGenerator(QtWidgets.QWidget):
             "リンクテキスト": {"foreground": adjusted_primary, "background": bg_color},
             "選択テキスト": {"foreground": ColorUtils.get_optimal_text_color(adjusted_primary), "background": adjusted_primary},
             "無効テキスト": {"foreground": ColorUtils.adjust_brightness(optimal_text, 0.4), "background": bg_color},
-            "エラーテキスト": {"foreground": "#d32f2f" if ColorUtils.get_luminance(bg_color) > 0.5 else "#f44336", "background": bg_color},
-            "成功テキスト": {"foreground": "#2e7d32" if ColorUtils.get_luminance(bg_color) > 0.5 else "#4caf50", "background": bg_color},
-            "警告テキスト": {"foreground": "#f57c00" if ColorUtils.get_luminance(bg_color) > 0.5 else "#ff9800", "background": bg_color},
+            "エラーテキスト": {
+                "foreground": "#d32f2f" if ColorUtils.get_luminance(bg_color) > 0.5 else "#f44336", 
+                "background": bg_color
+            },
+            "成功テキスト": {
+                "foreground": "#2e7d32" if ColorUtils.get_luminance(bg_color) > 0.5 else "#4caf50", 
+                "background": bg_color
+            },
+            "警告テキスト": {
+                "foreground": "#f57c00" if ColorUtils.get_luminance(bg_color) > 0.5 else "#ff9800", 
+                "background": bg_color
+            },
         }
         
         # エラー色と成功色のコントラストも調整
@@ -901,6 +924,15 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         
         # シグナルを発信
         self.colors_changed.emit(color_pairs)
+    
+    def _on_update_timeout(self):
+        """更新タイマーのタイムアウトハンドラー"""
+        # プレビューを更新
+        if hasattr(self, 'contrast_checker'):
+            self.contrast_checker.check_contrast(
+                self.current_colors.get("background", "#ffffff"),
+                self.current_colors.get("primary", "#007acc")
+            )
         
         QtWidgets.QMessageBox.information(
             self,
@@ -1204,15 +1236,15 @@ class AutoThemeGenerator(QtWidgets.QWidget):
             }}
             
             QLabel[class="success"] {{
-                color: #2e7d32;
+                color: {self.current_colors.get('success', self.current_colors.get('text_success', '#2e7d32'))};
             }}
             
             QLabel[class="warning"] {{
-                color: #f57c00;
+                color: {self.current_colors.get('warning', self.current_colors.get('text_warning', '#f57c00'))};
             }}
             
             QLabel[class="error"] {{
-                color: #d32f2f;
+                color: {self.current_colors.get('error', self.current_colors.get('text_error', '#d32f2f'))};
             }}
             
             QLabel[class="link"] {{

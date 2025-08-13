@@ -1,11 +1,3 @@
-日本語で応答すること
-その他のルールは
-.kiro/steering/ci-cd.md
-.kiro/steering/product.md
-.kiro/steering/structure.md
-.kiro/steering/tech.md
-を参照すること
-
 ## qt_theme_studio/ 改善計画 - Reference/ 技術統合
 
 ### 1. アクセシビリティ機能の統合
