@@ -176,9 +176,10 @@ class ThemeController:
             self._qt_modules = self.qt_adapter.get_qt_modules()
             QtWidgets = self._qt_modules['QtWidgets']
             QtCore = self._qt_modules['QtCore']
+            QtGui = self._qt_modules['QtGui']
             
             # QUndoStackを初期化（最大50回の操作履歴）
-            self._undo_stack = QtWidgets.QUndoStack()
+            self._undo_stack = QtGui.QUndoStack()
             self._undo_stack.setUndoLimit(50)
             # 初期化時に履歴をクリア
             self._undo_stack.clear()

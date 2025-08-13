@@ -126,7 +126,7 @@ class TestCompleteWorkflow:
             }
         }
         
-        mock_adapter.create_theme.return_value = test_theme_data
+        # create_themeメソッドは存在しないため削除
         mock_adapter.load_theme.return_value = test_theme_data
         mock_adapter.save_theme.return_value = True
         mock_adapter.export_theme.return_value = json.dumps(test_theme_data, indent=2)
@@ -136,7 +136,7 @@ class TestCompleteWorkflow:
     def test_complete_theme_creation_workflow(self, temp_dir, mock_qt_adapter, mock_theme_adapter):
         """完全なテーマ作成ワークフローテスト"""
         # 1. テーマコントローラーの初期化
-        theme_controller = ThemeController(mock_qt_adapter, mock_theme_adapter)
+        theme_controller = ThemeController()
         
         # 2. 新規テーマ作成
         new_theme = theme_controller.create_new_theme()
@@ -222,7 +222,7 @@ class TestCompleteWorkflow:
     def test_error_recovery_workflow(self, temp_dir, mock_qt_adapter, mock_theme_adapter):
         """エラー復旧ワークフローテスト"""
         # テーマコントローラーの初期化
-        theme_controller = ThemeController(mock_qt_adapter, mock_theme_adapter)
+        theme_controller = ThemeController()
         
         # 1. 無効なファイルパスでの読み込みテスト
         invalid_path = temp_dir / "non_existent_theme.json"
@@ -276,7 +276,7 @@ class TestCompleteWorkflow:
         controllers = []
         
         for i in range(10):
-            controller = ThemeController(mock_qt_adapter, mock_theme_adapter)
+            controller = ThemeController()
             theme = controller.create_new_theme()
             controllers.append(controller)
         
@@ -317,7 +317,7 @@ class TestQtFrameworkCompatibility:
             }
             
             # テーマコントローラーの初期化
-            theme_controller = ThemeController(mock_qt_adapter, mock_theme_adapter)
+            theme_controller = ThemeController()
             
             # 新規テーマ作成
             new_theme = theme_controller.create_new_theme()
@@ -357,7 +357,7 @@ class TestQtFrameworkCompatibility:
             
             # エラーが適切に処理されることを確認
             with pytest.raises(Exception) as exc_info:
-                ThemeController(mock_qt_adapter, Mock())
+                ThemeController()
             
             assert "Qtフレームワークが見つかりません" in str(exc_info.value)
 
@@ -457,7 +457,7 @@ class TestIntegrationScenarios:
         mock_theme_adapter.load_theme.return_value = large_theme
         
         # テーマコントローラーで処理
-        theme_controller = ThemeController(mock_qt_adapter, mock_theme_adapter)
+        theme_controller = ThemeController()
         
         # 大規模テーマの作成
         start_time = time.time()
