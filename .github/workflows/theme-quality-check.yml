@@ -186,7 +186,7 @@ jobs:
 
 ### 💡 推奨事項
 ${summary.recommendations.length > 0 ? 
-  summary.recommendations.map((rec, i) => `${i + 1}. ${rec}`).join('\n') : 
+  summary.recommendations.map((rec, i) => \`\${i + 1}. \${rec}\`).join('\\n') : 
   '特に推奨事項はありません。'}
 
 ---
@@ -204,7 +204,7 @@ ${summary.recommendations.length > 0 ?
             
 **状態**: ❌ エラーが発生しました
 **Python バージョン**: ${{ matrix.python-version }}
-**エラー**: ${error.message}
+**エラー**: \${error.message}
 
 詳細は [Actions ログ](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。`;
           }
