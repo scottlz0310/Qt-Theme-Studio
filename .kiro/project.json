@@ -1,0 +1,23 @@
+{
+  "name": "Qt-Theme-Studio",
+  "version": "0.1.0",
+  "type": "python",
+  "language": "ja",
+  "sourceControl": {
+    "type": "git",
+    "remote": "https://github.com/scottlz0310/Qt-Theme-Studio.git",
+    "branch": "main"
+  },
+  "build": {
+    "command": "python -m build",
+    "outputDir": "dist"
+  },
+  "test": {
+    "command": "pytest",
+    "coverage": true
+  },
+  "lint": {
+    "enabled": true,
+    "tools": ["black", "isort", "flake8"]
+  }
+}
