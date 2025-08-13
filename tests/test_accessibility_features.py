@@ -66,19 +66,19 @@ class TestColorAnalyzer:
     def test_rgb_to_luminance_conversion(self, color_analyzer):
         """RGBから輝度変換のテスト"""
         # 白の輝度（最大値）
-        white_luminance = color_analyzer.rgb_to_luminance(255, 255, 255)
+        white_luminance = color_analyzer.calculate_relative_luminance(255, 255, 255)
         assert abs(white_luminance - 1.0) < 0.001
         
         # 黒の輝度（最小値）
-        black_luminance = color_analyzer.rgb_to_luminance(0, 0, 0)
+        black_luminance = color_analyzer.calculate_relative_luminance(0, 0, 0)
         assert abs(black_luminance - 0.0) < 0.001
         
         # 中間色の輝度
-        gray_luminance = color_analyzer.rgb_to_luminance(128, 128, 128)
+        gray_luminance = color_analyzer.calculate_relative_luminance(128, 128, 128)
         assert 0.0 < gray_luminance < 1.0
         
         # 赤の輝度
-        red_luminance = color_analyzer.rgb_to_luminance(255, 0, 0)
+        red_luminance = color_analyzer.calculate_relative_luminance(255, 0, 0)
         assert 0.0 < red_luminance < 1.0
     
     def test_contrast_ratio_calculation(self, color_analyzer):
