@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -44,7 +44,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -108,28 +108,28 @@ jobs:
         tar -czf ../qt-theme-studio-linux.tar.gz *
     
     - name: Upload wheel artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: wheel-${{ matrix.os }}
         path: dist/*.whl
     
     - name: Upload executable artifact (Windows)
       if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: executable-windows
         path: qt-theme-studio-windows.zip
     
     - name: Upload executable artifact (macOS)
       if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: executable-macos
         path: qt-theme-studio-macos.tar.gz
     
     - name: Upload executable artifact (Linux)
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: executable-linux
         path: qt-theme-studio-linux.tar.gz
@@ -142,7 +142,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
     
     - name: Get tag name
       id: tag
@@ -150,55 +150,19 @@ jobs:
     
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.tag.outputs.tag }}
-        release_name: Qt-Theme-Studio ${{ steps.tag.outputs.tag }}
+        name: Qt-Theme-Studio ${{ steps.tag.outputs.tag }}
         body_path: RELEASE_NOTES.md
         draft: false
         prerelease: false
-    
-    - name: Upload Windows executable
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: executable-windows/qt-theme-studio-windows.zip
-        asset_name: qt-theme-studio-${{ steps.tag.outputs.tag }}-windows.zip
-        asset_content_type: application/zip
-    
-    - name: Upload macOS executable
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: executable-macos/qt-theme-studio-macos.tar.gz
-        asset_name: qt-theme-studio-${{ steps.tag.outputs.tag }}-macos.tar.gz
-        asset_content_type: application/gzip
-    
-    - name: Upload Linux executable
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: executable-linux/qt-theme-studio-linux.tar.gz
-        asset_name: qt-theme-studio-${{ steps.tag.outputs.tag }}-linux.tar.gz
-        asset_content_type: application/gzip
-    
-    - name: Upload Python wheel (Ubuntu)
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: wheel-ubuntu-latest/qt_theme_studio-1.0.0-py3-none-any.whl
-        asset_name: qt_theme_studio-${{ steps.tag.outputs.tag }}-py3-none-any.whl
-        asset_content_type: application/zip
+        files: |
+          executable-windows/qt-theme-studio-windows.zip
+          executable-macos/qt-theme-studio-macos.tar.gz
+          executable-linux/qt-theme-studio-linux.tar.gz
+          wheel-ubuntu-latest/qt_theme_studio-1.0.0-py3-none-any.whl
+
 
   publish-pypi:
     needs: test
@@ -208,7 +172,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     
