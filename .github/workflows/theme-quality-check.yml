@@ -174,39 +174,39 @@ jobs:
               const report = JSON.parse(fs.readFileSync('ci_report.json', 'utf8'));
               const summary = report.ci_summary;
               
-              reportContent = `## 🎨 テーマ品質チェック結果
+              reportContent = \`## 🎨 テーマ品質チェック結果
               
-**総合判定**: ${summary.overall_status === 'PASS' ? '✅ 合格' : '❌ 不合格'}
-**品質スコア**: ${summary.quality_score.toFixed(1)}/100
-**テスト成功率**: ${summary.test_success_rate.toFixed(1)}%
+**総合判定**: \${summary.overall_status === 'PASS' ? '✅ 合格' : '❌ 不合格'}
+**品質スコア**: \${summary.quality_score.toFixed(1)}/100
+**テスト成功率**: \${summary.test_success_rate.toFixed(1)}%
 
 ### 📊 詳細結果
 - Python バージョン: ${{ matrix.python-version }}
-- 検査対象: \`${{ steps.find-themes.outputs.theme_files }}\`
+- 検査対象: \\\`${{ steps.find-themes.outputs.theme_files }}\\\`
 
 ### 💡 推奨事項
-${summary.recommendations.length > 0 ? 
-  summary.recommendations.map((rec, i) => \`\${i + 1}. \${rec}\`).join('\\n') : 
+\${summary.recommendations.length > 0 ? 
+  summary.recommendations.map((rec, i) => \\\`\\\${i + 1}. \\\${rec}\\\`).join('\\\\n') : 
   '特に推奨事項はありません。'}
 
 ---
-*このレポートは自動生成されました。詳細は [Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。*`;
+*このレポートは自動生成されました。詳細は [Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。*\`;
             } else {
-              reportContent = `## 🎨 テーマ品質チェック結果
+              reportContent = \`## 🎨 テーマ品質チェック結果
               
 **状態**: ⚠️ レポートファイルが生成されませんでした
 **Python バージョン**: ${{ matrix.python-version }}
 
-詳細は [Actions ログ](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。`;
+詳細は [Actions ログ](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。\`;
             }
           } catch (error) {
-            reportContent = `## 🎨 テーマ品質チェック結果
+            reportContent = \`## 🎨 テーマ品質チェック結果
             
 **状態**: ❌ エラーが発生しました
 **Python バージョン**: ${{ matrix.python-version }}
-**エラー**: \${error.message}
+**エラー**: \\\${error.message}
 
-詳細は [Actions ログ](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。`;
+詳細は [Actions ログ](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) をご確認ください。\`;
           }
           
           // 既存のコメントを検索
