@@ -85,4 +85,4 @@ __all__ = [
     "configure_exception_logging",
     "log_application_startup",
     "log_application_shutdown",
-]
+]# テスト用コメント
