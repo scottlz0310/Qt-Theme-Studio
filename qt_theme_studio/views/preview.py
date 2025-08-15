@@ -327,7 +327,26 @@ class WidgetShowcase:
             
             if 'text' in colors:
                 text_color = colors['text']
-                styles.append(f"QWidget {{ color: {text_color}; }}")
+                # より具体的なセレクターでテキスト色を確実に適用
+                styles.append(f"""
+                * {{ color: {text_color} !important; }}
+                QWidget {{ color: {text_color}; }}
+                QLabel {{ color: {text_color}; }}
+                QGroupBox {{ color: {text_color}; }}
+                QGroupBox::title {{ color: {text_color}; }}
+                QCheckBox {{ color: {text_color}; }}
+                QRadioButton {{ color: {text_color}; }}
+                QTreeWidget {{ color: {text_color}; }}
+                QTreeWidget::item {{ color: {text_color}; }}
+                QListWidget {{ color: {text_color}; }}
+                QListWidget::item {{ color: {text_color}; }}
+                QComboBox {{ color: {text_color}; }}
+                QSpinBox {{ color: {text_color}; }}
+                QLineEdit {{ color: {text_color}; }}
+                QTextEdit {{ color: {text_color}; }}
+                QTabWidget {{ color: {text_color}; }}
+                QTabBar::tab {{ color: {text_color}; }}
+                """)
             
             # ボタンのスタイル
             if 'primary' in colors:
@@ -396,6 +415,138 @@ class WidgetShowcase:
                 }}
                 QLineEdit:focus, QTextEdit:focus, QSpinBox:focus, QComboBox:focus {{
                     border-color: {focus_color};
+                }}
+                """)
+            
+            # QGroupBoxのスタイル
+            if 'background' in colors and 'text' in colors:
+                border_color = colors.get('border', colors.get('surface', self._darken_color(colors['background'], 0.2)))
+                styles.append(f"""
+                QGroupBox {{
+                    color: {colors['text']};
+                    border: 1px solid {border_color};
+                    border-radius: 4px;
+                    margin-top: 10px;
+                    padding-top: 5px;
+                }}
+                QGroupBox::title {{
+                    color: {colors['text']};
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px 0 5px;
+                }}
+                """)
+            
+            # リストウィジェットのスタイル（選択・非選択状態）
+            if 'background' in colors and 'text' in colors:
+                selection_bg = colors.get('primary', colors.get('accent', '#0078d4'))
+                selection_text = self._get_optimal_text_color(selection_bg)
+                alternate_bg = colors.get('alternate', self._lighten_color(colors['background'], 0.05))
+                
+                styles.append(f"""
+                QListWidget, QTreeWidget {{
+                    background-color: {colors['background']};
+                    color: {colors['text']};
+                    border: 1px solid {border_color};
+                    alternate-background-color: {alternate_bg};
+                }}
+                QListWidget::item, QTreeWidget::item {{
+                    color: {colors['text']};
+                }}
+                QListWidget::item:selected, QTreeWidget::item:selected {{
+                    background-color: {selection_bg};
+                    color: {selection_text};
+                }}
+                QListWidget::item:hover, QTreeWidget::item:hover {{
+                    background-color: {self._lighten_color(selection_bg, 0.3)};
+                    color: {colors['text']};
+                }}
+                """)
+            
+            # チェックボックス・ラジオボタンのスタイル
+            if 'primary' in colors and 'text' in colors:
+                styles.append(f"""
+                QCheckBox, QRadioButton {{
+                    color: {colors['text']};
+                }}
+                QCheckBox::indicator:checked, QRadioButton::indicator:checked {{
+                    background-color: {colors['primary']};
+                    border: 1px solid {colors['primary']};
+                }}
+                QCheckBox::indicator:unchecked, QRadioButton::indicator:unchecked {{
+                    background-color: {colors['background']};
+                    border: 1px solid {border_color};
+                }}
+                """)
+            
+            # プログレスバーのスタイル
+            if 'primary' in colors:
+                styles.append(f"""
+                QProgressBar {{
+                    background-color: {colors.get('background', '#ffffff')};
+                    color: {colors.get('text', '#000000')};
+                    border: 1px solid {border_color};
+                    border-radius: 3px;
+                    text-align: center;
+                }}
+                QProgressBar::chunk {{
+                    background-color: {colors['primary']};
+                    border-radius: 2px;
+                }}
+                """)
+            
+            # スライダーのスタイル
+            if 'primary' in colors:
+                styles.append(f"""
+                QSlider::groove:horizontal {{
+                    background-color: {border_color};
+                    height: 6px;
+                    border-radius: 3px;
+                }}
+                QSlider::handle:horizontal {{
+                    background-color: {colors['primary']};
+                    border: 1px solid {colors['primary']};
+                    width: 16px;
+                    margin: -5px 0;
+                    border-radius: 8px;
+                }}
+                QSlider::sub-page:horizontal {{
+                    background-color: {colors['primary']};
+                    border-radius: 3px;
+                }}
+                """)
+            
+            # タブウィジェットのスタイル
+            if 'background' in colors and 'text' in colors:
+                tab_selected_bg = colors.get('primary', colors.get('accent', '#0078d4'))
+                tab_selected_text = self._get_optimal_text_color(tab_selected_bg)
+                
+                styles.append(f"""
+                QTabWidget::pane {{
+                    background-color: {colors['background']};
+                    border: 1px solid {border_color};
+                }}
+                QTabBar::tab {{
+                    background-color: {self._lighten_color(colors['background'], 0.1)};
+                    color: {colors['text']};
+                    border: 1px solid {border_color};
+                    padding: 5px 10px;
+                    margin-right: 2px;
+                }}
+                QTabBar::tab:selected {{
+                    background-color: {tab_selected_bg};
+                    color: {tab_selected_text};
+                }}
+                QTabBar::tab:hover {{
+                    background-color: {self._lighten_color(tab_selected_bg, 0.3)};
+                }}
+                """)
+            
+            # QLabel用のスタイル
+            if 'text' in colors:
+                styles.append(f"""
+                QLabel {{
+                    color: {colors['text']};
                 }}
                 """)
         

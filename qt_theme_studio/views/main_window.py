@@ -90,8 +90,523 @@ class MainWindow:
         
         # デフォルトテーマを作成して保存ボタンを有効化
         self._create_default_theme()
+    
+    def _create_default_theme(self) -> Dict[str, Any]:
+        """デフォルトテーマを作成"""
+        default_theme = {
+            "name": "デフォルトテーマ",
+            "version": "1.0.0",
+            "description": "Qt-Theme-Studioのデフォルトテーマ",
+            "colors": {
+                "background": "#ffffff",
+                "text": "#333333",
+                "primary": "#007acc",
+                "secondary": "#6c757d",
+                "border": "#dee2e6",
+                "error": "#dc3545",
+                "warning": "#ffc107",
+                "success": "#28a745"
+            },
+            "fonts": {
+                "default": {"family": "Arial", "size": 10},
+                "heading": {"family": "Arial", "size": 14, "weight": "bold"}
+            }
+        }
+        
+        # 現在のテーマデータとして設定
+        self.current_theme_data = default_theme.copy()
+        
+        # 保存ボタンを有効化
+        self.set_actions_enabled(['save_theme', 'save_as_theme'], True)
+        
+        return default_theme
         
         self.logger.info("メインウィンドウを初期化しました", LogCategory.UI)
+    
+    def _setup_zebra_editor_connections(self) -> None:
+        """オートテーマジェネレーターとの連携を設定"""
+        try:
+            if not hasattr(self, 'zebra_editor_instance') or not self.zebra_editor_instance:
+                return
+            
+            # テーマ適用要求シグナルを接続
+            if hasattr(self.zebra_editor_instance, 'theme_apply_requested'):
+                self.zebra_editor_instance.theme_apply_requested.connect(self._on_zebra_theme_apply)
+            
+            # 色変更シグナルを接続
+            if hasattr(self.zebra_editor_instance, 'colors_changed'):
+                self.zebra_editor_instance.colors_changed.connect(self._on_zebra_colors_changed)
+            
+            self.logger.debug("オートテーマジェネレーター連携を設定しました", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.error(f"オートテーマジェネレーター連携設定に失敗: {str(e)}", LogCategory.ERROR)
+    
+    def _on_zebra_theme_apply(self, theme_data: dict) -> None:
+        """オートテーマジェネレーターからのテーマ適用要求を処理"""
+        try:
+            # 現在のテーマデータを更新
+            self.current_theme_data = theme_data.copy()
+            
+            # 全コンポーネントに同期（オートテーマジェネレーター以外）
+            self._sync_theme_to_theme_editor(theme_data)
+            self._sync_theme_to_preview(theme_data)
+            
+            # 保存ボタンを有効化
+            self.set_actions_enabled(['save_theme', 'save_as_theme'], True)
+            
+            # ステータス更新
+            theme_name = theme_data.get('name', 'Generated Theme')
+            self.update_theme_status(theme_name)
+            self.set_status_message(f"生成テーマ「{theme_name}」を適用しました", 3000)
+            
+            self.logger.log_user_action("生成テーマ適用", {"theme_name": theme_name})
+            
+        except Exception as e:
+            self.logger.error(f"生成テーマ適用に失敗: {str(e)}", LogCategory.ERROR)
+            self._show_error_message("テーマ適用エラー", f"生成テーマの適用に失敗しました:\n{str(e)}")
+    
+    def _on_zebra_colors_changed(self, colors: dict) -> None:
+        """オートテーマジェネレーターからの色変更通知を処理"""
+        try:
+            # 現在のテーマデータの色を更新
+            if not self.current_theme_data:
+                self.current_theme_data = self._create_default_theme()
+            
+            if 'colors' not in self.current_theme_data:
+                self.current_theme_data['colors'] = {}
+            
+            # 色データを更新
+            self.current_theme_data['colors'].update(colors)
+            
+            # ライブプレビューのみ更新（リアルタイム反映）
+            self._sync_theme_to_preview(self.current_theme_data)
+            
+            self.logger.debug("オートテーマジェネレーターからの色変更を反映しました", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.error(f"色変更反映に失敗: {str(e)}", LogCategory.ERROR)
+    
+    def _on_new_theme(self) -> None:
+        """新規テーマ作成"""
+        try:
+            # 新しいテーマデータを作成
+            new_theme = self._create_default_theme()
+            
+            # 全コンポーネントに新しいテーマを適用
+            self._sync_theme_to_all_components(new_theme)
+            
+            # ファイルパスをクリア
+            self.current_theme_path = None
+            self.current_source_file = None
+            self.current_source_theme_key = None
+            
+            # 保存ボタンを有効化
+            self.set_actions_enabled(['save_theme', 'save_as_theme'], True)
+            
+            # ステータス更新
+            self.update_theme_status("新しいテーマ")
+            self.set_status_message("新しいテーマを作成しました", 3000)
+            
+            self.logger.log_user_action("新規テーマ作成")
+            
+        except Exception as e:
+            self.logger.error(f"新規テーマ作成に失敗: {str(e)}", LogCategory.ERROR)
+            self._show_error_message("新規テーマ作成エラー", f"新規テーマの作成に失敗しました:\n{str(e)}")
+    
+    def _on_open_theme(self) -> None:
+        """テーマファイルを開く"""
+        try:
+            # ファイル選択ダイアログを表示
+            file_path, _ = self.QtWidgets.QFileDialog.getOpenFileName(
+                self.main_window,
+                "テーマファイルを開く",
+                "",
+                "テーマファイル (*.json *.qss *.css);;JSONファイル (*.json);;QSSファイル (*.qss);;CSSファイル (*.css);;すべてのファイル (*)"
+            )
+            
+            if not file_path:
+                return  # ユーザーがキャンセル
+            
+            # テーマファイルを読み込み
+            self._load_theme_file(file_path)
+            
+        except Exception as e:
+            self.logger.error(f"テーマファイル読み込みに失敗: {str(e)}", LogCategory.ERROR)
+            self._show_error_message("テーマ読み込みエラー", f"テーマファイルの読み込みに失敗しました:\n{str(e)}")
+    
+    def _load_theme_file(self, file_path: str) -> None:
+        """テーマファイルを読み込み、必要に応じて選択ダイアログを表示"""
+        try:
+            import json
+            from pathlib import Path
+            
+            # ファイルを読み込み
+            with open(file_path, 'r', encoding='utf-8') as f:
+                file_data = json.load(f)
+            
+            # 複数テーマファイルかどうかを判定
+            if 'themes' in file_data and isinstance(file_data['themes'], list):
+                # 複数テーマファイル
+                themes = file_data['themes']
+                if len(themes) == 1:
+                    # テーマが1つだけの場合は直接読み込み
+                    selected_theme = themes[0]
+                    theme_key = 0
+                else:
+                    # 複数テーマの場合は選択ダイアログを表示
+                    selected_theme, theme_key = self._show_theme_selection_dialog(themes)
+                    if not selected_theme:
+                        return  # ユーザーがキャンセル
+                
+                # 複数テーマファイル情報を保存
+                self.current_source_file = file_path
+                self.current_source_theme_key = theme_key
+                
+            else:
+                # 単一テーマファイル
+                selected_theme = file_data
+                self.current_source_file = None
+                self.current_source_theme_key = None
+            
+            # テーマを適用
+            self._apply_loaded_theme(selected_theme, file_path)
+            
+        except Exception as e:
+            self.logger.error(f"テーマファイル読み込み処理に失敗: {str(e)}", LogCategory.ERROR)
+            raise
+    
+    def _show_theme_selection_dialog(self, themes: list) -> tuple:
+        """複数テーマ選択ダイアログを表示"""
+        dialog = self.QtWidgets.QDialog(self.main_window)
+        dialog.setWindowTitle("テーマを選択")
+        dialog.setModal(True)
+        dialog.resize(600, 500)
+        
+        layout = self.QtWidgets.QVBoxLayout(dialog)
+        
+        # 説明ラベル
+        info_label = self.QtWidgets.QLabel(
+            f"このファイルには{len(themes)}個のテーマが含まれています。\n"
+            "編集するテーマを選択してください。"
+        )
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("font-size: 12px; margin-bottom: 10px;")
+        layout.addWidget(info_label)
+        
+        # テーマリスト
+        theme_list = self.QtWidgets.QListWidget()
+        theme_list.setAlternatingRowColors(True)
+        
+        for i, theme in enumerate(themes):
+            name = theme.get('name', f'テーマ {i+1}')
+            description = theme.get('description', '説明なし')
+            version = theme.get('version', '1.0.0')
+            
+            item_text = f"{name} (v{version})\n{description}"
+            
+            item = self.QtWidgets.QListWidgetItem(item_text)
+            item.setData(self.QtCore.Qt.ItemDataRole.UserRole, (theme, i))
+            theme_list.addItem(item)
+        
+        theme_list.setCurrentRow(0)  # 最初のテーマを選択
+        layout.addWidget(theme_list)
+        
+        # プレビューエリア
+        preview_group = self.QtWidgets.QGroupBox("プレビュー")
+        preview_layout = self.QtWidgets.QVBoxLayout(preview_group)
+        
+        preview_label = self.QtWidgets.QLabel("テーマを選択するとプレビューが表示されます")
+        preview_label.setAlignment(self.QtCore.Qt.AlignmentFlag.AlignCenter)
+        preview_label.setMinimumHeight(120)
+        preview_label.setStyleSheet("border: 1px solid #ccc; border-radius: 5px; padding: 10px;")
+        preview_layout.addWidget(preview_label)
+        
+        layout.addWidget(preview_group)
+        
+        # ボタン
+        button_layout = self.QtWidgets.QHBoxLayout()
+        
+        ok_button = self.QtWidgets.QPushButton("選択")
+        cancel_button = self.QtWidgets.QPushButton("キャンセル")
+        
+        ok_button.setDefault(True)
+        ok_button.clicked.connect(dialog.accept)
+        cancel_button.clicked.connect(dialog.reject)
+        
+        button_layout.addStretch()
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        
+        layout.addLayout(button_layout)
+        
+        # テーマ選択時のプレビュー更新
+        def update_preview():
+            current_item = theme_list.currentItem()
+            if current_item:
+                theme, _ = current_item.data(self.QtCore.Qt.ItemDataRole.UserRole)
+                colors = theme.get('colors', {})
+                bg_color = colors.get('background', '#ffffff')
+                text_color = colors.get('text', '#000000')
+                primary_color = colors.get('primary', '#007acc')
+                
+                preview_text = f"テーマ名: {theme.get('name', '無名')}\n"
+                preview_text += f"説明: {theme.get('description', '説明なし')}\n"
+                preview_text += f"バージョン: {theme.get('version', '1.0.0')}\n\n"
+                preview_text += f"背景色: {bg_color}\n"
+                preview_text += f"テキスト色: {text_color}\n"
+                preview_text += f"プライマリ色: {primary_color}"
+                
+                preview_label.setText(preview_text)
+                preview_label.setStyleSheet(f"""
+                    QLabel {{
+                        background-color: {bg_color};
+                        color: {text_color};
+                        border: 2px solid {primary_color};
+                        border-radius: 5px;
+                        padding: 10px;
+                        font-family: monospace;
+                    }}
+                """)
+                
+                # オートテーマジェネレーターにもリアルタイム反映
+                self._sync_theme_to_zebra_editor(theme)
+        
+        theme_list.currentItemChanged.connect(lambda: update_preview())
+        update_preview()  # 初期プレビュー
+        
+        # ダイアログを実行
+        if dialog.exec() == self.QtWidgets.QDialog.DialogCode.Accepted:
+            current_item = theme_list.currentItem()
+            if current_item:
+                return current_item.data(self.QtCore.Qt.ItemDataRole.UserRole)
+        
+        return None, None
+    
+    def _apply_loaded_theme(self, theme_data: dict, file_path: str) -> None:
+        """読み込んだテーマを全コンポーネントに適用"""
+        try:
+            # 現在のテーマデータを更新
+            self.current_theme_data = theme_data.copy()
+            self.current_theme_path = file_path
+            
+            # 全コンポーネントに同期
+            self._sync_theme_to_all_components(theme_data)
+            
+            # 保存ボタンを有効化
+            self.set_actions_enabled(['save_theme', 'save_as_theme'], True)
+            
+            # ステータス更新
+            theme_name = theme_data.get('name', 'Unnamed')
+            self.update_theme_status(theme_name)
+            self.set_status_message(f"テーマ「{theme_name}」を読み込みました", 3000)
+            
+            # 最近使用したテーマに追加
+            self.settings.add_recent_theme(file_path)
+            
+            # テーマを読み込んだので保存済み状態に設定
+            self._set_theme_saved_state(True)
+            
+            self.logger.log_user_action("テーマ読み込み", {
+                "theme_name": theme_name,
+                "file_path": file_path
+            })
+            
+        except Exception as e:
+            self.logger.error(f"テーマ適用に失敗: {str(e)}", LogCategory.ERROR)
+            raise
+    
+    def _sync_theme_to_all_components(self, theme_data: dict) -> None:
+        """テーマデータを全コンポーネントに同期"""
+        try:
+            # 1. オートテーマジェネレーターに同期
+            self._sync_theme_to_zebra_editor(theme_data)
+            
+            # 2. テーマエディターに同期
+            self._sync_theme_to_theme_editor(theme_data)
+            
+            # 3. ライブプレビューに同期
+            self._sync_theme_to_preview(theme_data)
+            
+            self.logger.debug("全コンポーネントにテーマを同期しました", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.error(f"コンポーネント同期に失敗: {str(e)}", LogCategory.ERROR)
+    
+    def _sync_theme_to_zebra_editor(self, theme_data: dict) -> None:
+        """オートテーマジェネレーターにテーマを同期"""
+        try:
+            if not hasattr(self, 'zebra_editor_instance') or not self.zebra_editor_instance:
+                return
+            
+            colors = theme_data.get('colors', {})
+            if not colors:
+                return
+            
+            # 色データを抽出
+            color_data = {
+                'background': colors.get('background', '#ffffff'),
+                'primary': colors.get('primary', '#007acc')
+            }
+            
+            # オートテーマジェネレーターのスライダーを更新
+            if hasattr(self.zebra_editor_instance, 'set_color_data'):
+                self.zebra_editor_instance.set_color_data(color_data)
+            
+            # テーマ名と説明も設定
+            if hasattr(self.zebra_editor_instance, 'theme_name_input'):
+                theme_name = theme_data.get('name', '')
+                self.zebra_editor_instance.theme_name_input.setText(theme_name)
+            
+            if hasattr(self.zebra_editor_instance, 'theme_description_input'):
+                theme_desc = theme_data.get('description', '')
+                self.zebra_editor_instance.theme_description_input.setPlainText(theme_desc)
+            
+            self.logger.debug("オートテーマジェネレーターにテーマを同期しました", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.error(f"オートテーマジェネレーター同期に失敗: {str(e)}", LogCategory.ERROR)
+    
+    def _sync_theme_to_theme_editor(self, theme_data: dict) -> None:
+        """テーマエディターにテーマを同期"""
+        try:
+            if not hasattr(self, 'theme_editor_instance') or not self.theme_editor_instance:
+                return
+            
+            # テーマエディターにテーマを読み込み
+            if hasattr(self.theme_editor_instance, 'load_theme'):
+                self.theme_editor_instance.load_theme(theme_data)
+            
+            self.logger.debug("テーマエディターにテーマを同期しました", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.error(f"テーマエディター同期に失敗: {str(e)}", LogCategory.ERROR)
+    
+    def _sync_theme_to_preview(self, theme_data: dict) -> None:
+        """ライブプレビューにテーマを同期"""
+        try:
+            if not hasattr(self, 'preview_window_instance') or not self.preview_window_instance:
+                return
+            
+            # プレビューウィンドウを更新
+            if hasattr(self.preview_window_instance, 'update_preview'):
+                self.preview_window_instance.update_preview(theme_data)
+            
+            self.logger.debug("ライブプレビューにテーマを同期しました", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.error(f"ライブプレビュー同期に失敗: {str(e)}", LogCategory.ERROR)
+    
+    def _on_save_theme(self) -> None:
+        """テーマを保存"""
+        try:
+            if not self.current_theme_data:
+                self._show_error_message("保存エラー", "保存するテーマがありません。")
+                return
+            
+            # 保存先パスを決定
+            if self.current_theme_path:
+                save_path = self.current_theme_path
+            else:
+                # 名前を付けて保存
+                self._on_save_as_theme()
+                return
+            
+            # テーマを保存
+            self._save_theme_to_file(save_path)
+            
+        except Exception as e:
+            self.logger.error(f"テーマ保存に失敗: {str(e)}", LogCategory.ERROR)
+            self._show_error_message("保存エラー", f"テーマの保存に失敗しました:\n{str(e)}")
+    
+    def _on_save_as_theme(self) -> None:
+        """テーマに名前を付けて保存"""
+        try:
+            if not self.current_theme_data:
+                self._show_error_message("保存エラー", "保存するテーマがありません。")
+                return
+            
+            # ファイル保存ダイアログを表示
+            theme_name = self.current_theme_data.get('name', '新しいテーマ')
+            file_path, _ = self.QtWidgets.QFileDialog.getSaveFileName(
+                self.main_window,
+                "テーマを保存",
+                f"{theme_name}.json",
+                "JSONファイル (*.json);;すべてのファイル (*)"
+            )
+            
+            if not file_path:
+                return  # ユーザーがキャンセル
+            
+            # テーマを保存
+            self._save_theme_to_file(file_path)
+            
+        except Exception as e:
+            self.logger.error(f"名前を付けて保存に失敗: {str(e)}", LogCategory.ERROR)
+            self._show_error_message("保存エラー", f"テーマの保存に失敗しました:\n{str(e)}")
+    
+    def _save_theme_to_file(self, file_path: str) -> None:
+        """テーマをファイルに保存"""
+        try:
+            import json
+            from pathlib import Path
+            
+            # 複数テーマファイルの場合の処理
+            if self.current_source_file and self.current_source_theme_key is not None:
+                # 元のファイルを読み込み
+                with open(self.current_source_file, 'r', encoding='utf-8') as f:
+                    file_data = json.load(f)
+                
+                # 該当テーマを更新
+                if 'themes' in file_data and isinstance(file_data['themes'], list):
+                    file_data['themes'][self.current_source_theme_key] = self.current_theme_data
+                    
+                    # 元のファイルに保存
+                    with open(self.current_source_file, 'w', encoding='utf-8') as f:
+                        json.dump(file_data, f, ensure_ascii=False, indent=2)
+                    
+                    save_path = self.current_source_file
+                else:
+                    # 単一テーマとして保存
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        json.dump(self.current_theme_data, f, ensure_ascii=False, indent=2)
+                    save_path = file_path
+            else:
+                # 単一テーマファイルとして保存
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(self.current_theme_data, f, ensure_ascii=False, indent=2)
+                save_path = file_path
+            
+            # 保存パスを更新
+            self.current_theme_path = save_path
+            
+            # 成功メッセージ
+            theme_name = self.current_theme_data.get('name', 'Unnamed')
+            self.set_status_message(f"テーマ「{theme_name}」を保存しました", 3000)
+            
+            # 最近使用したテーマに追加
+            self.settings.add_recent_theme(save_path)
+            
+            # テーマを保存したので保存済み状態に設定
+            self._set_theme_saved_state(True)
+            
+            self.logger.log_user_action("テーマ保存", {
+                "theme_name": theme_name,
+                "file_path": save_path
+            })
+            
+        except Exception as e:
+            self.logger.error(f"ファイル保存に失敗: {str(e)}", LogCategory.ERROR)
+            raise
+    
+    def _show_error_message(self, title: str, message: str) -> None:
+        """エラーメッセージダイアログを表示"""
+        msg_box = self.QtWidgets.QMessageBox(self.main_window)
+        msg_box.setWindowTitle(title)
+        msg_box.setIcon(self.QtWidgets.QMessageBox.Icon.Critical)
+        msg_box.setText(message)
+        msg_box.setStandardButtons(self.QtWidgets.QMessageBox.StandardButton.Ok)
+        msg_box.exec()
     
     def tr(self, text: str, context: str = "MainWindow") -> str:
         """
@@ -648,13 +1163,13 @@ class MainWindow:
         self.placeholder_label.setAlignment(self.QtCore.Qt.AlignmentFlag.AlignCenter)
         self.placeholder_label.setStyleSheet("""
             QLabel {
-                color: #666666;
+                color: palette(text);
                 font-size: 14px;
                 font-style: italic;
                 padding: 20px;
-                border: 2px dashed #cccccc;
+                border: 2px dashed palette(mid);
                 border-radius: 10px;
-                background-color: #f9f9f9;
+                background-color: palette(base);
             }
         """)
         self.main_splitter.addWidget(self.placeholder_label)
@@ -710,13 +1225,13 @@ class MainWindow:
         label.setAlignment(self.QtCore.Qt.AlignmentFlag.AlignCenter)
         label.setStyleSheet("""
             QLabel {
-                color: #888888;
+                color: palette(text);
                 font-size: 12px;
                 font-style: italic;
                 padding: 15px;
-                border: 1px solid #dddddd;
+                border: 1px solid palette(mid);
                 border-radius: 5px;
-                background-color: #f5f5f5;
+                background-color: palette(base);
             }
         """)
         
@@ -958,15 +1473,13 @@ class MainWindow:
                 theme_editor_dock = self._create_dock_widget("テーマエディター", theme_editor_widget)
                 self.left_splitter.addWidget(theme_editor_dock)
         
-        # プレビューウィンドウウィジェットを作成・追加
+        # メインスプリッターに左側を追加
+        self.main_splitter.addWidget(self.left_splitter)
+        
+        # プレビューウィンドウを追加
         if self.preview_window:
-            preview_widget = self.preview_window.create_widget()
-            if preview_widget:
-                preview_dock = self._create_dock_widget("ライブプレビュー", preview_widget)
-                
-                # メインスプリッターに追加
-                self.main_splitter.addWidget(self.left_splitter)
-                self.main_splitter.addWidget(preview_dock)
+            preview_dock = self._create_dock_widget("ライブプレビュー", self.preview_window)
+            self.main_splitter.addWidget(preview_dock)
         
         # スプリッターの初期サイズを設定
         self.main_splitter.setSizes([400, 600])  # 左側40%, 右側60%
@@ -1014,6 +1527,9 @@ class MainWindow:
     
     def _setup_component_connections(self) -> None:
         """コンポーネント間の連携を設定します"""
+        # オートテーマジェネレーターとの連携を設定
+        self._setup_zebra_editor_connections()
+        
         # テーマエディターからプレビューウィンドウへの連携
         if self.theme_editor and self.preview_window:
             # テーマ変更時にプレビューを更新
@@ -1110,6 +1626,12 @@ class MainWindow:
             if hasattr(self.theme_editor_instance, 'load_theme'):
                 self.theme_editor_instance.load_theme(theme_data)
         
+        # オートテーマジェネレーターに反映
+        if hasattr(self, 'zebra_editor_instance') and self.zebra_editor_instance:
+            if hasattr(self.zebra_editor_instance, 'load_theme'):
+                self.zebra_editor_instance.load_theme(theme_data)
+                self.logger.debug("オートテーマジェネレーターにテーマデータを反映しました", LogCategory.UI)
+        
         # プレビューウィンドウを更新
         if hasattr(self, 'preview_window_instance') and self.preview_window_instance:
             if hasattr(self.preview_window_instance, 'update_theme'):
@@ -1139,6 +1661,19 @@ class MainWindow:
     
     def _connect_menu_actions(self) -> None:
         """メニューアクションとコンポーネント機能を連携させます"""
+        # ファイルメニューのアクション接続
+        if 'new_theme' in self.actions:
+            self.actions['new_theme'].triggered.connect(self._on_new_theme)
+        
+        if 'open_theme' in self.actions:
+            self.actions['open_theme'].triggered.connect(self._on_open_theme)
+        
+        if 'save_theme' in self.actions:
+            self.actions['save_theme'].triggered.connect(self._on_save_theme)
+        
+        if 'save_as_theme' in self.actions:
+            self.actions['save_as_theme'].triggered.connect(self._on_save_as_theme)
+        
         # テーマエディターの表示/非表示
         if 'theme_editor' in self.actions:
             self.actions['theme_editor'].triggered.connect(self._toggle_theme_editor)
@@ -1286,21 +1821,11 @@ class MainWindow:
     
     def _connect_theme_actions(self) -> None:
         """テーマ操作アクションを連携します"""
-        # 新規テーマ作成
-        if 'new_theme' in self.actions:
-            self.actions['new_theme'].triggered.connect(self._new_theme)
+        # 新規テーマ作成アクションは_connect_menu_actions()で既に接続済みなのでここでは接続しない
         
-        # テーマを開く
-        if 'open_theme' in self.actions:
-            self.actions['open_theme'].triggered.connect(self._open_theme)
+        # 開くアクションは_connect_menu_actions()で既に接続済みなのでここでは接続しない
         
-        # テーマを保存
-        if 'save_theme' in self.actions:
-            self.actions['save_theme'].triggered.connect(self._save_theme)
-        
-        # 名前を付けて保存
-        if 'save_as_theme' in self.actions:
-            self.actions['save_as_theme'].triggered.connect(self._save_theme_as)
+        # 保存アクションは_connect_menu_actions()で既に接続済みなのでここでは接続しない
         
         # エクスポートアクション
         export_actions = ['export_json', 'export_qss', 'export_css']
@@ -1342,53 +1867,7 @@ class MainWindow:
         
         self.logger.debug("表示切り替えアクションを連携しました", LogCategory.UI)
     
-    def _new_theme(self) -> None:
-        """新規テーマを作成します"""
-        self.logger.info("新規テーマ作成が呼び出されました", LogCategory.UI)
-        
-        # 未保存の変更がある場合は確認
-        if self._has_unsaved_changes():
-            reply = self.QtWidgets.QMessageBox.question(
-                self.main_window,
-                "未保存の変更",
-                "現在のテーマに未保存の変更があります。新規テーマを作成しますか？",
-                self.QtWidgets.QMessageBox.StandardButton.Yes |
-                self.QtWidgets.QMessageBox.StandardButton.No,
-                self.QtWidgets.QMessageBox.StandardButton.No
-            )
-            
-            if reply != self.QtWidgets.QMessageBox.StandardButton.Yes:
-                return
-        
-        # 新規テーマデータを作成
-        new_theme_data = {
-            'name': '新しいテーマ',
-            'version': '1.0.0',
-            'colors': {
-                'background': '#ffffff',
-                'text': '#000000',
-                'primary': '#0078d4',
-                'secondary': '#6c757d'
-            },
-            'fonts': {
-                'default': {
-                    'family': 'Arial',
-                    'size': 12,
-                    'bold': False,
-                    'italic': False
-                }
-            },
-            'properties': {}
-        }
-        
-        # テーマデータを設定
-        self.set_theme_data(new_theme_data)
-        
-        # 保存状態をリセット
-        self._set_theme_saved_state(True)
-        
-        self.set_status_message("新しいテーマを作成しました", 3000)
-        self.logger.info("新規テーマを作成しました", LogCategory.UI)
+    # 重複した_new_themeメソッドを削除（_on_new_themeが既に存在）
     
     def _create_default_theme(self) -> None:
         """アプリケーション起動時にデフォルトテーマを作成します"""
@@ -1426,57 +1905,7 @@ class MainWindow:
         
         self.logger.info("デフォルトテーマを作成しました", LogCategory.UI)
     
-    def _open_theme(self) -> None:
-        """テーマファイルを開きます"""
-        self.logger.info("テーマファイルを開くが呼び出されました", LogCategory.UI)
-        
-        # 未保存の変更がある場合は確認
-        if self._has_unsaved_changes():
-            reply = self.QtWidgets.QMessageBox.question(
-                self.main_window,
-                "未保存の変更",
-                "現在のテーマに未保存の変更があります。テーマファイルを開きますか？",
-                self.QtWidgets.QMessageBox.StandardButton.Yes |
-                self.QtWidgets.QMessageBox.StandardButton.No,
-                self.QtWidgets.QMessageBox.StandardButton.No
-            )
-            
-            if reply != self.QtWidgets.QMessageBox.StandardButton.Yes:
-                return
-        
-        # ファイル選択ダイアログ
-        file_path, _ = self.QtWidgets.QFileDialog.getOpenFileName(
-            self.main_window,
-            "テーマファイルを開く",
-            "",
-            "テーマファイル (*.json);;すべてのファイル (*)"
-        )
-        
-        if file_path:
-            try:
-                # テーマファイルを読み込み
-                import json
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    file_data = json.load(f)
-                
-                # 複数テーマが含まれているかチェック
-                if self._is_multi_theme_file(file_data):
-                    # 複数テーマファイルの場合、テーマ選択ダイアログを表示
-                    selected_theme = self._show_theme_selection_dialog(file_data, file_path)
-                    if selected_theme:
-                        self._load_selected_theme(selected_theme, file_path)
-                else:
-                    # 単一テーマファイルの場合、直接読み込み
-                    self.set_theme_data(file_data)
-                    self._finalize_theme_loading(file_path)
-                
-            except Exception as e:
-                self.logger.error(f"テーマファイルの読み込みに失敗しました: {str(e)}", LogCategory.UI)
-                self.QtWidgets.QMessageBox.critical(
-                    self.main_window,
-                    "エラー",
-                    f"テーマファイルの読み込みに失敗しました:\\n{str(e)}"
-                )
+    # 重複した_open_themeメソッドを削除（_on_open_themeが既に存在）
     
     def _load_theme_from_file(self, file_path: str) -> bool:
         """指定されたファイルパスからテーマを読み込みます（テスト用）
@@ -1510,49 +1939,7 @@ class MainWindow:
             self.logger.error(f"テーマファイルの読み込みに失敗しました: {str(e)}", LogCategory.UI)
             return False
     
-    def _save_theme(self) -> None:
-        """現在のテーマを保存します"""
-        # 現在のテーマファイルパスがある場合はそのまま保存
-        current_path = getattr(self, 'current_theme_path', None)
-        if current_path:
-            self._save_theme_to_file(current_path)
-        else:
-            # パスがない場合は名前を付けて保存
-            self._save_theme_as()
-    
-    def _save_theme_as(self) -> None:
-        """テーマに名前を付けて保存します"""
-        # ファイル保存ダイアログ
-        theme_name = self.current_theme_data.get('name', '新しいテーマ')
-        default_filename = f"{theme_name}.json"
-        
-        file_path, _ = self.QtWidgets.QFileDialog.getSaveFileName(
-            self.main_window,
-            "テーマを保存",
-            default_filename,
-            "テーマファイル (*.json);;すべてのファイル (*)"
-        )
-        
-        if file_path:
-            self._save_theme_to_file(file_path)
-    
-    def _save_theme_to_file(self, file_path: str) -> None:
-        """テーマをファイルに保存します
-        
-        Args:
-            file_path: 保存先ファイルパス
-        """
-        try:
-            self.logger.info(f"テーマ保存処理を開始: {file_path}", LogCategory.UI)
-            self.logger.debug(f"保存するテーマデータ: {self.current_theme_data}", LogCategory.UI)
-            
-            # テーマデータをJSONファイルに保存（プレースホルダー実装）
-            import json
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(self.current_theme_data, f, ensure_ascii=False, indent=2)
-            
-            # 現在のテーマファイルパスを記録
-            self.current_theme_path = file_path
+    # 重複したメソッド定義を削除（_on_save_theme, _on_save_as_theme, _save_theme_to_fileが既に存在）
             
             # 最近使用したテーマリストに追加
             self.settings.add_recent_theme(file_path)
@@ -2314,6 +2701,9 @@ class MainWindow:
         theme_name = theme_data.get('name', '無題のテーマ')
         self.update_theme_status(theme_name)
         
+        # テーマが変更されたので未保存状態に設定
+        self._set_theme_saved_state(False)
+        
         self.logger.info(f"テーマデータを設定しました: {theme_name}", LogCategory.UI)
     
     def _setup_close_event_handler(self) -> None:
@@ -2340,7 +2730,7 @@ class MainWindow:
                 
                 if reply == self.QtWidgets.QMessageBox.StandardButton.Save:
                     # 保存してから終了
-                    self._save_theme()
+                    self._on_save_theme()
                     if self._has_unsaved_changes():  # 保存がキャンセルされた場合
                         event.ignore()
                         return

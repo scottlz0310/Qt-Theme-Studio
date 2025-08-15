@@ -5,7 +5,7 @@
 WCAG準拠のコントラスト調整機能を通じて、視覚的にアクセシブルなテーマを作成できます。
 """
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
 import logging
 
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
@@ -292,7 +292,7 @@ class ContrastChecker(QtWidgets.QWidget):
         # 簡潔な推奨事項
         self.recommendation = QtWidgets.QLabel("")
         self.recommendation.setWordWrap(True)
-        self.recommendation.setStyleSheet("color: #666; font-size: 10px; margin-top: 3px;")
+        self.recommendation.setStyleSheet("font-size: 10px; margin-top: 3px;")
         layout.addWidget(self.recommendation)
     
     def check_contrast(self, bg_color: str, text_color: str):
@@ -397,7 +397,7 @@ class AutoThemeGenerator(QtWidgets.QWidget):
             "基本色を選択して「自動生成」ボタンでWCAG準拠のテーマカラーを自動生成します。"
         )
         description.setWordWrap(True)
-        description.setStyleSheet("color: #666; margin-bottom: 15px;")
+        description.setStyleSheet("margin-bottom: 15px;")
         layout.addWidget(description)
         
         # メインスプリッター（水平分割）
@@ -408,11 +408,8 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         self.controls_layout = QtWidgets.QVBoxLayout()
         self.setup_controls_panel(main_splitter)
         
-        # 右パネル：プレビューとコントラストチェック
-        self.setup_preview_panel(main_splitter)
-        
-        # スプリッターの比率を設定
-        main_splitter.setSizes([400, 300])
+        # スプリッターの比率を設定（プレビューパネルは削除）
+        # main_splitter.setSizes([400, 300])  # プレビューパネルがないので不要
     
     def setup_controls_panel(self, parent):
         """コントロールパネルの設定"""
@@ -482,15 +479,15 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         apply_button.clicked.connect(self.apply_to_main_theme)
         apply_button.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
-                color: white;
+                background-color: palette(highlight);
+                color: palette(highlighted-text);
                 border: none;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: palette(dark);
             }
         """)
         
@@ -509,13 +506,15 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         QtCore.QTimer.singleShot(200, self._enable_input_fields)
     
     def setup_preview_panel(self, parent):
-        """統合プレビューパネルのセットアップ"""
+        """統合プレビューパネルのセットアップ（無効化 - ライブプレビューを使用）"""
+        # プレビューパネルは削除 - メインウィンドウのライブプレビューを使用
+        # コントラストチェッカーのみ保持
         preview_widget = QtWidgets.QWidget()
         parent.addWidget(preview_widget)
         layout = QtWidgets.QVBoxLayout(preview_widget)
         
         # タイトル
-        title = QtWidgets.QLabel("生成結果 & プレビュー")
+        title = QtWidgets.QLabel("テーマ生成コントロール")
         title.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title)
         
@@ -539,19 +538,6 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         
         layout.addWidget(pairs_group)
         
-        # メインプレビューエリア
-        preview_group = QtWidgets.QGroupBox("ウィジェットプレビュー")
-        preview_layout = QtWidgets.QVBoxLayout(preview_group)
-        
-        # プレビューのスクロールエリア
-        scroll_preview = QtWidgets.QScrollArea()
-        self.preview_area = self.create_comprehensive_preview()
-        scroll_preview.setWidget(self.preview_area)
-        scroll_preview.setWidgetResizable(True)
-        preview_layout.addWidget(scroll_preview)
-        
-        layout.addWidget(preview_group)
-        
         # 改善提案（コンパクト版）
         suggestions_group = QtWidgets.QGroupBox("改善提案")
         suggestions_layout = QtWidgets.QVBoxLayout(suggestions_group)
@@ -564,158 +550,24 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         suggestions_layout.addWidget(self.suggestions_text)
         
         layout.addWidget(suggestions_group)
+        
+        # 注記を追加
+        note_label = QtWidgets.QLabel("※ プレビューはメインウィンドウの「ライブプレビュー」をご確認ください")
+        note_label.setStyleSheet("font-size: 10px; font-style: italic; margin-top: 10px;")
+        note_label.setWordWrap(True)
+        layout.addWidget(note_label)
     
     def create_comprehensive_preview(self) -> QtWidgets.QWidget:
-        """包括的なプレビューウィジェットを作成"""
+        """包括的なプレビューウィジェットを作成（無効化 - ライブプレビューを使用）"""
         widget = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout(widget)
         
-        # 基本ウィジェットグループ
-        basic_group = QtWidgets.QGroupBox("基本ウィジェット")
-        basic_layout = QtWidgets.QVBoxLayout(basic_group)
+        # プレビューは削除 - 代わりに説明ラベルを表示
+        info_label = QtWidgets.QLabel("プレビューはメインウィンドウの「ライブプレビュー」をご確認ください")
+        info_label.setStyleSheet("font-style: italic; padding: 20px;")
+        info_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(info_label)
         
-        # ラベルとテキスト
-        basic_layout.addWidget(QtWidgets.QLabel("通常のラベル"))
-        
-        heading_label = QtWidgets.QLabel("見出しテキスト")
-        heading_label.setProperty("class", "heading")
-        heading_label.setStyleSheet("font-size: 16px; font-weight: bold;")
-        basic_layout.addWidget(heading_label)
-        
-        secondary_label = QtWidgets.QLabel("セカンダリテキスト")
-        secondary_label.setProperty("class", "secondary")
-        basic_layout.addWidget(secondary_label)
-        
-        # ボタン
-        button_layout = QtWidgets.QHBoxLayout()
-        
-        normal_btn = QtWidgets.QPushButton("通常ボタン")
-        button_layout.addWidget(normal_btn)
-        
-        primary_btn = QtWidgets.QPushButton("プライマリボタン")
-        primary_btn.setProperty("class", "primary")
-        button_layout.addWidget(primary_btn)
-        
-        disabled_btn = QtWidgets.QPushButton("無効ボタン")
-        disabled_btn.setEnabled(False)
-        button_layout.addWidget(disabled_btn)
-        
-        basic_layout.addLayout(button_layout)
-        
-        # 入力フィールド
-        line_edit = QtWidgets.QLineEdit("入力フィールドのサンプル")
-        line_edit.setPlaceholderText("プレースホルダーテキスト")
-        basic_layout.addWidget(line_edit)
-        
-        # コンボボックス
-        combo = QtWidgets.QComboBox()
-        combo.addItems(["選択肢 1", "選択肢 2", "選択肢 3", "長い選択肢テキスト"])
-        basic_layout.addWidget(combo)
-        
-        layout.addWidget(basic_group)
-        
-        # リストとゼブラスタイルグループ
-        list_group = QtWidgets.QGroupBox("リスト・ゼブラスタイル")
-        list_layout = QtWidgets.QVBoxLayout(list_group)
-        
-        # ゼブラスタイルリスト
-        list_widget = QtWidgets.QListWidget()
-        list_widget.setAlternatingRowColors(True)  # ゼブラスタイル有効化
-        zebra_items = [
-            "ゼブラスタイル行 1 - 通常背景",
-            "ゼブラスタイル行 2 - 交互背景", 
-            "ゼブラスタイル行 3 - 通常背景",
-            "ゼブラスタイル行 4 - 交互背景",
-            "ゼブラスタイル行 5 - 通常背景",
-            "ゼブラスタイル行 6 - 交互背景",
-            "ゼブラスタイル行 7 - 通常背景",
-            "ゼブラスタイル行 8 - 交互背景",
-        ]
-        for item in zebra_items:
-            list_widget.addItem(item)
-        list_widget.setCurrentRow(1)  # 2番目の項目を選択
-        list_widget.setMaximumHeight(120)
-        list_layout.addWidget(QtWidgets.QLabel("ゼブラパターンリスト:"))
-        list_layout.addWidget(list_widget)
-        
-        layout.addWidget(list_group)
-        
-        # テキストカラーサンプルグループ
-        color_group = QtWidgets.QGroupBox("テキストカラーサンプル")
-        color_layout = QtWidgets.QVBoxLayout(color_group)
-        
-        # 各種テキストカラー
-        text_samples = [
-            ("通常テキスト", ""),
-            ("セカンダリテキスト", "secondary"),
-            ("ミュートテキスト", "muted"),
-            ("成功メッセージ", "success"),
-            ("警告メッセージ", "warning"),
-            ("エラーメッセージ", "error"),
-            ("リンクテキスト", "link"),
-        ]
-        
-        for text, class_name in text_samples:
-            label = QtWidgets.QLabel(text)
-            if class_name:
-                label.setProperty("class", class_name)
-            color_layout.addWidget(label)
-        
-        layout.addWidget(color_group)
-        
-        # テキストエリアグループ
-        text_group = QtWidgets.QGroupBox("テキストエリア")
-        text_layout = QtWidgets.QVBoxLayout(text_group)
-        
-        text_edit = QtWidgets.QTextEdit()
-        text_edit.setPlainText(
-            "これはサンプルテキストエリアです。\n"
-            "複数行のテキスト表示を確認できます。\n"
-            "背景色とテキスト色のコントラストをチェックしてください。\n"
-            "日本語と English の混在テストも含まれています。"
-        )
-        text_edit.setMaximumHeight(80)
-        text_layout.addWidget(text_edit)
-        
-        layout.addWidget(text_group)
-        
-        # カラーインジケーターグループ
-        indicator_group = QtWidgets.QGroupBox("カラーインジケーター")
-        indicator_layout = QtWidgets.QHBoxLayout(indicator_group)
-        
-        # 現在の色設定を表示
-        bg_color = self.current_colors.get("background", "#ffffff")
-        primary_color = self.current_colors.get("primary", "#007acc")
-        
-        colors = [
-            ("背景", bg_color),
-            ("プライマリ", primary_color),
-            ("テキスト", ColorUtils.get_optimal_text_color(bg_color)),
-            ("アクセント", ColorUtils.adjust_brightness(primary_color, 0.2)),
-        ]
-        
-        for name, color in colors:
-            color_preview = QtWidgets.QLabel(name)
-            # ボーダー色をテーマから取得（フォールバック付き）
-            border_color = getattr(self, 'theme_border_color', '#ccc')
-            
-            color_preview.setStyleSheet(f"""
-                QLabel {{
-                    background-color: {color};
-                    color: {ColorUtils.get_optimal_text_color(color)};
-                    border: 1px solid {border_color};
-                    padding: 8px;
-                    border-radius: 4px;
-                    font-weight: bold;
-                }}
-            """)
-            color_preview.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            color_preview.setMinimumHeight(35)
-            indicator_layout.addWidget(color_preview)
-        
-        layout.addWidget(indicator_group)
-        
-        layout.addStretch()
         return widget
         
     def get_color_data(self) -> Dict[str, Dict[str, str]]:
@@ -734,6 +586,39 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         
         # プレビューを更新
         self.update_preview()
+    
+    def load_theme_data(self, theme_data: Dict[str, Any]) -> None:
+        """テーマデータを読み込んでUIに反映"""
+        try:
+            # テーマ名を設定
+            theme_name = theme_data.get('name', '')
+            if hasattr(self, 'theme_name_input') and self.theme_name_input:
+                self.theme_name_input.setText(theme_name)
+            
+            # テーマ説明を設定
+            theme_desc = theme_data.get('description', '')
+            if hasattr(self, 'theme_description_input') and self.theme_description_input:
+                self.theme_description_input.setPlainText(theme_desc)
+            
+            # 色データを設定
+            colors = theme_data.get('colors', {})
+            if colors:
+                color_data = {
+                    'background': colors.get('background', '#ffffff'),
+                    'primary': colors.get('primary', '#007acc')
+                }
+                self.set_color_data(color_data)
+            
+            # 生成されたテーマカラーをクリア（新しいテーマなので）
+            self.generated_theme_colors = {}
+            
+            # プレビューを更新
+            self.update_preview()
+            
+            self.logger.info(f"テーマデータを読み込みました: {theme_name}", LogCategory.UI)
+            
+        except Exception as e:
+            self.logger.error(f"テーマデータ読み込みに失敗: {str(e)}", LogCategory.ERROR)
     
     def apply_to_main_theme(self):
         """生成されたテーマをメインテーマエディターに適用"""
@@ -933,13 +818,6 @@ class AutoThemeGenerator(QtWidgets.QWidget):
                 self.current_colors.get("background", "#ffffff"),
                 self.current_colors.get("primary", "#007acc")
             )
-        
-        QtWidgets.QMessageBox.information(
-            self,
-            "テーマ生成完了",
-            f"WCAG {level}準拠でテーマカラーを自動生成しました。\n"
-            f"生成されたカラー: {len(color_pairs)}個"
-        )
     
     def generate_harmonious_palette(self):
         """調和色パレットを生成"""
@@ -1045,9 +923,9 @@ class AutoThemeGenerator(QtWidgets.QWidget):
                 QLabel {
                     font-weight: bold;
                     font-size: 10px;
-                    color: #666;
-                    background-color: #f0f0f0;
-                    border: 1px solid #ddd;
+                    color: palette(text);
+                    background-color: palette(base);
+                    border: 1px solid palette(mid);
                     padding: 2px;
                 }
             """)
@@ -1079,12 +957,12 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         stats_label = QtWidgets.QLabel(stats_text)
         stats_label.setStyleSheet("""
             QLabel {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
+                background-color: palette(base);
+                border: 1px solid palette(mid);
                 border-radius: 4px;
                 padding: 8px;
                 font-size: 11px;
-                color: #495057;
+                color: palette(text);
             }
         """)
         layout.addWidget(stats_label)
@@ -1187,20 +1065,10 @@ class AutoThemeGenerator(QtWidgets.QWidget):
         )
     
     def update_preview(self):
-        """統合プレビューを更新"""
-        # プレビューエリア全体を再作成
-        new_preview_area = self.create_comprehensive_preview()
-        
-        # 既存のプレビューエリアを新しいものに置き換え
-        if hasattr(self, 'preview_area') and self.preview_area:
-            # スクロールエリアを見つけて更新
-            scroll_area = self.preview_area.parent()
-            if scroll_area and hasattr(scroll_area, 'setWidget'):
-                scroll_area.setWidget(new_preview_area)
-                self.preview_area = new_preview_area
-        
-        # 生成されたテーマスタイルシートを適用
-        self.apply_theme_to_preview()
+        """統合プレビューを更新（無効化 - ライブプレビューを使用）"""
+        # プレビューエリアは削除されたため、何もしない
+        # メインウィンドウのライブプレビューが自動更新される
+        pass
     
     def apply_theme_to_preview(self):
         """生成されたテーマをプレビューに適用"""
@@ -1398,3 +1266,73 @@ class AutoThemeGenerator(QtWidgets.QWidget):
             self.theme_description_input.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
             self.theme_description_input.setAcceptDrops(True)
             logger.info("テーマ概要入力フィールドを有効化しました")
+    
+    def load_theme(self, theme_data: dict):
+        """読み込まれたテーマデータからスライダーの値を更新
+        
+        Args:
+            theme_data: テーマデータ辞書
+        """
+        try:
+            logger.info("オートテーマジェネレーターにテーマデータを読み込み中...")
+            
+            # テーマ名と説明を設定
+            if 'name' in theme_data and hasattr(self, 'theme_name_input'):
+                self.theme_name_input.setText(theme_data['name'])
+                logger.debug(f"テーマ名を設定: {theme_data['name']}")
+            
+            if 'description' in theme_data and hasattr(self, 'theme_description_input'):
+                self.theme_description_input.setPlainText(theme_data['description'])
+                logger.debug(f"テーマ説明を設定: {theme_data['description']}")
+            
+            # 色情報を抽出してスライダーに反映
+            colors = theme_data.get('colors', {})
+            
+            # 背景色を設定
+            background_color = colors.get('background', colors.get('window', '#ffffff'))
+            if background_color and hasattr(self, 'bg_slider'):
+                self.bg_slider.update_from_hex(background_color)
+                self.current_colors['background'] = background_color
+                logger.debug(f"背景色を設定: {background_color}")
+            
+            # プライマリ色を設定（複数の候補から選択）
+            primary_candidates = [
+                colors.get('primary'),
+                colors.get('accent'),
+                colors.get('highlight'),
+                colors.get('selection'),
+                colors.get('link'),
+                colors.get('button'),
+                '#007acc'  # デフォルト値
+            ]
+            
+            primary_color = None
+            for candidate in primary_candidates:
+                if candidate and candidate != background_color:
+                    primary_color = candidate
+                    break
+            
+            if primary_color and hasattr(self, 'primary_slider'):
+                self.primary_slider.update_from_hex(primary_color)
+                self.current_colors['primary'] = primary_color
+                logger.debug(f"プライマリ色を設定: {primary_color}")
+            
+            # コントラストチェッカーを更新
+            if hasattr(self, 'contrast_checker'):
+                self.contrast_checker.check_contrast(
+                    self.current_colors.get('background', '#ffffff'),
+                    self.current_colors.get('primary', '#007acc')
+                )
+            
+            # プレビューを更新
+            self.update_preview()
+            
+            # 色変更シグナルを発信
+            self.colors_changed.emit(self.current_colors)
+            
+            logger.info(f"テーマデータの読み込み完了: 背景={self.current_colors.get('background')}, プライマリ={self.current_colors.get('primary')}")
+            
+        except Exception as e:
+            logger.error(f"テーマデータの読み込みに失敗しました: {str(e)}")
+            # エラーが発生してもデフォルト値で継続
+            self.load_default_colors()

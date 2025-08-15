@@ -51,8 +51,8 @@ class ThemeCard(QFrame):
                 background-color: white;
             }
             QFrame:hover {
-                border: 2px solid #0078d4;
-                background-color: #f5f5f5;
+                border: 2px solid palette(highlight);
+                background-color: palette(alternate-base);
             }
         """)
         
@@ -65,9 +65,9 @@ class ThemeCard(QFrame):
         self.thumbnail_label.setFixedSize(180, 120)
         self.thumbnail_label.setStyleSheet("""
             QLabel {
-                border: 1px solid #dddddd;
+                border: 1px solid palette(mid);
                 border-radius: 4px;
-                background-color: #f9f9f9;
+                background-color: palette(base);
             }
         """)
         self.thumbnail_label.setAlignment(Qt.AlignCenter)
