@@ -10,7 +10,7 @@ import logging.handlers
 import os
 import json
 import time
-import datetime
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, Union
 from enum import Enum
@@ -295,7 +295,7 @@ class Logger:
         
         # ユーザー操作履歴に追加
         action_record = {
-            "timestamp": datetime.datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "action": action,
             "details": details
         }
@@ -498,7 +498,7 @@ class Logger:
         """
         try:
             export_data = {
-                "export_timestamp": datetime.datetime.now().isoformat(),
+                "export_timestamp": datetime.now().isoformat(),
                 "start_date": start_date.isoformat() if start_date else None,
                 "end_date": end_date.isoformat() if end_date else None,
                 "user_actions": self.get_user_action_history(),
