@@ -4,16 +4,16 @@
 UIコンポーネントとユーザーインターフェースを提供します。
 """
 
-from .main_window import MainWindow
+from .main_window import QtThemeStudioMainWindow
 from .preview import PreviewWindow
-from .theme_editor import ThemeEditor
 
 # 将来実装予定のモジュール
+# from .theme_editor import ThemeEditor
 # from .zebra_editor import ZebraEditor
 
 __all__ = [
-    "MainWindow",
-    "ThemeEditor",
+    "QtThemeStudioMainWindow",
     "PreviewWindow",
+    # "ThemeEditor",
     # "ZebraEditor",
 ]

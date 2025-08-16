@@ -518,15 +518,13 @@ class WidgetShowcase:
             self.logger.debug("qt-theme-managerでスタイルシートを生成しました", LogCategory.UI)
             return stylesheet
             
-        except ImportError:
-            self.logger.warning("qt-theme-managerが利用できません。フォールバック処理を使用します", LogCategory.UI)
-            return self._generate_stylesheet_fallback(theme_data)
         except Exception as e:
             self.logger.error(
                 f"qt-theme-managerでのスタイルシート生成に失敗: {e}", 
                 LogCategory.UI
             )
-            return self._generate_stylesheet_fallback(theme_data)
+            # エラーの場合は空のスタイルシートを返す
+            return ""
     
     def _convert_to_qt_theme_manager_format(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
         """Qt-Theme-Studio形式をqt-theme-manager形式に変換"""
@@ -535,21 +533,65 @@ class WidgetShowcase:
             
             # qt-theme-managerの標準形式に変換
             theme_config = {
-                "colors": {
-                    "primary": colors.get("primary", "#007acc"),
-                    "secondary": colors.get("secondary", "#6c757d"),
-                    "background": colors.get("background", "#ffffff"),
-                    "surface": colors.get("surface", colors.get("background", "#ffffff")),
-                    "text": colors.get("text", "#333333"),
-                    "text_secondary": colors.get("text_secondary", colors.get("text", "#666666")),
-                    "border": colors.get("border", "#dee2e6"),
-                    "error": colors.get("error", "#dc3545"),
-                    "warning": colors.get("warning", "#ffc107"),
-                    "success": colors.get("success", "#28a745"),
+                "name": theme_data.get("name", "Unknown"),
+                "display_name": theme_data.get("display_name", theme_data.get("name", "Unknown")),
+                "description": theme_data.get("description", ""),
+                "primaryColor": colors.get("primary", "#007acc"),
+                "accentColor": colors.get("accent", colors.get("primary", "#007acc")),
+                "backgroundColor": colors.get("background", "#ffffff"),
+                "textColor": colors.get("text", "#333333"),
+                "button": {
+                    "background": colors.get("button_background", colors.get("primary", "#007acc")),
+                    "text": colors.get("button_text", colors.get("text", "#ffffff")),
+                    "hover": colors.get("button_hover", colors.get("accent", "#007acc")),
+                    "pressed": colors.get("button_pressed", colors.get("secondary", "#6c757d")),
+                    "border": colors.get("button_border", colors.get("border", "#dee2e6"))
                 },
-                "fonts": theme_data.get("fonts", {}),
-                "spacing": theme_data.get("spacing", {}),
-                "border_radius": theme_data.get("border_radius", {}),
+                "panel": {
+                    "background": colors.get("panel_background", colors.get("background", "#ffffff")),
+                    "border": colors.get("panel_border", colors.get("border", "#dee2e6")),
+                    "header": {
+                        "background": colors.get("header_background", colors.get("surface", "#f8f9fa")),
+                        "text": colors.get("header_text", colors.get("text", "#333333")),
+                        "border": colors.get("header_border", colors.get("border", "#dee2e6"))
+                    },
+                    "zebra": {
+                        "alternate": colors.get("zebra_alternate", colors.get("surface", "#f8f9fa"))
+                    }
+                },
+                "text": {
+                    "primary": colors.get("text_primary", colors.get("text", "#333333")),
+                    "secondary": colors.get("text_secondary", colors.get("text_muted", "#6c757d")),
+                    "muted": colors.get("text_muted", "#6c757d"),
+                    "heading": colors.get("text_heading", colors.get("text", "#333333")),
+                    "link": colors.get("text_link", colors.get("primary", "#007acc")),
+                    "success": colors.get("text_success", colors.get("success", "#28a745")),
+                    "warning": colors.get("text_warning", colors.get("warning", "#ffc107")),
+                    "error": colors.get("text_error", colors.get("error", "#dc3545"))
+                },
+                "input": {
+                    "background": colors.get("input_background", colors.get("background", "#ffffff")),
+                    "text": colors.get("input_text", colors.get("text", "#333333")),
+                    "border": colors.get("input_border", colors.get("border", "#dee2e6")),
+                    "focus": colors.get("input_focus", colors.get("primary", "#007acc")),
+                    "placeholder": colors.get("input_placeholder", colors.get("text_muted", "#6c757d"))
+                },
+                "toolbar": {
+                    "background": colors.get("toolbar_background", colors.get("surface", "#f8f9fa")),
+                    "text": colors.get("toolbar_text", colors.get("text", "#333333")),
+                    "border": colors.get("toolbar_border", colors.get("border", "#dee2e6")),
+                    "button": {
+                        "background": colors.get("toolbar_button_background", colors.get("background", "#ffffff")),
+                        "text": colors.get("toolbar_button_text", colors.get("text", "#333333")),
+                        "hover": colors.get("toolbar_button_hover", colors.get("primary", "#007acc")),
+                        "pressed": colors.get("toolbar_button_pressed", colors.get("surface", "#e9ecef"))
+                    }
+                },
+                "status": {
+                    "background": colors.get("status_background", colors.get("surface", "#f8f9fa")),
+                    "text": colors.get("status_text", colors.get("text_secondary", "#6c757d")),
+                    "border": colors.get("status_border", colors.get("border", "#dee2e6"))
+                }
             }
             
             return theme_config
@@ -558,126 +600,13 @@ class WidgetShowcase:
             self.logger.error(f"テーマ形式変換に失敗: {e}", LogCategory.UI)
             # フォールバック: 基本的な色設定のみ
             return {
-                "colors": {
-                    "primary": "#007acc",
-                    "background": "#ffffff",
-                    "text": "#333333",
-                }
+                "name": "Fallback Theme",
+                "display_name": "フォールバックテーマ",
+                "description": "エラー時のフォールバックテーマ",
+                "primaryColor": "#007acc",
+                "backgroundColor": "#ffffff",
+                "textColor": "#333333"
             }
-    
-    def _generate_stylesheet_fallback(self, theme_data: Dict[str, Any]) -> str:
-        """フォールバック用の簡略化されたスタイルシート生成"""
-        try:
-            colors = theme_data.get("colors", {})
-            bg_color = colors.get("background", "#ffffff")
-            text_color = colors.get("text", "#333333")
-            primary_color = colors.get("primary", "#007acc")
-            
-            # プレビュー用の基本的なスタイルシートのみ
-            stylesheet = f"""
-            * {{ 
-                background-color: {bg_color} !important; 
-                color: {text_color} !important; 
-            }}
-            QPushButton {{ 
-                background-color: {primary_color}; 
-                color: {text_color}; 
-                border: 1px solid {primary_color};
-                padding: 5px 10px;
-                border-radius: 3px;
-            }}
-            """
-            
-            return stylesheet
-            
-        except Exception as e:
-            self.logger.error(f"フォールバックスタイルシート生成に失敗: {e}", LogCategory.UI)
-            return ""
-
-    def _get_optimal_text_color(self, background_color: str) -> str:
-        """背景色に対して最適なテキスト色を取得します
-
-        Args:
-            background_color: 背景色（16進数カラーコード）
-
-        Returns:
-            str: 最適なテキスト色
-        """
-        try:
-            # 背景色の明度を計算
-            if background_color.startswith("#"):
-                background_color = background_color[1:]
-
-            r = int(background_color[0:2], 16)
-            g = int(background_color[2:4], 16)
-            b = int(background_color[4:6], 16)
-
-            # 相対輝度を計算（WCAG準拠）
-            luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-
-            # 明度に基づいてテキスト色を決定
-            if luminance > 0.5:
-                return "#000000"  # 明るい背景には黒いテキスト
-            else:
-                return "#ffff"  # 暗い背景には白いテキスト
-        except (ValueError, IndexError):
-            return "#000000"  # エラーの場合は黒を返す
-
-    def _lighten_color(self, color: str, factor: float = 0.1) -> str:
-        """色を明るくします
-
-        Args:
-            color: 16進数カラーコード
-            factor: 明るくする係数（0.0-1.0）
-
-        Returns:
-            str: 明るくされた色
-        """
-        try:
-            # 16進数カラーコードをRGBに変換
-            if color.startswith("#"):
-                color = color[1:]
-
-            r = int(color[0:2], 16)
-            g = int(color[2:4], 16)
-            b = int(color[4:6], 16)
-
-            # 色を明るくする
-            r = min(255, int(r + (255 - r) * factor))
-            g = min(255, int(g + (255 - g) * factor))
-            b = min(255, int(b + (255 - b) * factor))
-
-            return "#{r:02x}{g:02x}{b:02x}"
-        except (ValueError, IndexError):
-            return color  # エラーの場合は元の色を返す
-
-    def _darken_color(self, color: str, factor: float = 0.1) -> str:
-        """色を暗くします
-
-        Args:
-            color: 16進数カラーコード
-            factor: 暗くする係数（0.0-1.0）
-
-        Returns:
-            str: 暗くされた色
-        """
-        try:
-            # 16進数カラーコードをRGBに変換
-            if color.startswith("#"):
-                color = color[1:]
-
-            r = int(color[0:2], 16)
-            g = int(color[2:4], 16)
-            b = int(color[4:6], 16)
-
-            # 色を暗くする
-            r = max(0, int(r * (1 - factor)))
-            g = max(0, int(g * (1 - factor)))
-            b = max(0, int(b * (1 - factor)))
-
-            return "#{r:02x}{g:02x}{b:02x}"
-        except (ValueError, IndexError):
-            return color  # エラーの場合は元の色を返す
 
 
 class PreviewWindow:
