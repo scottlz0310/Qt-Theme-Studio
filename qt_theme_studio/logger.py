@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
+from pathlib import Path
 
 
 class LogLevel(Enum):
@@ -74,7 +75,7 @@ class JapaneseFormatter(logging.Formatter):
             フォーマット済みログメッセージ
         """
         # 日本語レベル名を取得
-        self.LEVEL_MAPPING.get(record.levelno, "不明")
+        japanese_level = self.LEVEL_MAPPING.get(record.levelno, "不明")
 
         # 日時を日本語形式でフォーマット
         import datetime
@@ -83,7 +84,7 @@ class JapaneseFormatter(logging.Formatter):
         timestamp = dt.strftime("%Y年%m月%d日 %H:%M:%S")
 
         # カテゴリ情報を取得
-        getattr(record, "category", LogCategory.SYSTEM.value)
+        category = getattr(record, "category", LogCategory.SYSTEM.value)
 
         # 基本フォーマット
         formatted_message = (
@@ -536,7 +537,7 @@ class Logger:
             return True
 
         except Exception:
-            self.error("ログのエクスポートに失敗しました: {str(e)}", LogCategory.SYSTEM)
+            self.error("ログのエクスポートに失敗しました: {str()}", LogCategory.SYSTEM)
             return False
 
     def cleanup_old_logs(self, days_to_keep: int = 30) -> None:
@@ -565,7 +566,7 @@ class Logger:
 
         except Exception:
             self.error(
-                "ログファイルのクリーンアップに失敗しました: {str(e)}",
+                "ログファイルのクリーンアップに失敗しました: {str()}",
                 LogCategory.SYSTEM,
             )
 

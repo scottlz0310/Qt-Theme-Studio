@@ -8,6 +8,7 @@
 import json
 import tempfile
 import time
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -98,7 +99,7 @@ class TestCompleteWorkflow:
             'colors': {
                 'primary': '#0078d4',
                 'secondary': '#6c757d',
-                'background': '#fffff',
+                'background': '#ffff',
                 'surface': '#f8f9fa',
                 'text': '#212529',
                 'text_secondary': '#6c757d'
@@ -156,7 +157,7 @@ class TestCompleteWorkflow:
         # 6. テーマプロパティの編集（load_themeメソッドを使用）
         modified_theme = new_theme.copy()
         modified_theme['colors']['primary'] = '#ff6b35'
-        modified_theme['colors']['background'] = '#fffff'
+        modified_theme['colors']['background'] = '#ffff'
         modified_theme['colors']['text'] = '#333333'
         theme_editor.load_theme(modified_theme)
 

@@ -8,6 +8,8 @@
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
+import logging
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +81,7 @@ class ColorAnalyzer:
             hex_color: 16進数カラーコード (#RRGGBB または #RGB)
 
         Returns:
-            RGB値のタプル (r, g, b)
+            RGB値のタプル (, , )
 
         Raises:
             ValueError: 無効な16進数カラーコードの場合
@@ -110,7 +112,7 @@ class ColorAnalyzer:
         RGB値をHSL値に変換
 
         Args:
-            r, g, b: RGB値 (0-255)
+            r, b: RGB値 (0-255)
 
         Returns:
             HSL値のタプル (h: 0-360, s: 0-100, l: 0-100)
@@ -157,7 +159,7 @@ class ColorAnalyzer:
         WCAG 2.1に基づく相対輝度を計算
 
         Args:
-            r, g, b: RGB値 (0-255)
+            r, b: RGB値 (0-255)
 
         Returns:
             相対輝度 (0.0-1.0)
@@ -337,11 +339,11 @@ class ColorAnalyzer:
         else:
             r_prime, g_prime, b_prime = c, 0, x
 
-        int((r_prime + m) * 255)
-        int((g_prime + m) * 255)
-        int((b_prime + m) * 255)
+        r = int((r_prime + m) * 255)
+        g = int((g_prime + m) * 255)
+        b = int((b_prime + m) * 255)
 
-        return "#{r:02x}{g:02x}{b:02x}"
+        return f"#{r:02x}{g:02x}{b:02x}"
 
     def analyze_color_accessibility(
         self, colors: Dict[str, Dict[str, str]]
@@ -452,13 +454,13 @@ class ColorAnalyzer:
             "#666666",
             "#999999",
             "#cccccc",
-            "#fffff",
+            "#ffffff",
             "#ff0000",
             "#00ff00",
-            "#0000f",
+            "#0000",
             "#ffff00",
-            "#ff00f",
-            "#00ffff",
+            "#ff00",
+            "#00fff00fff",
         ]
 
         for fg in base_colors:
@@ -477,3 +479,15 @@ class ColorAnalyzer:
         )
 
         return color_combinations[:20]  # 上位20組み合わせを返す
+
+    def rgb_to_hex(self, r: int, g: int, b: int) -> str:
+        """
+        RGB値を16進数カラーコードに変換
+
+        Args:
+            r, g, b: RGB値 (0-255)
+
+        Returns:
+            16進数カラーコード (#RRGGBB)
+        """
+        return f"#{r:02x}{g:02x}{b:02x}"

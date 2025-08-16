@@ -61,7 +61,7 @@ class TestWidgetShowcase:
         # テストテーマデータ
         test_theme = {
             'colors': {
-                'background': '#fffff',
+                'background': '#ffff',
                 'text': '#000000',
                 'primary': '#0078d4'
             },

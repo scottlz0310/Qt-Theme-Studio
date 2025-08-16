@@ -198,7 +198,7 @@ class TestAccessibilityError:
     def test_with_colors(self):
         """色情報付きのテスト"""
         message = "アクセシビリティ検証に失敗しました"
-        colors = ["#fffff", "#000000"]
+        colors = ["#ffff", "#000000"]
         exception = AccessibilityError(message, colors=colors)
 
         assert exception.colors == colors

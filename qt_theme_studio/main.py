@@ -8,6 +8,7 @@ Qt-Theme-Studio メインアプリケーション
 
 import sys
 from typing import Any, Dict, Optional
+import logging
 
 from .adapters.qt_adapter import QtAdapter, QtFrameworkNotFoundError
 from .adapters.theme_adapter import ThemeAdapter, ThemeManagerError
@@ -87,8 +88,8 @@ class ThemeStudioApplication:
         try:
             # 1. Qtフレームワークの自動検出と初期化
             self.logger.info("Qtフレームワークを検出しています...")
-            self.qt_adapter.detect_qt_framework()
-            self.logger.info("Qtフレームワークを検出しました: {framework_name}")
+            framework_name = self.qt_adapter.detect_qt_framework()
+            self.logger.info(f"Qtフレームワークを検出しました: {framework_name}")
 
             # QApplicationインスタンスの作成
             self._qt_app = self.qt_adapter.create_application("Qt-Theme-Studio")
@@ -125,16 +126,16 @@ class ThemeStudioApplication:
             return True
 
         except QtFrameworkNotFoundError:
-            self.logger.error("Qtフレームワークの初期化に失敗しました: {str(e)}")
+            self.logger.error("Qtフレームワークの初期化に失敗しました")
             raise
         except ThemeManagerError:
             self.logger.error(
-                "qt-theme-managerライブラリの初期化に失敗しました: {str(e)}"
+                "qt-theme-managerライブラリの初期化に失敗しました"
             )
             raise
         except Exception:
             self.logger.error(
-                "アプリケーションの初期化中に予期しないエラーが発生しました: {str(e)}"
+                "アプリケーションの初期化中に予期しないエラーが発生しました"
             )
             raise
 
@@ -159,10 +160,10 @@ class ThemeStudioApplication:
             root_logger = logging.getLogger()
             root_logger.addHandler(file_handler)
 
-            self.logger.info("ログファイルを設定しました: {log_file}")
+            self.logger.info(f"ログファイルを設定しました: {log_file}")
 
         except Exception:
-            self.logger.warning("ログファイルの設定に失敗しました: {str(e)}")
+            self.logger.warning("ログファイルの設定に失敗しました")
 
     def _setup_application_info(self) -> None:
         """アプリケーション情報を設定する"""
@@ -206,6 +207,9 @@ class ThemeStudioApplication:
                 accessibility_manager=self.accessibility_manager,
             )
 
+            # メインウィンドウの初期化（QApplication作成後に実行）
+            self._main_window.initialize_window()
+
             # ウィンドウ状態の復元（実際のQMainWindowインスタンスを渡す）
             if self._main_window.main_window:
                 self.settings.restore_window_state(self._main_window.main_window)
@@ -215,12 +219,12 @@ class ThemeStudioApplication:
 
         except ImportError:
             self.logger.error(
-                "メインウィンドウクラスのインポートに失敗しました: {str(e)}"
+                "メインウィンドウクラスのインポートに失敗しました"
             )
-            raise RuntimeError("メインウィンドウの作成に失敗しました: {str(e)}")
+            raise RuntimeError("メインウィンドウの作成に失敗しました")
         except Exception:
             self.logger.error(
-                "メインウィンドウの作成中にエラーが発生しました: {str(e)}"
+                "メインウィンドウの作成中にエラーが発生しました"
             )
             raise
 
@@ -258,7 +262,7 @@ class ThemeStudioApplication:
 
         except Exception:
             self.logger.error(
-                "アプリケーションの実行中にエラーが発生しました: {str(e)}"
+                "アプリケーションの実行中にエラーが発生しました"
             )
             return 1
 
@@ -279,7 +283,7 @@ class ThemeStudioApplication:
 
         except Exception:
             self.logger.error(
-                "アプリケーション終了処理中にエラーが発生しました: {str(e)}"
+                "アプリケーション終了処理中にエラーが発生しました"
             )
 
     def get_framework_info(self) -> Dict[str, str]:
@@ -384,19 +388,19 @@ def main(
                 # TODO: メインウィンドウにテーマ読み込み機能を追加後に実装
                 app.logger.info("初期テーマの読み込み: {initial_theme}")
             except Exception:
-                app.logger.warning("初期テーマの読み込みに失敗しました: {str(e)}")
+                app.logger.warning("初期テーマの読み込みに失敗しました")
 
         # 実行
         return app.run()
 
     except QtFrameworkNotFoundError:
-        print("エラー: {str(e)}", file=sys.stderr)
+        print("エラーが発生しました", file=sys.stderr)
         print(
             "PySide6、PyQt6、またはPyQt5をインストールしてください。", file=sys.stderr
         )
         return 1
     except ThemeManagerError:
-        print("エラー: {str(e)}", file=sys.stderr)
+        print("エラーが発生しました", file=sys.stderr)
         print("qt-theme-managerライブラリをインストールしてください:", file=sys.stderr)
         print(
             "pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git",
@@ -404,7 +408,7 @@ def main(
         )
         return 1
     except Exception:
-        print("予期しないエラーが発生しました: {str(e)}", file=sys.stderr)
+        print("予期しないエラーが発生しました", file=sys.stderr)
         return 1
 
 

@@ -7,6 +7,7 @@
 """
 
 from typing import Any, Callable, Dict, List, Optional
+import os
 
 from ..adapters.qt_adapter import QtAdapter
 from ..adapters.theme_adapter import ThemeAdapter
@@ -403,7 +404,7 @@ class ThemeEditor:
                         break  # 最初の有効な色で停止
                     except Exception:
                         self.logger.warning(
-                            "色設定に失敗: {style_name}={color_value} - {str(e)}",
+                            "色設定に失敗: {style_name}={color_value} - {str()}",
                             LogCategory.UI,
                         )
                         continue
@@ -439,7 +440,7 @@ class ThemeEditor:
             "name": "新しいテーマ",
             "version": "1.0.0",
             "colors": {
-                "background": "#fffff",
+                "background": "#ffff",
                 "text": "#000000",
                 "primary": "#0078d4",
                 "secondary": "#6c757d",
@@ -471,7 +472,7 @@ class ThemeEditor:
                 self.color_picker.set_style(property_name)
             except Exception:
                 self.logger.warning(
-                    "カラーピッカーの更新に失敗: {str(e)}", LogCategory.UI
+                    "カラーピッカーの更新に失敗: {str()}", LogCategory.UI
                 )
 
         # テーマ変更を通知
@@ -521,7 +522,7 @@ class ThemeEditor:
                     callback(theme_copy)
                 except Exception:
                     self.logger.error(
-                        "プレビューコールバックでエラーが発生しました: {str(e)}",
+                        "プレビューコールバックでエラーが発生しました: {str()}",
                         LogCategory.UI,
                     )
 
@@ -541,7 +542,7 @@ class ThemeEditor:
 
         except Exception:
             self.logger.error(
-                "プレビュー更新中にエラーが発生しました: {str(e)}", LogCategory.UI
+                "プレビュー更新中にエラーが発生しました: {str()}", LogCategory.UI
             )
 
     def add_preview_callback(self, callback: Callable[[Dict[str, Any]], None]) -> None:
@@ -639,7 +640,7 @@ class ThemeEditor:
                 return False
 
         except Exception:
-            error_message = "テーマ保存中にエラーが発生しました: {str(e)}"
+            error_message = "テーマ保存中にエラーが発生しました: {str()}"
             self.logger.error(error_message, LogCategory.UI)
             self._show_save_error_message(error_message)
             return False
@@ -763,7 +764,7 @@ class ThemeEditor:
             return True
 
         except Exception:
-            error_message = "テーマエクスポート中にエラーが発生しました: {str(e)}"
+            error_message = "テーマエクスポート中にエラーが発生しました: {str()}"
             self.logger.error(error_message, LogCategory.UI)
             self._show_save_error_message(error_message)
             return False
@@ -833,7 +834,7 @@ class ThemeEditor:
             return True
 
         except Exception:
-            error_message = "テーマファイル読み込み中にエラーが発生しました: {str(e)}"
+            error_message = "テーマファイル読み込み中にエラーが発生しました: {str()}"
             self.logger.error(error_message, LogCategory.UI)
             self._show_load_error_message(error_message)
             return False

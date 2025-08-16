@@ -8,6 +8,8 @@
 import json
 import re
 from typing import Any, Dict, List
+from pathlib import Path
+import os
 
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QFont, QPainter, QPixmap
@@ -136,8 +138,8 @@ class ThemeCard(QFrame):
             else:
                 self.thumbnail_label.setText("プレビュー\n利用不可")
 
-        except Exception as e:
-            self.logger.log_error("サムネイル生成エラー: {str(e)}", e)
+        except Exception:
+            self.logger.log_error("サムネイル生成エラー: {str(e)}", )
             self.thumbnail_label.setText("プレビュー\nエラー")
 
     def create_color_thumbnail(self, colors: Dict[str, str]) -> QPixmap:
@@ -149,7 +151,7 @@ class ThemeCard(QFrame):
             # 主要色を抽出
             primary = colors.get("primary", "#0078d4")
             secondary = colors.get("secondary", "#106ebe")
-            background = colors.get("background", "#fffff")
+            background = colors.get("background", "#ffff")
             surface = colors.get("surface", "#f5f5f5")
             text_color = colors.get("text", "#000000")
             text_secondary = colors.get("text_secondary", "#666666")
@@ -216,7 +218,7 @@ class ThemeCard(QFrame):
                     brightness = (r * 299 + g * 587 + b * 114) / 1000
 
                     # 明度が高い場合は黒、低い場合は白を使用
-                    return "#000000" if brightness > 128 else "#fffff"
+                    return "#000000" if brightness > 128 else "#ffff"
         except Exception:
             pass
 
@@ -267,9 +269,9 @@ class ThemeLoader(QThread):
                     with open(theme_file, "r", encoding="utf-8") as f:
                         theme_data = json.load(f)
                     self.theme_loaded.emit(str(theme_file), theme_data)
-                except Exception as e:
+                except Exception:
                     self.logger.log_error(
-                        "テーマファイル読み込みエラー: {theme_file}", e
+                        "テーマファイル読み込みエラー: {theme_file}", 
                     )
 
         except Exception:
@@ -520,8 +522,8 @@ class ThemeGallery(QWidget):
 
             QMessageBox.information(self, "削除完了", "テーマが正常に削除されました。")
 
-        except Exception as e:
-            self.logger.log_error("テーマ削除エラー: {str(e)}", e)
+        except Exception:
+            self.logger.log_error("テーマ削除エラー: {str(e)}", )
             QMessageBox.critical(
                 self, "削除エラー", "テーマの削除中にエラーが発生しました:\n{str(e)}"
             )
@@ -587,11 +589,11 @@ class ThemeGallery(QWidget):
                         self.save_imported_theme(normalized_theme, file_path)
                         imported_count += 1
 
-                    except Exception as e:
+                    except Exception:
                         self.logger.log_error(
                             "テーマ '{theme_data.get('name', '不明')}' "
                             "のインポートエラー: {str(e)}",
-                            e,
+                            ,
                         )
                         QMessageBox.warning(
                             self,
@@ -615,14 +617,14 @@ class ThemeGallery(QWidget):
                     )
 
             except ImportError as e:
-                self.logger.log_error("テーマインポートエラー: {str(e)}", e)
+                self.logger.log_error("テーマインポートエラー: {str(e)}", )
                 QMessageBox.critical(
                     self,
                     "インポートエラー",
                     "テーマのインポート中にエラーが発生しました:\n{str(e)}",
                 )
-            except Exception as e:
-                self.logger.log_error("予期しないインポートエラー: {str(e)}", e)
+            except Exception:
+                self.logger.log_error("予期しないインポートエラー: {str(e)}", )
                 QMessageBox.critical(
                     self,
                     "予期しないエラー",

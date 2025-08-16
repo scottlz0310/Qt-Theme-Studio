@@ -6,6 +6,7 @@
 """
 
 from typing import Any, Dict, Optional
+import logging
 
 from ..adapters.qt_adapter import QtAdapter
 
@@ -36,7 +37,7 @@ class SettingsManager:
             self._settings = QtCore.QSettings(organization, application)
             self.logger.info("QSettingsを初期化しました: {organization}/{application}")
         except Exception:
-            self.logger.error("QSettingsの初期化に失敗しました: {str(e)}")
+            self.logger.error("QSettingsの初期化に失敗しました: {str()}")
             raise
 
     def save_window_state(self, window) -> None:
@@ -61,7 +62,7 @@ class SettingsManager:
             self.logger.info("ウィンドウ状態を保存しました")
 
         except Exception:
-            self.logger.error("ウィンドウ状態の保存に失敗しました: {str(e)}")
+            self.logger.error("ウィンドウ状態の保存に失敗しました: {str()}")
             raise
 
     def restore_window_state(self, window) -> bool:
@@ -96,7 +97,7 @@ class SettingsManager:
             return True
 
         except Exception:
-            self.logger.error("ウィンドウ状態の復元に失敗しました: {str(e)}")
+            self.logger.error("ウィンドウ状態の復元に失敗しました: {str()}")
             return False
 
     def save_splitter_state(self, splitter, name: str) -> None:
@@ -111,7 +112,7 @@ class SettingsManager:
             self._settings.sync()
             self.logger.debug("スプリッター状態を保存しました: {name}")
         except Exception:
-            self.logger.error("スプリッター状態の保存に失敗しました ({name}): {str(e)}")
+            self.logger.error("スプリッター状態の保存に失敗しました ({name}): {str()}")
 
     def restore_splitter_state(self, splitter, name: str) -> bool:
         """スプリッターの状態を復元する
@@ -131,7 +132,7 @@ class SettingsManager:
                 return True
             return False
         except Exception:
-            self.logger.error("スプリッター状態の復元に失敗しました ({name}): {str(e)}")
+            self.logger.error("スプリッター状態の復元に失敗しました ({name}): {str()}")
             return False
 
     def save_dock_state(self, main_window) -> None:
@@ -160,7 +161,7 @@ class SettingsManager:
             self.logger.info("ドックウィジェット状態を保存しました")
 
         except Exception:
-            self.logger.error("ドックウィジェット状態の保存に失敗しました: {str(e)}")
+            self.logger.error("ドックウィジェット状態の保存に失敗しました: {str()}")
 
     def restore_dock_state(self, main_window) -> bool:
         """ドックウィジェットの状態を復元する
@@ -181,7 +182,7 @@ class SettingsManager:
             return False
 
         except Exception:
-            self.logger.error("ドックウィジェット状態の復元に失敗しました: {str(e)}")
+            self.logger.error("ドックウィジェット状態の復元に失敗しました: {str()}")
             return False
 
     def save_value(self, key: str, value: Any) -> None:
@@ -196,7 +197,7 @@ class SettingsManager:
             self._settings.sync()
             self.logger.debug("設定値を保存しました: {key}")
         except Exception:
-            self.logger.error("設定値の保存に失敗しました ({key}): {str(e)}")
+            self.logger.error("設定値の保存に失敗しました ({key}): {str()}")
 
     def load_value(
         self, key: str, default: Any = None, value_type: Optional[type] = None
@@ -217,7 +218,7 @@ class SettingsManager:
             else:
                 return self._settings.value(key, default)
         except Exception:
-            self.logger.error("設定値の読み込みに失敗しました ({key}): {str(e)}")
+            self.logger.error("設定値の読み込みに失敗しました ({key}): {str()}")
             return default
 
     def remove_value(self, key: str) -> None:
@@ -231,7 +232,7 @@ class SettingsManager:
             self._settings.sync()
             self.logger.debug("設定値を削除しました: {key}")
         except Exception:
-            self.logger.error("設定値の削除に失敗しました ({key}): {str(e)}")
+            self.logger.error("設定値の削除に失敗しました ({key}): {str()}")
 
     def contains(self, key: str) -> bool:
         """設定キーが存在するかチェックする
@@ -245,7 +246,7 @@ class SettingsManager:
         try:
             return self._settings.contains(key)
         except Exception:
-            self.logger.error("設定キーの確認に失敗しました ({key}): {str(e)}")
+            self.logger.error("設定キーの確認に失敗しました ({key}): {str()}")
             return False
 
     def clear_all(self) -> None:
@@ -255,7 +256,7 @@ class SettingsManager:
             self._settings.sync()
             self.logger.info("すべての設定を削除しました")
         except Exception:
-            self.logger.error("設定の削除に失敗しました: {str(e)}")
+            self.logger.error("設定の削除に失敗しました: {str()}")
 
     def get_all_keys(self) -> list:
         """すべての設定キーを取得する
@@ -266,7 +267,7 @@ class SettingsManager:
         try:
             return self._settings.allKeys()
         except Exception:
-            self.logger.error("設定キーの取得に失敗しました: {str(e)}")
+            self.logger.error("設定キーの取得に失敗しました: {str()}")
             return []
 
     def begin_group(self, prefix: str) -> None:
@@ -287,7 +288,7 @@ class SettingsManager:
             self._settings.sync()
             self.logger.debug("設定を同期しました")
         except Exception:
-            self.logger.error("設定の同期に失敗しました: {str(e)}")
+            self.logger.error("設定の同期に失敗しました: {str()}")
 
     def get_file_path(self) -> str:
         """設定ファイルのパスを取得する
@@ -298,7 +299,7 @@ class SettingsManager:
         try:
             return self._settings.fileName()
         except Exception:
-            self.logger.error("設定ファイルパスの取得に失敗しました: {str(e)}")
+            self.logger.error("設定ファイルパスの取得に失敗しました: {str()}")
             return ""
 
 
@@ -382,7 +383,7 @@ class UserPreferences:
             self.logger.info("ユーザー設定をデフォルト値にリセットしました")
 
         except Exception:
-            self.logger.error("ユーザー設定のリセットに失敗しました: {str(e)}")
+            self.logger.error("ユーザー設定のリセットに失敗しました: {str()}")
 
     def export_preferences(self) -> Dict[str, Any]:
         """ユーザー設定をエクスポートする
@@ -401,8 +402,8 @@ class UserPreferences:
             self.logger.info("ユーザー設定をエクスポートしました")
             return preferences
 
-        except Exception as e:
-            self.logger.error(f"ユーザー設定のエクスポートに失敗しました: {str(e)}")
+        except Exception:
+            self.logger.error(f"ユーザー設定のエクスポートに失敗しました: {str()}")
             return {}
 
     def import_preferences(self, preferences: Dict[str, Any]) -> None:
@@ -419,7 +420,7 @@ class UserPreferences:
             self.logger.info("ユーザー設定をインポートしました")
 
         except Exception:
-            self.logger.error("ユーザー設定のインポートに失敗しました: {str(e)}")
+            self.logger.error("ユーザー設定のインポートに失敗しました: {str()}")
 
 
 class WorkspaceManager:
@@ -472,7 +473,7 @@ class WorkspaceManager:
             self.logger.info("ワークスペース状態を保存しました")
 
         except Exception:
-            self.logger.error("ワークスペース状態の保存に失敗しました: {str(e)}")
+            self.logger.error("ワークスペース状態の保存に失敗しました: {str()}")
 
     def load_workspace(self) -> Dict[str, Any]:
         """ワークスペース状態を読み込む
@@ -509,8 +510,8 @@ class WorkspaceManager:
             self.logger.info("ワークスペース状態を読み込みました")
             return workspace_data
 
-        except Exception as e:
-            self.logger.error(f"ワークスペース状態の読み込みに失敗しました: {str(e)}")
+        except Exception:
+            self.logger.error(f"ワークスペース状態の読み込みに失敗しました: {str()}")
             return {}
 
     def clear_workspace(self) -> None:
@@ -526,4 +527,4 @@ class WorkspaceManager:
             self.logger.info("ワークスペース状態をクリアしました")
 
         except Exception:
-            self.logger.error("ワークスペース状態のクリアに失敗しました: {str(e)}")
+            self.logger.error("ワークスペース状態のクリアに失敗しました: {str()}")

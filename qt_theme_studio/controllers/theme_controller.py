@@ -7,6 +7,8 @@ QUndoStackを使用したUndo/Redo機能を提供します。
 """
 
 from typing import Any, Callable, Dict, List, Optional, Union
+from pathlib import Path
+from datetime import datetime
 
 from ..adapters.qt_adapter import QtAdapter, QtFrameworkNotFoundError
 from ..adapters.theme_adapter import ThemeAdapter
@@ -89,7 +91,7 @@ class ThemePropertyChangeCommand:
                 },
             )
         except Exception:
-            self.logger.error("Redo操作に失敗しました: {str(e)}", LogCategory.ERROR)
+            self.logger.error("Redo操作に失敗しました: {str()}", LogCategory.ERROR)
 
     def undo(self):
         """変更を取り消す（Undo操作）"""
@@ -111,7 +113,7 @@ class ThemePropertyChangeCommand:
                 },
             )
         except Exception:
-            self.logger.error("Undo操作に失敗しました: {str(e)}", LogCategory.ERROR)
+            self.logger.error("Undo操作に失敗しました: {str()}", LogCategory.ERROR)
 
     def _set_property_value(self, property_path: str, value: Any):
         """プロパティ値を設定する
@@ -214,12 +216,12 @@ class ThemeController:
 
         except QtFrameworkNotFoundError:
             self.logger.error(
-                "Qtフレームワークの初期化に失敗しました: {str(e)}", LogCategory.ERROR
+                "Qtフレームワークの初期化に失敗しました: {str()}", LogCategory.ERROR
             )
             raise
         except Exception:
             self.logger.error(
-                "Qt関連コンポーネントの初期化に失敗しました: {str(e)}",
+                "Qt関連コンポーネントの初期化に失敗しました: {str()}",
                 LogCategory.ERROR,
             )
             raise
@@ -242,7 +244,7 @@ class ThemeController:
                 "colors": {
                     "primary": "#3498db",
                     "secondary": "#2ecc71",
-                    "background": "#fffff",
+                    "background": "#ffffff",
                     "surface": "#f8f9fa",
                     "text": "#2c3e50",
                     "text_secondary": "#7f8c8d",
@@ -287,7 +289,7 @@ class ThemeController:
 
         except Exception:
             self.logger.error(
-                "新規テーマの作成に失敗しました: {str(e)}", LogCategory.ERROR
+                "新規テーマの作成に失敗しました: {str()}", LogCategory.ERROR
             )
             raise
 
@@ -329,7 +331,7 @@ class ThemeController:
 
         except Exception:
             self.logger.error(
-                "テーマの読み込みに失敗しました: {str(e)}", LogCategory.ERROR
+                "テーマの読み込みに失敗しました: {str()}", LogCategory.ERROR
             )
             raise
 
@@ -378,7 +380,7 @@ class ThemeController:
             return success
 
         except Exception:
-            self.logger.error("テーマの保存に失敗しました: {str(e)}", LogCategory.ERROR)
+            self.logger.error("テーマの保存に失敗しました: {str()}", LogCategory.ERROR)
             raise
 
     def change_theme_property(
@@ -431,7 +433,7 @@ class ThemeController:
 
         except Exception:
             self.logger.error(
-                "テーマプロパティの変更に失敗しました: {str(e)}", LogCategory.ERROR
+                "テーマプロパティの変更に失敗しました: {str()}", LogCategory.ERROR
             )
             return False
 
@@ -469,7 +471,7 @@ class ThemeController:
             return True
 
         except Exception:
-            self.logger.error("Undo操作に失敗しました: {str(e)}", LogCategory.ERROR)
+            self.logger.error("Undo操作に失敗しました: {str()}", LogCategory.ERROR)
             return False
 
     def redo_last_action(self) -> bool:
@@ -506,7 +508,7 @@ class ThemeController:
             return True
 
         except Exception:
-            self.logger.error("Redo操作に失敗しました: {str(e)}", LogCategory.ERROR)
+            self.logger.error("Redo操作に失敗しました: {str()}", LogCategory.ERROR)
             return False
 
     def clear_undo_history(self) -> None:
@@ -518,7 +520,7 @@ class ThemeController:
 
         except Exception:
             self.logger.error(
-                "操作履歴のクリアに失敗しました: {str(e)}", LogCategory.ERROR
+                "操作履歴のクリアに失敗しました: {str()}", LogCategory.ERROR
             )
 
     def get_undo_history_info(self) -> Dict[str, Any]:
@@ -610,7 +612,7 @@ class ThemeController:
                 callback(self.current_theme)
             except Exception:
                 self.logger.error(
-                    "テーマ変更コールバックでエラーが発生しました: {str(e)}",
+                    "テーマ変更コールバックでエラーが発生しました: {str()}",
                     LogCategory.ERROR,
                 )
 
@@ -628,7 +630,7 @@ class ThemeController:
                 callback(self.current_theme)
             except Exception:
                 self.logger.error(
-                    "プレビュー更新コールバックでエラーが発生しました: {str(e)}",
+                    "プレビュー更新コールバックでエラーが発生しました: {str()}",
                     LogCategory.ERROR,
                 )
 
@@ -644,7 +646,7 @@ class ThemeController:
                 callback(operation, description)
             except Exception:
                 self.logger.error(
-                    "Undo/Redoコールバックでエラーが発生しました: {str(e)}",
+                    "Undo/Redoコールバックでエラーが発生しました: {str()}",
                     LogCategory.ERROR,
                 )
 
@@ -676,7 +678,7 @@ class ThemeController:
 
         except Exception:
             self.logger.error(
-                "プレビュー更新の実行に失敗しました: {str(e)}", LogCategory.ERROR
+                "プレビュー更新の実行に失敗しました: {str()}", LogCategory.ERROR
             )
 
     def _on_undo_stack_changed(self, index: int) -> None:
@@ -695,7 +697,7 @@ class ThemeController:
 
         except Exception:
             self.logger.error(
-                "UndoStack変更処理でエラーが発生しました: {str(e)}", LogCategory.ERROR
+                "UndoStack変更処理でエラーが発生しました: {str()}", LogCategory.ERROR
             )
 
     def _get_property_value(self, property_path: str) -> Any:
@@ -783,7 +785,7 @@ class ThemeController:
 
         except Exception:
             self.logger.error(
-                "プレビューの強制更新に失敗しました: {str(e)}", LogCategory.ERROR
+                "プレビューの強制更新に失敗しました: {str()}", LogCategory.ERROR
             )
 
     def get_preview_update_status(self) -> Dict[str, Any]:

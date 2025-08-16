@@ -7,6 +7,8 @@ Qt-Theme-Studio テーマ管理サービス
 
 import json
 from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
+import logging
 
 from ..adapters.theme_adapter import ThemeAdapter
 from ..exceptions import ThemeStudioException
@@ -207,7 +209,7 @@ class ThemeService:
         except json.JSONDecodeError as e:
             self.logger.error("テーマファイルのJSON解析に失敗しました: {str(e)}")
             return None
-        except Exception:
+        except Exception as e:
             self.logger.error(
                 "テーマファイルの読み込み中にエラーが発生しました: {str(e)}"
             )
@@ -247,7 +249,7 @@ class ThemeService:
 
             return success
 
-        except Exception:
+        except Exception as e:
             self.logger.error("テーマファイルの保存中にエラーが発生しました: {str(e)}")
             return False
 
@@ -325,7 +327,7 @@ class ThemeService:
             self.logger.debug("テーマ検証完了: {'成功' if result.is_valid else '失敗'}")
             return result
 
-        except Exception:
+        except Exception as e:
             self.logger.error("テーマ検証中にエラーが発生しました: {str(e)}")
             result.add_error("検証処理中にエラーが発生しました: {str(e)}")
             return result
@@ -426,7 +428,7 @@ class ThemeService:
                     "qt-theme-managerが初期化されていないため、互換性チェックをスキップしました"
                 )
 
-        except Exception:
+        except Exception as e:
             result.add_warning(
                 "qt-theme-manager互換性チェック中にエラーが発生しました: {str(e)}"
             )
@@ -453,7 +455,7 @@ class ThemeService:
             ):
                 return True
 
-        # RGB/RGBA形式 (rgb(r,g,b), rgba(r,g,b,a))
+        # RGB/RGBA形式 (rgb(,,), rgba(,,,a))
         if color_value.startswith(("rgb(", "rgba(")):
             return True  # 簡易チェック（詳細な検証は必要に応じて実装）
 
@@ -528,7 +530,7 @@ class ThemeService:
         """JSON形式に変換する"""
         try:
             return json.dumps(theme_data, ensure_ascii=False, indent=2)
-        except Exception:
+        except Exception as e:
             raise ThemeConversionError("JSON変換に失敗しました: {str(e)}")
 
     def _convert_to_qss(self, theme_data: Dict[str, Any]) -> str:
@@ -564,7 +566,7 @@ class ThemeService:
             if "primary" in colors:
                 qss_lines.append("QPushButton {")
                 qss_lines.append("    background-color: {colors['primary']};")
-                qss_lines.append("    color: {colors.get('text', '#fffff')};")
+                qss_lines.append("    color: {colors.get('text', '#ffffff')};")
                 qss_lines.append("    border: 1px solid #cccccc;")
                 qss_lines.append("    padding: 5px 10px;")
                 qss_lines.append("    border-radius: 3px;")
@@ -580,7 +582,7 @@ class ThemeService:
 
             return "\n".join(qss_lines)
 
-        except Exception:
+        except Exception as e:
             raise ThemeConversionError("QSS変換に失敗しました: {str(e)}")
 
     def _convert_to_css(self, theme_data: Dict[str, Any]) -> str:
@@ -638,7 +640,7 @@ class ThemeService:
 
             return "\n".join(css_lines)
 
-        except Exception:
+        except Exception as e:
             raise ThemeConversionError("CSS変換に失敗しました: {str(e)}")
 
     def get_theme_templates(self) -> List[ThemeTemplate]:
@@ -666,7 +668,7 @@ class ThemeService:
 
             return templates
 
-        except Exception:
+        except Exception as e:
             self.logger.error(
                 "テーマテンプレートの読み込み中にエラーが発生しました: {str(e)}"
             )
@@ -693,7 +695,7 @@ class ThemeService:
                 "colors": {
                     "primary": "#007ACC",
                     "secondary": "#005A9E",
-                    "background": "#FFFFFF",
+                    "background": "#ffffff",
                     "surface": "#F5F5F5",
                     "text": "#333333",
                     "text_secondary": "#666666",
@@ -748,7 +750,7 @@ class ThemeService:
                     "secondary": "#106EBE",
                     "background": "#1E1E1E",
                     "surface": "#2D2D30",
-                    "text": "#FFFFFF",
+                    "text": "#ffffff",
                     "text_secondary": "#CCCCCC",
                     "border": "#3E3E42",
                     "hover": "#2A2D2E",
@@ -799,7 +801,7 @@ class ThemeService:
                 "colors": {
                     "primary": "#000000",
                     "secondary": "#333333",
-                    "background": "#FFFFFF",
+                    "background": "#ffffff",
                     "surface": "#F0F0F0",
                     "text": "#000000",
                     "text_secondary": "#333333",

@@ -7,6 +7,7 @@ QTranslatorを使用した日本語翻訳システムを提供し、
 """
 
 from typing import Any, Dict, Optional
+import os
 
 from ..logger import LogCategory, get_logger
 
@@ -65,7 +66,7 @@ class I18nManager:
 
         except Exception:
             self.logger.error(
-                "翻訳システムの初期化に失敗しました: {str(e)}", LogCategory.SYSTEM
+                "翻訳システムの初期化に失敗しました: {str()}", LogCategory.SYSTEM
             )
 
     def _setup_application_translator(self) -> None:
@@ -97,7 +98,7 @@ class I18nManager:
                 )
         else:
             self.logger.debug(
-                "翻訳ファイルが見つかりません: {translation_file}", LogCategory.SYSTEM
+                f"翻訳ファイルが見つかりません: {translation_file}", LogCategory.SYSTEM
             )
 
     def _setup_qt_translator(self) -> None:
@@ -116,12 +117,12 @@ class I18nManager:
             if app:
                 app.installTranslator(self.qt_translator)
                 self.logger.info(
-                    "Qt標準翻訳を読み込みました: {qt_translation_file}",
+                    f"Qt標準翻訳を読み込みました: {qt_translation_file}",
                     LogCategory.SYSTEM,
                 )
         else:
             self.logger.debug(
-                "Qt標準翻訳の読み込みに失敗しました: {qt_translation_file}",
+                f"Qt標準翻訳の読み込みに失敗しました: {qt_translation_file}",
                 LogCategory.SYSTEM,
             )
 
@@ -293,7 +294,7 @@ class I18nManager:
             return True
 
         except Exception:
-            self.logger.error("言語の変更に失敗しました: {str(e)}", LogCategory.SYSTEM)
+            self.logger.error("言語の変更に失敗しました: {str()}", LogCategory.SYSTEM)
             return False
 
     def _remove_current_translators(self) -> None:
@@ -341,7 +342,7 @@ class I18nManager:
 
         except Exception:
             self.logger.error(
-                "翻訳ファイルの作成に失敗しました: {str(e)}", LogCategory.SYSTEM
+                "翻訳ファイルの作成に失敗しました: {str()}", LogCategory.SYSTEM
             )
             return ""
 
@@ -389,7 +390,7 @@ class I18nManager:
 
         except UnicodeEncodeError:
             self.logger.error(
-                "日本語ファイルパスの処理に失敗しました: {str(e)}", LogCategory.SYSTEM
+                "日本語ファイルパスの処理に失敗しました: {str()}", LogCategory.SYSTEM
             )
             # フォールバック: ASCII文字のみのパスを生成
             import tempfile
@@ -457,7 +458,7 @@ class I18nManager:
             return message_template.format(**kwargs)
         except KeyError:
             self.logger.warning(
-                "エラーメッセージのフォーマットに失敗しました: {str(e)}",
+                "エラーメッセージのフォーマットに失敗しました: {str()}",
                 LogCategory.SYSTEM,
             )
             return message_template
@@ -493,7 +494,7 @@ class I18nManager:
             return message_template.format(**kwargs)
         except KeyError:
             self.logger.warning(
-                "ステータスメッセージのフォーマットに失敗しました: {str(e)}",
+                "ステータスメッセージのフォーマットに失敗しました: {str()}",
                 LogCategory.SYSTEM,
             )
             return message_template

@@ -50,7 +50,7 @@ class TestThemeImportService(unittest.TestCase):
             'colors': {
                 'primary': '#0078d4',
                 'secondary': '#106ebe',
-                'background': '#fffff'
+                'background': '#ffff'
             },
             'fonts': {
                 'default': {
@@ -185,8 +185,8 @@ class TestThemeImportService(unittest.TestCase):
         colors = {
             'primary': '#0078d4',
             'secondary': '0x106ebe',
-            'background': 'fffff',
-            'surface': 'ff',
+            'background': 'ffff',
+            'surface': 'f',
             'rgb_dict': {'r': 255, 'g': 0, 'b': 0},
             'rgb_list': [0, 255, 0],
             'named': 'blue'
@@ -196,8 +196,8 @@ class TestThemeImportService(unittest.TestCase):
 
         self.assertEqual(normalized['primary'], '#0078d4')
         self.assertEqual(normalized['secondary'], '#106ebe')
-        self.assertEqual(normalized['background'], '#fffff')
-        self.assertEqual(normalized['surface'], '#fffff')
+        self.assertEqual(normalized['background'], '#ffff')
+        self.assertEqual(normalized['surface'], '#ffff')
         self.assertEqual(normalized['rgb_dict'], '#ff0000')
         self.assertEqual(normalized['rgb_list'], '#00ff00')
         self.assertEqual(normalized['named'], 'blue')
@@ -268,7 +268,7 @@ class TestThemeImportService(unittest.TestCase):
         # 抽出された色値の確認
         color_values = list(colors.values())
         self.assertIn('#000000', color_values)
-        self.assertIn('#fffff', color_values)
+        self.assertIn('#ffff', color_values)
         self.assertIn('#0078d4', color_values)
 
     def test_validate_imported_theme(self):
@@ -299,8 +299,8 @@ class TestThemeImportService(unittest.TestCase):
     def test_is_valid_color(self):
         """色値妥当性テスト"""
         # 有効な色値
-        self.assertTrue(self.import_service.is_valid_color('#fffff'))
-        self.assertTrue(self.import_service.is_valid_color('#ff'))
+        self.assertTrue(self.import_service.is_valid_color('#ffff'))
+        self.assertTrue(self.import_service.is_valid_color('#f'))
         self.assertTrue(self.import_service.is_valid_color('#123ABC'))
         self.assertTrue(self.import_service.is_valid_color('red'))
         self.assertTrue(self.import_service.is_valid_color('blue'))

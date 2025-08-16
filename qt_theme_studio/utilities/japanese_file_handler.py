@@ -9,6 +9,8 @@ import sys
 import tempfile
 import unicodedata
 from typing import Any, Dict, List, Optional
+from pathlib import Path
+import os
 
 from ..logger import LogCategory, get_logger
 
@@ -33,7 +35,7 @@ class JapaneseFileHandler:
         self.temp_dir = tempfile.gettempdir()
 
         self.logger.info(
-            "日本語ファイル処理を初期化しました (システムエンコーディング: {self.system_encoding})",
+            f"日本語ファイル処理を初期化しました (システムエンコーディング: {self.system_encoding})",
             LogCategory.SYSTEM,
         )
 
@@ -59,7 +61,7 @@ class JapaneseFileHandler:
 
             return normalized_path
 
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "パスの正規化に失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -107,7 +109,7 @@ class JapaneseFileHandler:
 
         except UnicodeEncodeError:
             return False
-        except Exception as e:
+        except Exception:
             self.logger.error("パスの検証に失敗しました: {str(e)}", LogCategory.SYSTEM)
             return False
 
@@ -162,7 +164,7 @@ class JapaneseFileHandler:
                 "ファイルのエンコーディングエラー: {str(e)}", LogCategory.SYSTEM
             )
             return None
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "ファイルのオープンに失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -199,7 +201,7 @@ class JapaneseFileHandler:
                 )
                 return content  # 警告は出すが内容は返す
 
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "ファイルの読み込みに失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -226,7 +228,7 @@ class JapaneseFileHandler:
         if dir_path and not os.path.exists(dir_path):
             try:
                 os.makedirs(dir_path, exist_ok=True)
-            except Exception as e:
+            except Exception:
                 self.logger.error(
                     "ディレクトリの作成に失敗しました: {str(e)}", LogCategory.SYSTEM
                 )
@@ -245,7 +247,7 @@ class JapaneseFileHandler:
             )
             return True
 
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "ファイルの書き込みに失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -277,7 +279,7 @@ class JapaneseFileHandler:
 
         except UnicodeEncodeError:
             return False
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "テキストの検証に失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -327,7 +329,7 @@ class JapaneseFileHandler:
 
             return safe_name
 
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "安全なファイル名の生成に失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -357,7 +359,7 @@ class JapaneseFileHandler:
 
             return str(backup_path)
 
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "バックアップパスの生成に失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -420,8 +422,8 @@ class JapaneseFileHandler:
             except ImportError:
                 pass
 
-        except Exception as e:
-            info["errors"].append(str(e))
+        except Exception:
+            info["errors"].append(str())
             self.logger.error(
                 "エンコーディング情報の取得に失敗しました: {str(e)}",
                 LogCategory.SYSTEM,
@@ -471,7 +473,7 @@ class JapaneseFileHandler:
             )
             return True
 
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "エンコーディング変換に失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -499,7 +501,7 @@ class JapaneseFileHandler:
 
                     # 拡張子フィルタ
                     if extensions:
-                        _, ext = os.path.splitext(file)
+                        name, ext = os.path.splitext(file)
                         if ext.lower() not in extensions:
                             continue
 
@@ -507,7 +509,7 @@ class JapaneseFileHandler:
                     if self._contains_japanese(file_path):
                         japanese_files.append(file_path)
 
-        except Exception as e:
+        except Exception:
             self.logger.error(
                 "日本語ファイルの検索に失敗しました: {str(e)}", LogCategory.SYSTEM
             )
@@ -527,8 +529,8 @@ class JapaneseFileHandler:
         for char in text:
             # ひらがな、カタカナ、漢字の範囲をチェック
             if (
-                "\u3040" <= char <= "\u309"  # ひらがな
-                or "\u30a0" <= char <= "\u30f"  # カタカナ
+                "\u3040" <= char <= "\u309f"  # ひらがな
+                or "\u30a0" <= char <= "\u30ff"  # カタカナ
                 or "\u4e00" <= char <= "\u9faf"
             ):  # 漢字
                 return True

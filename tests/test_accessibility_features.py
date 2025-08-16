@@ -51,19 +51,19 @@ class TestColorAnalyzer:
     def test_hex_to_rgb_conversion(self, color_analyzer):
         """16進数からRGB変換のテスト"""
         # 基本的な色の変換
-        assert color_analyzer.hex_to_rgb('#fffff') == (255, 255, 255)
+        assert color_analyzer.hex_to_rgb('#ffffff') == (255, 255, 255)
         assert color_analyzer.hex_to_rgb('#000000') == (0, 0, 0)
         assert color_analyzer.hex_to_rgb('#ff0000') == (255, 0, 0)
         assert color_analyzer.hex_to_rgb('#00ff00') == (0, 255, 0)
-        assert color_analyzer.hex_to_rgb('#0000f') == (0, 0, 255)
+        assert color_analyzer.hex_to_rgb('#0000ff') == (0, 0, 255)
 
         # 短縮形式の変換
-        assert color_analyzer.hex_to_rgb('#ff') == (255, 255, 255)
+        assert color_analyzer.hex_to_rgb('#fff') == (255, 255, 255)
         assert color_analyzer.hex_to_rgb('#000') == (0, 0, 0)
         assert color_analyzer.hex_to_rgb('#f00') == (255, 0, 0)
 
         # #なしの形式
-        assert color_analyzer.hex_to_rgb('fffff') == (255, 255, 255)
+        assert color_analyzer.hex_to_rgb('ffffff') == (255, 255, 255)
         assert color_analyzer.hex_to_rgb('000000') == (0, 0, 0)
 
     def test_rgb_to_luminance_conversion(self, color_analyzer):
@@ -87,40 +87,40 @@ class TestColorAnalyzer:
     def test_contrast_ratio_calculation(self, color_analyzer):
         """コントラスト比計算のテスト"""
         # 白と黒の最大コントラスト比（21:1）
-        max_contrast = color_analyzer.calculate_contrast_ratio('#fffff', '#000000')
+        max_contrast = color_analyzer.calculate_contrast_ratio('#ffffff', '#000000')
         assert abs(max_contrast - 21.0) < 0.1
 
         # 同じ色のコントラスト比（1:1）
-        same_contrast = color_analyzer.calculate_contrast_ratio('#fffff', '#fffff')
+        same_contrast = color_analyzer.calculate_contrast_ratio('#ffffff', '#ffffff')
         assert abs(same_contrast - 1.0) < 0.1
 
         # 実際のテストケース
-        blue_white_contrast = color_analyzer.calculate_contrast_ratio('#0078d4', '#fffff')
+        blue_white_contrast = color_analyzer.calculate_contrast_ratio('#0078d4', '#ffffff')
         assert blue_white_contrast > 1.0
 
         # 順序を変えても同じ結果
-        white_blue_contrast = color_analyzer.calculate_contrast_ratio('#fffff', '#0078d4')
+        white_blue_contrast = color_analyzer.calculate_contrast_ratio('#ffffff', '#0078d4')
         assert abs(blue_white_contrast - white_blue_contrast) < 0.001
 
     def test_wcag_compliance_check(self, color_analyzer):
         """WCAG準拠チェックのテスト"""
         # AA準拠テスト（4.5:1以上）
-        contrast_ratio = color_analyzer.calculate_contrast_ratio('#000000', '#fffff')
+        contrast_ratio = color_analyzer.calculate_contrast_ratio('#000000', '#ffffff')
         compliance_level = color_analyzer.get_wcag_compliance_level(contrast_ratio, False)
         assert compliance_level in ['AA', 'AAA']  # 黒と白は高いコントラスト比
 
         # 低コントラストのテスト
-        low_contrast_ratio = color_analyzer.calculate_contrast_ratio('#cccccc', '#fffff')
+        low_contrast_ratio = color_analyzer.calculate_contrast_ratio('#cccccc', '#ffffff')
         low_compliance_level = color_analyzer.get_wcag_compliance_level(low_contrast_ratio, False)
         assert low_compliance_level == 'FAIL'  # 薄いグレーと白は低コントラスト
 
         # AAA準拠テスト（7:1以上）
-        high_contrast_ratio = color_analyzer.calculate_contrast_ratio('#000000', '#fffff')
+        high_contrast_ratio = color_analyzer.calculate_contrast_ratio('#000000', '#ffffff')
         aaa_compliance = color_analyzer.get_wcag_compliance_level(high_contrast_ratio, False)
         assert aaa_compliance == 'AAA'  # 黒と白は最高レベル
 
         # 大きなテキスト用のテスト（3:1以上）
-        medium_contrast_ratio = color_analyzer.calculate_contrast_ratio('#767676', '#fffff')
+        medium_contrast_ratio = color_analyzer.calculate_contrast_ratio('#767676', '#ffffff')
         large_text_compliance = color_analyzer.get_wcag_compliance_level(medium_contrast_ratio, True)
         assert large_text_compliance in ['AA', 'AAA', 'FAIL']  # 結果を確認
 
@@ -143,9 +143,9 @@ class TestColorAnalyzer:
     def test_accessibility_report_generation(self, color_analyzer):
         """アクセシビリティレポート生成のテスト"""
         colors = {
-            'button': {'foreground': '#fffff', 'background': '#0078d4'},
-            'text': {'foreground': '#000000', 'background': '#fffff'},
-            'warning': {'foreground': '#cccccc', 'background': '#fffff'}
+            'button': {'foreground': '#ffffff', 'background': '#0078d4'},
+            'text': {'foreground': '#000000', 'background': '#ffffff'},
+            'warning': {'foreground': '#cccccc', 'background': '#ffffff'}
         }
         report = color_analyzer.analyze_color_accessibility(colors)
 
@@ -180,7 +180,7 @@ class TestColorImprover:
         """コントラスト改善のテスト"""
         # 不十分なコントラストの色ペア
         color1 = '#cccccc'
-        color2 = '#fffff'
+        color2 = '#ffffff'
         target_ratio = 4.5  # AA準拠
 
         # 改善前のコントラスト比を確認
@@ -206,9 +206,9 @@ class TestColorImprover:
         """アクセシブル代替色提案のテスト"""
         # アクセシビリティに問題のある色セット
         problematic_colors = {
-            'text1': {'foreground': '#cccccc', 'background': '#fffff'},
-            'text2': {'foreground': '#dddddd', 'background': '#fffff'},
-            'text3': {'foreground': '#eeeeee', 'background': '#fffff'}
+            'text1': {'foreground': '#cccccc', 'background': '#ffffff'},
+            'text2': {'foreground': '#dddddd', 'background': '#ffffff'},
+            'text3': {'foreground': '#eeeeee', 'background': '#ffffff'}
         }
 
         # 代替色の提案
@@ -244,7 +244,7 @@ class TestColorImprover:
     def test_color_brightness_adjustment(self, color_improver):
         """色の明度調整のテスト（色バリエーション生成を使用）"""
         base_colors = {
-            'primary': {'foreground': '#fffff', 'background': '#0078d4'}
+            'primary': {'foreground': '#ffffff', 'background': '#0078d4'}
         }
 
         # 明度バリエーションを生成
@@ -317,7 +317,7 @@ class TestZebraEditor:
         zebra_editor = ZebraEditor(mock_qt_adapter, mock_theme_adapter)
 
         # コントラスト計算
-        contrast_ratio = zebra_editor.calculate_contrast_ratio('#000000', '#fffff')
+        contrast_ratio = zebra_editor.calculate_contrast_ratio('#000000', '#ffffff')
         assert abs(contrast_ratio - 21.0) < 0.1
 
         # UI更新の確認（モックなので実際の更新は確認困難）
@@ -341,7 +341,7 @@ class TestZebraEditor:
 
         # 不十分なコントラストの色を設定
         zebra_editor.set_primary_color('#cccccc')
-        zebra_editor.set_background_color('#fffff')
+        zebra_editor.set_background_color('#ffffff')
 
         # 改善提案を取得
         suggestions = zebra_editor.get_improvement_suggestions()
@@ -419,7 +419,7 @@ class TestZebraController:
         zebra_controller = ZebraController(mock_qt_adapter, mock_theme_adapter)
 
         # テスト色セット
-        test_colors = ['#0078d4', '#fffff', '#000000', '#cccccc']
+        test_colors = ['#0078d4', '#ffffff', '#000000', '#cccccc']
 
         # アクセシビリティ検証
         validation_report = zebra_controller.validate_accessibility(test_colors)
@@ -441,7 +441,7 @@ class TestZebraController:
         original_palette = {
             'primary': '#cccccc',
             'secondary': '#dddddd',
-            'background': '#fffff',
+            'background': '#ffffff',
             'text': '#eeeeee'
         }
 
@@ -487,7 +487,7 @@ class TestValidationService:
             'version': '1.0.0',
             'colors': {
                 'primary': '#0078d4',
-                'background': '#fffff',
+                'background': '#ffffff',
                 'text': '#000000'
             },
             'fonts': {
@@ -520,7 +520,7 @@ class TestValidationService:
         compliant_theme = {
             'colors': {
                 'primary': '#0078d4',
-                'background': '#fffff',
+                'background': '#ffffff',
                 'text': '#000000',
                 'secondary': '#28a745'  # より区別しやすい緑色に変更
             },
@@ -543,7 +543,7 @@ class TestValidationService:
         non_compliant_theme = {
             'colors': {
                 'primary': '#cccccc',
-                'background': '#fffff',
+                'background': '#ffffff',
                 'text': '#dddddd',
                 'secondary': '#eeeeee'
             },
@@ -569,7 +569,7 @@ class TestValidationService:
             'version': '1.0.0',
             'colors': {
                 'primary': '#0078d4',
-                'background': '#fffff',
+                'background': '#ffffff',
                 'text': '#000000',
                 'secondary': '#6c757d'
             },
@@ -613,10 +613,10 @@ class TestAccessibilityIntegration:
 
         # 2. 初期色の設定（アクセシビリティに問題あり）
         zebra_editor.set_primary_color('#cccccc')
-        zebra_editor.set_background_color('#fffff')
+        zebra_editor.set_background_color('#ffffff')
 
         # 3. コントラスト比の計算
-        initial_contrast = zebra_editor.calculate_contrast_ratio('#cccccc', '#fffff')
+        initial_contrast = zebra_editor.calculate_contrast_ratio('#cccccc', '#ffffff')
         assert initial_contrast < 4.5  # AA準拠していない
 
         # 4. 改善提案の取得
@@ -660,7 +660,7 @@ class TestAccessibilityIntegration:
                 'name': '非準拠テーマ',
                 'colors': {
                     'primary': '#cccccc',
-                    'background': '#fffff',
+                    'background': '#ffffff',
                     'text': '#dddddd'
                 }
             },
@@ -669,7 +669,7 @@ class TestAccessibilityIntegration:
                 'name': 'AA準拠テーマ',
                 'colors': {
                     'primary': '#0078d4',
-                    'background': '#fffff',
+                    'background': '#ffffff',
                     'text': '#000000'
                 }
             },
@@ -678,7 +678,7 @@ class TestAccessibilityIntegration:
                 'name': 'AAA準拠テーマ',
                 'colors': {
                     'primary': '#003d6b',
-                    'background': '#fffff',
+                    'background': '#ffffff',
                     'text': '#000000'
                 }
             }

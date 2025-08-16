@@ -5,6 +5,7 @@ Qt フレームワーク自動検出・統合アダプター
 利用可能なフレームワークを使用してQApplicationインスタンスを作成する機能を提供します。
 """
 
+import logging
 import sys
 from typing import Any, Dict, Optional
 
@@ -49,13 +50,16 @@ class QtAdapter:
             try:
                 __import__(framework)
                 self._detected_framework = framework
-                self.logger.info("Qtフレームワークを検出しました: {framework}")
+                self.logger.info(f"Qtフレームワークを検出しました: {framework}")
                 return framework
             except ImportError:
                 self.logger.debug("フレームワーク {framework} は利用できません")
                 continue
 
-        error_msg = "利用可能なQtフレームワークが見つかりません。PySide6、PyQt6、またはPyQt5をインストールしてください。"
+        error_msg = (
+            "利用可能なQtフレームワークが見つかりません。"
+            "PySide6、PyQt6、またはPyQt5をインストールしてください。"
+        )
         self.logger.error(error_msg)
         raise QtFrameworkNotFoundError(error_msg)
 
@@ -99,11 +103,11 @@ class QtAdapter:
                 "framework": framework,
             }
 
-            self.logger.info("{framework}のモジュールを正常に読み込みました")
+            self.logger.info(f"{framework}のモジュールを正常に読み込みました")
             return self._qt_modules
 
-        except ImportError:
-            error_msg = "{framework}のモジュール読み込みに失敗しました: {str(e)}"
+        except ImportError as e:
+            error_msg = "{framework}のモジュール読み込みに失敗しました: {str()}"
             self.logger.error(error_msg)
             raise QtFrameworkNotFoundError(error_msg)
 
@@ -140,11 +144,11 @@ class QtAdapter:
             app.setApplicationVersion("1.0.0")
 
             self._application = app
-            self.logger.info("QApplicationインスタンスを作成しました: {app_name}")
+            self.logger.info(f"QApplicationインスタンスを作成しました: {app_name}")
             return app
 
         except Exception:
-            error_msg = "QApplicationの作成に失敗しました: {str(e)}"
+            error_msg = "QApplicationの作成に失敗しました: {e}"
             self.logger.error(error_msg)
             raise QtFrameworkNotFoundError(error_msg)
 
@@ -169,7 +173,7 @@ class QtAdapter:
             elif hasattr(QtCore, "__version__"):
                 info["version"] = QtCore.__version__
         except Exception:
-            self.logger.debug("バージョン情報の取得に失敗しました: {str(e)}")
+            self.logger.debug("バージョン情報の取得に失敗しました: {e}")
 
         return info
 

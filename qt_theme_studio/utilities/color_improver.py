@@ -7,6 +7,7 @@
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
+import logging
 
 from .color_analyzer import ColorAnalyzer
 
@@ -62,14 +63,14 @@ class ColorImprover:
             level="AA",
             description="通常テキスト4.5:1、大きなテキスト3.0:1のコントラスト比を保証",
             color_pairs={
-                "通常テキスト": {"foreground": "#000000", "background": "#fffff"},
-                "リンクテキスト": {"foreground": "#0066cc", "background": "#fffff"},
-                "選択テキスト": {"foreground": "#fffff", "background": "#0066cc"},
-                "無効テキスト": {"foreground": "#767676", "background": "#fffff"},
-                "エラーテキスト": {"foreground": "#d13212", "background": "#fffff"},
-                "警告テキスト": {"foreground": "#b7950b", "background": "#fffff"},
-                "成功テキスト": {"foreground": "#0e7c0e", "background": "#fffff"},
-                "情報テキスト": {"foreground": "#1976d2", "background": "#fffff"},
+                "通常テキスト": {"foreground": "#000000", "background": "#ffff"},
+                "リンクテキスト": {"foreground": "#0066cc", "background": "#ffff"},
+                "選択テキスト": {"foreground": "#ffff", "background": "#0066cc"},
+                "無効テキスト": {"foreground": "#767676", "background": "#ffff"},
+                "エラーテキスト": {"foreground": "#d13212", "background": "#ffff"},
+                "警告テキスト": {"foreground": "#b7950b", "background": "#ffff"},
+                "成功テキスト": {"foreground": "#0e7c0e", "background": "#ffff"},
+                "情報テキスト": {"foreground": "#1976d2", "background": "#ffff"},
             },
             min_contrast_ratio=4.5,
         )
@@ -81,14 +82,14 @@ class ColorImprover:
             level="AAA",
             description="通常テキスト7.0:1、大きなテキスト4.5:1のコントラスト比を保証",
             color_pairs={
-                "通常テキスト": {"foreground": "#000000", "background": "#fffff"},
-                "リンクテキスト": {"foreground": "#004499", "background": "#fffff"},
-                "選択テキスト": {"foreground": "#fffff", "background": "#004499"},
-                "無効テキスト": {"foreground": "#595959", "background": "#fffff"},
-                "エラーテキスト": {"foreground": "#b30000", "background": "#fffff"},
-                "警告テキスト": {"foreground": "#996600", "background": "#fffff"},
-                "成功テキスト": {"foreground": "#0a5d0a", "background": "#fffff"},
-                "情報テキスト": {"foreground": "#0d47a1", "background": "#fffff"},
+                "通常テキスト": {"foreground": "#000000", "background": "#ffff"},
+                "リンクテキスト": {"foreground": "#004499", "background": "#ffff"},
+                "選択テキスト": {"foreground": "#ffff", "background": "#004499"},
+                "無効テキスト": {"foreground": "#595959", "background": "#ffff"},
+                "エラーテキスト": {"foreground": "#b30000", "background": "#ffff"},
+                "警告テキスト": {"foreground": "#996600", "background": "#ffff"},
+                "成功テキスト": {"foreground": "#0a5d0a", "background": "#ffff"},
+                "情報テキスト": {"foreground": "#0d47a1", "background": "#ffff"},
             },
             min_contrast_ratio=7.0,
         )
@@ -100,7 +101,7 @@ class ColorImprover:
             level="AA",
             description="ダークテーマでWCAG AA準拠のコントラスト比を保証",
             color_pairs={
-                "通常テキスト": {"foreground": "#fffff", "background": "#121212"},
+                "通常テキスト": {"foreground": "#ffff", "background": "#121212"},
                 "リンクテキスト": {"foreground": "#64b5f6", "background": "#121212"},
                 "選択テキスト": {"foreground": "#121212", "background": "#64b5f6"},
                 "無効テキスト": {"foreground": "#9e9e9e", "background": "#121212"},
@@ -119,14 +120,14 @@ class ColorImprover:
             level="AAA",
             description="最大限のコントラストを提供する高アクセシビリティプリセット",
             color_pairs={
-                "通常テキスト": {"foreground": "#000000", "background": "#fffff"},
-                "リンクテキスト": {"foreground": "#000080", "background": "#fffff"},
-                "選択テキスト": {"foreground": "#fffff", "background": "#000000"},
-                "無効テキスト": {"foreground": "#404040", "background": "#fffff"},
-                "エラーテキスト": {"foreground": "#800000", "background": "#fffff"},
-                "警告テキスト": {"foreground": "#804000", "background": "#fffff"},
-                "成功テキスト": {"foreground": "#004000", "background": "#fffff"},
-                "情報テキスト": {"foreground": "#000080", "background": "#fffff"},
+                "通常テキスト": {"foreground": "#000000", "background": "#ffff"},
+                "リンクテキスト": {"foreground": "#000080", "background": "#ffff"},
+                "選択テキスト": {"foreground": "#ffff", "background": "#000000"},
+                "無効テキスト": {"foreground": "#404040", "background": "#ffff"},
+                "エラーテキスト": {"foreground": "#800000", "background": "#ffff"},
+                "警告テキスト": {"foreground": "#804000", "background": "#ffff"},
+                "成功テキスト": {"foreground": "#004000", "background": "#ffff"},
+                "情報テキスト": {"foreground": "#000080", "background": "#ffff"},
             },
             min_contrast_ratio=10.0,
         )
@@ -230,7 +231,7 @@ class ColorImprover:
 
             # 暗くする方向
             for i in range(1, max_iterations + 1):
-                new_l = max(0, l - step * i)
+                new_l = max(0, lightness - step * i)
                 new_color = self._hsl_to_hex(h, s, new_l)
 
                 if adjust_foreground:
@@ -247,7 +248,7 @@ class ColorImprover:
 
             # 明るくする方向
             for i in range(1, max_iterations + 1):
-                new_l = min(100, l + step * i)
+                new_l = min(100, lightness + step * i)
                 new_color = self._hsl_to_hex(h, s, new_l)
 
                 if adjust_foreground:
@@ -275,13 +276,13 @@ class ColorImprover:
     def _get_extreme_contrast_colors(self, target_ratio: float) -> Tuple[str, str]:
         """極端なコントラストの色の組み合わせを取得"""
         if target_ratio >= 15:
-            return "#000000", "#fffff"  # 最大コントラスト
+            return "#000000", "#ffffff"  # 最大コントラスト
         elif target_ratio >= 10:
             return "#000000", "#f0f0f0"
         elif target_ratio >= 7:
-            return "#1a1a1a", "#fffff"
+            return "#1a1a1a", "#ffffff"
         else:
-            return "#333333", "#fffff"
+            return "#333333", "#ffffff"
 
     def suggest_accessible_alternatives(
         self, colors: Dict[str, Dict[str, str]], target_level: str = "AA"

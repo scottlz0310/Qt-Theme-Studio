@@ -9,6 +9,7 @@ import json
 import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+import logging
 
 from ..utilities.color_analyzer import ColorAnalyzer
 from .validation_service import AccessibilityReport, ValidationService
@@ -225,12 +226,12 @@ class QualityService:
             return report
 
         except Exception:
-            self.logger.error("品質チェック中にエラーが発生しました: {str(e)}")
+            self.logger.error("品質チェック中にエラーが発生しました: {str()}")
             report.add_quality_check(
                 "error_handling",
                 False,
                 0.0,
-                "品質チェック中にエラーが発生しました: {str(e)}",
+                "品質チェック中にエラーが発生しました: {str()}",
             )
             return report
 
@@ -324,7 +325,7 @@ class QualityService:
             except Exception:
                 score = 50.0
                 passed = False
-                details = "コントラスト比計算エラー: {str(e)}"
+                details = "コントラスト比計算エラー: {str()}"
 
         report.add_quality_check("color_quality", passed, score, details)
 
@@ -570,9 +571,9 @@ class QualityService:
             )
             return test_results
 
-        except Exception as e:
-            self.logger.error("自動テスト中にエラーが発生しました: {str(e)}")
-            test_results["error"] = str(e)
+        except Exception:
+            self.logger.error("自動テスト中にエラーが発生しました: {str()}")
+            test_results["error"] = str()
             return test_results
 
     def _test_basic_structure(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -588,11 +589,11 @@ class QualityService:
                 ),
                 "errors": errors,
             }
-        except Exception as e:
+        except Exception:
             return {
                 "passed": False,
-                "message": "構造テスト中にエラーが発生しました: {str(e)}",
-                "errors": [str(e)],
+                "message": "構造テスト中にエラーが発生しました: {str()}",
+                "errors": [str()],
             }
 
     def _test_color_data(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -622,11 +623,11 @@ class QualityService:
                 "errors": [],
             }
 
-        except Exception as e:
+        except Exception:
             return {
                 "passed": False,
-                "message": "色データテスト中にエラーが発生しました: {str(e)}",
-                "errors": [str(e)],
+                "message": "色データテスト中にエラーが発生しました: {str()}",
+                "errors": [str()],
             }
 
     def _test_font_data(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -653,11 +654,11 @@ class QualityService:
                 "errors": [],
             }
 
-        except Exception as e:
+        except Exception:
             return {
                 "passed": False,
-                "message": "フォントデータテスト中にエラーが発生しました: {str(e)}",
-                "errors": [str(e)],
+                "message": "フォントデータテスト中にエラーが発生しました: {str()}",
+                "errors": [str()],
             }
 
     def _test_accessibility(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -683,11 +684,11 @@ class QualityService:
                 "score": accessibility_report.score,
             }
 
-        except Exception as e:
+        except Exception:
             return {
                 "passed": False,
-                "message": "アクセシビリティテスト中にエラーが発生しました: {str(e)}",
-                "errors": [str(e)],
+                "message": "アクセシビリティテスト中にエラーが発生しました: {str()}",
+                "errors": [str()],
             }
 
     def _test_json_serialization(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -711,11 +712,11 @@ class QualityService:
                     "errors": ["データ整合性エラー"],
                 }
 
-        except Exception as e:
+        except Exception:
             return {
                 "passed": False,
-                "message": "JSONシリアライゼーションテスト中にエラーが発生しました: {str(e)}",
-                "errors": [str(e)],
+                "message": "JSONシリアライゼーションテスト中にエラーが発生しました: {str()}",
+                "errors": [str()],
             }
 
     def generate_ci_report(

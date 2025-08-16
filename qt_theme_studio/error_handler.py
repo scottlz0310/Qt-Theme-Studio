@@ -7,7 +7,9 @@ Qt-Theme-Studio エラーハンドリング戦略
 
 import json
 import traceback
+from datetime import datetime
 from typing import Any, Callable, Dict
+from pathlib import Path
 
 from .exceptions import (
     ApplicationCrashError,
@@ -433,13 +435,13 @@ class ErrorHandler:
                 "file_path": str(report_file),
                 "report": crash_report,
             }
-        except Exception as e:
+        except Exception:
             if self.logger:
                 self.logger.log_error(
-                    f"クラッシュレポートの生成に失敗しました: {str(e)}"
+                    f"クラッシュレポートの生成に失敗しました: {str()}"
                 )
 
-            return {"success": False, "error": str(e), "report": crash_report}
+            return {"success": False, "error": str(), "report": crash_report}
 
     def _attempt_auto_save(self, crash_context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -486,11 +488,11 @@ class ErrorHandler:
                 "message": "{len(saved_files)}個のファイルを自動保存しました",
             }
 
-        except Exception as e:
+        except Exception:
             if self.logger:
-                self.logger.log_error(f"自動保存に失敗しました: {str(e)}")
+                self.logger.log_error(f"自動保存に失敗しました: {str()}")
 
-            return {"success": False, "error": str(e), "saved_files": saved_files}
+            return {"success": False, "error": str(), "saved_files": saved_files}
 
     def create_backup(self, file_path: str, data: Any) -> bool:
         """
@@ -527,5 +529,5 @@ class ErrorHandler:
 
         except Exception:
             if self.logger:
-                self.logger.log_error("バックアップの作成に失敗しました: {str(e)}")
+                self.logger.log_error("バックアップの作成に失敗しました: {str()}")
             return False

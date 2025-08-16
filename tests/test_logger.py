@@ -31,7 +31,7 @@ class TestJapaneseFormatter:
 
     def test_format_basic_message(self):
         """基本的なメッセージフォーマットのテスト"""
-        
+
         formatter = JapaneseFormatter()
         record = logging.LogRecord(
             name="test",
@@ -52,7 +52,7 @@ class TestJapaneseFormatter:
 
     def test_format_with_exception(self):
         """例外情報付きフォーマットのテスト"""
-        
+
         formatter = JapaneseFormatter()
 
         try:

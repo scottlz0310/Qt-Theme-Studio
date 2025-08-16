@@ -5,6 +5,7 @@
 WCAG準拠のコントラスト調整機能を通じて、視覚的にアクセシブルなテーマを作成できます。
 """
 
+import logging
 from typing import Any, Dict, Tuple
 
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
@@ -32,7 +33,7 @@ class ColorUtils:
     @staticmethod
     def rgb_to_hex(r: int, g: int, b: int) -> str:
         """RGBを16進色に変換"""
-        return "#{r:02x}{g:02x}{b:02x}"
+        return f"#{r:02x}{g:02x}{b:02x}"
 
     @staticmethod
     def get_luminance(hex_color: str) -> float:
@@ -72,7 +73,7 @@ class ColorUtils:
     def get_optimal_text_color(bg_color: str) -> str:
         """指定された背景色に対して最適なテキスト色（黒または白）を取得"""
         luminance = ColorUtils.get_luminance(bg_color)
-        return "#000000" if luminance > 0.5 else "#fffff"
+        return "#000000" if luminance > 0.5 else "#ffffff"
 
     @staticmethod
     def adjust_brightness(hex_color: str, factor: float) -> str:
@@ -629,7 +630,7 @@ class AutoThemeGenerator(QtWidgets.QWidget):
             colors = theme_data.get("colors", {})
             if colors:
                 color_data = {
-                    "background": colors.get("background", "#fffff"),
+                    "background": colors.get("background", "#ffffff"),
                     "primary": colors.get("primary", "#007acc"),
                 }
                 self.set_color_data(color_data)

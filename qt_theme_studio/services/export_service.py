@@ -7,6 +7,8 @@ Qt-Theme-Studio エクスポートサービス
 
 import json
 from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
+import logging
 
 from ..adapters.qt_adapter import QtAdapter
 from ..adapters.theme_adapter import ThemeAdapter
@@ -197,16 +199,16 @@ class ExportService:
             return exported_data
 
         except Exception as e:
-            self.logger.error("テーマエクスポート中にエラーが発生しました: {str(e)}")
+            self.logger.error(f"テーマエクスポート中にエラーが発生しました: {str(e)}")
             if isinstance(e, ExportError):
                 raise
-            raise ExportError("エクスポート中にエラーが発生しました: {str(e)}")
+            raise ExportError(f"エクスポート中にエラーが発生しました: {str(e)}")
 
     def _export_to_json(self, theme_data: Dict[str, Any]) -> str:
         """JSON形式でエクスポートする"""
         try:
             return json.dumps(theme_data, ensure_ascii=False, indent=2)
-        except Exception:
+        except Exception as e:
             raise ExportError("JSON形式への変換に失敗しました: {str(e)}")
 
     def _export_to_qss(self, theme_data: Dict[str, Any]) -> str:
@@ -231,7 +233,7 @@ class ExportService:
 
             return "\n".join(qss_lines)
 
-        except Exception:
+        except Exception as e:
             raise ExportError("QSS形式への変換に失敗しました: {str(e)}")
 
     def _add_qss_widget_styles(
@@ -266,7 +268,7 @@ class ExportService:
         if colors.get("primary"):
             qss_lines.append("QPushButton {")
             qss_lines.append("    background-color: {colors['primary']};")
-            qss_lines.append("    color: {colors.get('text', '#fffff')};")
+            qss_lines.append("    color: {colors.get('text', '#ffffff')};")
             qss_lines.append("    border: 1px solid #cccccc;")
 
             sizes.get("padding", 8)
@@ -362,7 +364,7 @@ class ExportService:
 
             return "\n".join(css_lines)
 
-        except Exception:
+        except Exception as e:
             raise ExportError("CSS形式への変換に失敗しました: {str(e)}")
 
     def _add_css_base_styles(
@@ -398,7 +400,9 @@ class ExportService:
             css_lines.append("    background-color: var(--color-primary);")
             css_lines.append("    color: var(--color-text, #ffffff);")
             css_lines.append(
-                "    border: var(--size-border-width, 1px) solid var(--color-border, #cccccc);"
+                "    border: var(--size-border-width, 1px) solid var(-\
+    -color-border, \
+    #cccccc);"
             )
             css_lines.append("    border-radius: var(--size-border-radius, 4px);")
             css_lines.append("    padding: var(--size-padding, 8px);")
@@ -419,7 +423,9 @@ class ExportService:
             css_lines.append("    background-color: var(--color-surface);")
             css_lines.append("    color: var(--color-text);")
             css_lines.append(
-                "    border: var(--size-border-width, 1px) solid var(--color-border, #cccccc);"
+                "    border: var(--size-border-width, 1px) solid var(-\
+    -color-border, \
+    #cccccc);"
             )
             css_lines.append("    border-radius: var(--size-border-radius, 4px);")
             css_lines.append("    padding: var(--size-padding, 8px);")
@@ -436,7 +442,7 @@ class ExportService:
             )
         except ImportError:
             raise ExportError("YAML形式のエクスポートにはpyyamlライブラリが必要です")
-        except Exception:
+        except Exception as e:
             raise ExportError("YAML形式への変換に失敗しました: {str(e)}")
 
     def test_framework_compatibility(
@@ -500,7 +506,7 @@ class ExportService:
             )
             return report
 
-        except Exception:
+        except Exception as e:
             self.logger.error("互換性テスト中にエラーが発生しました: {str(e)}")
             report.add_error("互換性テスト中にエラーが発生しました: {str(e)}")
             return report
@@ -539,13 +545,13 @@ class ExportService:
                     # 実際のテーマ適用テスト（簡易版）
                     # 本格的なテストは実際のウィジェットを作成して行う必要がある
                     result["tested_features"].append("qt_theme_manager_integration")
-                except Exception:
+                except Exception as e:
                     result["compatible"] = False
                     result["issues"].append("qt-theme-manager統合エラー: {str(e)}")
 
             return result
 
-        except Exception:
+        except Exception as e:
             result["compatible"] = False
             result["issues"].append("テスト実行エラー: {str(e)}")
             return result

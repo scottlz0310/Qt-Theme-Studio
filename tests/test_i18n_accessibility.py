@@ -245,17 +245,17 @@ class TestAccessibilityManager(unittest.TestCase):
     def test_contrast_ratio_calculation(self):
         """コントラスト比計算テスト"""
         # 黒と白のコントラスト比（最大値）
-        contrast = self.accessibility_manager._calculate_contrast_ratio("#000000", "#fffff")
+        contrast = self.accessibility_manager._calculate_contrast_ratio("#000000", "#ffff")
         self.assertAlmostEqual(contrast, 21.0, places=1)
 
         # 同じ色のコントラスト比（最小値）
-        contrast = self.accessibility_manager._calculate_contrast_ratio("#fffff", "#fffff")
+        contrast = self.accessibility_manager._calculate_contrast_ratio("#ffff", "#ffff")
         self.assertAlmostEqual(contrast, 1.0, places=1)
 
     def test_color_contrast_check(self):
         """色コントラストチェックテスト"""
         # AA準拠のコントラスト比
-        result = self.accessibility_manager.check_color_contrast("#000000", "#fffff")
+        result = self.accessibility_manager.check_color_contrast("#000000", "#ffff")
 
         self.assertIn('contrast_ratio', result)
         self.assertIn('aa_compliant', result)
@@ -272,7 +272,7 @@ class TestAccessibilityManager(unittest.TestCase):
         theme_data = {
             'colors': {
                 'foreground': '#000000',
-                'background': '#fffff',
+                'background': '#ffff',
                 'text': '#333333',
                 'button_background': '#f0f0f0'
             },
@@ -358,7 +358,7 @@ class TestIntegration(unittest.TestCase):
                 'description': 'これは日本語のテーマです',
                 'colors': {
                     'foreground': '#000000',
-                    'background': '#fffff'
+                    'background': '#ffff'
                 },
                 'fonts': {
                     'default': {'size': 12, 'family': 'メイリオ'}
@@ -386,7 +386,7 @@ class TestIntegration(unittest.TestCase):
             'name': '日本語アクセシブルテーマ',
             'colors': {
                 'foreground': '#000000',
-                'background': '#fffff',
+                'background': '#ffff',
                 'text': '#333333',
                 'button_background': '#f0f0f0'
             },

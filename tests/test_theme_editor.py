@@ -28,7 +28,7 @@ class TestColorPicker:
 
         # QColorのモック
         mock_color = Mock()
-        mock_color.name.return_value = "#fffff"
+        mock_color.name.return_value = "#ffff"
         mock_color.red.return_value = 255
         mock_color.green.return_value = 255
         mock_color.blue.return_value = 255
@@ -72,7 +72,7 @@ class TestColorPicker:
 
         # 色変更をシミュレート
         color_picker._notify_color_changed()
-        callback_mock.assert_called_once_with("#fffff", "background")
+        callback_mock.assert_called_once_with("#ffff", "background")
 
 
 # FontSelectorとPropertyEditorクラスは現在実装されていないため、テストをスキップ
@@ -142,7 +142,7 @@ class TestThemeEditor:
             'version': '1.0.0',
             'colors': {
                 'primary': '#0078d4',
-                'background': '#fffff'
+                'background': '#ffff'
             },
             'fonts': {
                 'default': {

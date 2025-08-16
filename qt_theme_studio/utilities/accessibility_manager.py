@@ -87,7 +87,7 @@ class AccessibilityManager:
 
             self.logger.info("アクセシビリティ機能を設定しました", LogCategory.SYSTEM)
 
-        except Exception:
+        except Exception as e:
             self.logger.error(
                 "アクセシビリティ機能の設定に失敗しました: {str(e)}",
                 LogCategory.SYSTEM,
@@ -443,7 +443,7 @@ class AccessibilityManager:
                 "contrast_ratio": 0.0,
                 "aa_compliant": False,
                 "aaa_compliant": False,
-                "error": str(e),
+                "error": str(),
             }
 
     def _calculate_contrast_ratio(self, color1: str, color2: str) -> float:
@@ -562,7 +562,7 @@ class AccessibilityManager:
                 score=score,
             )
 
-        except Exception:
+        except Exception as e:
             self.logger.error(
                 "アクセシビリティレポートの生成に失敗しました: {str(e)}",
                 LogCategory.SYSTEM,

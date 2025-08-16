@@ -7,6 +7,7 @@ Qt-Theme-Studio バリデーションサービス
 
 import re
 from typing import Any, Dict, List
+import logging
 
 from ..exceptions import ThemeStudioException
 from ..utilities.color_analyzer import ColorAnalyzer
@@ -214,8 +215,8 @@ class ValidationService:
             return errors
 
         except Exception:
-            self.logger.error("テーマ構造検証中にエラーが発生しました: {str(e)}")
-            errors.append("構造検証中にエラーが発生しました: {str(e)}")
+            self.logger.error("テーマ構造検証中にエラーが発生しました: {str()}")
+            errors.append("構造検証中にエラーが発生しました: {str()}")
             return errors
 
     def _validate_colors_structure(self, colors: Dict[str, Any]) -> List[str]:
@@ -431,7 +432,7 @@ class ValidationService:
             "paleturquoise",
             "palevioletred",
             "papayawhip",
-            "peachpuf",
+            "peachpu",
             "peru",
             "pink",
             "plum",
@@ -509,9 +510,9 @@ class ValidationService:
             return report
 
         except Exception:
-            self.logger.error("WCAG検証中にエラーが発生しました: {str(e)}")
+            self.logger.error("WCAG検証中にエラーが発生しました: {str()}")
             report.add_violation(
-                "validation_error", "検証中にエラーが発生しました: {str(e)}", "error"
+                "validation_error", "検証中にエラーが発生しました: {str()}", "error"
             )
             return report
 
@@ -554,7 +555,7 @@ class ValidationService:
 
                 except Exception:
                     self.logger.warning(
-                        "コントラスト比計算エラー ({fg_key}/{bg_key}): {str(e)}"
+                        "コントラスト比計算エラー ({fg_key}/{bg_key}): {str()}"
                     )
 
     def _validate_color_distinguishability(
@@ -605,7 +606,7 @@ class ValidationService:
 
             except Exception:
                 self.logger.warning(
-                    "色区別検証エラー ({color1_name}/{color2_name}): {str(e)}"
+                    "色区別検証エラー ({color1_name}/{color2_name}): {str()}"
                 )
 
     def _validate_font_accessibility(

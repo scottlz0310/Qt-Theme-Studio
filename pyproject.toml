@@ -46,12 +46,16 @@ dev = [
     "pytest>=7.0.0",
     "pytest-qt>=4.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-benchmark>=4.0.0",
     # コード品質
     "black>=22.0.0",
     "isort>=5.10.0",
     "flake8>=5.0.0",
     "autoflake>=1.4.0",
     "mypy>=1.0.0",
+    # セキュリティ
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
     # Pre-commit
     "pre-commit>=2.20.0",
 ]
@@ -152,6 +156,21 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
+]
+
+# flake8設定
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    ".mypy_cache",
+    ".pytest_cache"
 ]
 
 # mypy設定

@@ -7,6 +7,7 @@ ApplicationSettings、SettingsManager、UserPreferences、WorkspaceManagerの
 
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 from qt_theme_studio.config import (

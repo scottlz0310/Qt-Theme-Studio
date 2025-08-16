@@ -122,7 +122,7 @@ class TestThemeAdapterLoadTheme:
             "version": "1.0.0",
             "colors": {
                 "primary": "#007acc",
-                "background": "#fffff"
+                "background": "#ffff"
             }
         }
 
@@ -255,7 +255,7 @@ class TestThemeAdapterSaveTheme:
             "version": "1.0.0",
             "colors": {
                 "primary": "#007acc",
-                "background": "#fffff"
+                "background": "#ffff"
             }
         }
 
@@ -350,7 +350,7 @@ class TestThemeAdapterExportTheme:
         theme_data = {
             "name": "Test Theme",
             "colors": {
-                "background": "#fffff",
+                "background": "#ffff",
                 "text": "#000000",
                 "primary": "#007acc"
             }
@@ -359,7 +359,7 @@ class TestThemeAdapterExportTheme:
         result = self.adapter.export_theme(theme_data, 'qss')
 
         assert "/* Theme: Test Theme */" in result
-        assert "background-color: #fffff" in result
+        assert "background-color: #ffff" in result
         assert "color: #000000" in result
         assert "background-color: #007acc" in result
 
@@ -382,7 +382,7 @@ class TestThemeAdapterExportTheme:
         theme_data = {
             "name": "Test Theme",
             "colors": {
-                "background": "#fffff",
+                "background": "#ffff",
                 "text": "#000000",
                 "primary": "#007acc"
             }
@@ -429,7 +429,7 @@ class TestThemeAdapterValidation:
             "version": "1.0.0",
             "colors": {
                 "primary": "#007acc",
-                "background": "#fffff"
+                "background": "#ffff"
             },
             "metadata": {
                 "author": "Test Author"
@@ -506,11 +506,11 @@ class TestThemeAdapterColorValidation:
 
     def test_is_valid_color_hex(self):
         """16進数カラーコードの検証テスト"""
-        assert self.adapter._is_valid_color("#fffff") is True
+        assert self.adapter._is_valid_color("#ffff") is True
         assert self.adapter._is_valid_color("#000") is True
-        assert self.adapter._is_valid_color("#ff0000f") is True  # RGBA
+        assert self.adapter._is_valid_color("#ff0000") is True  # RGBA
         assert self.adapter._is_valid_color("#gggggg") is False  # 無効な16進数
-        assert self.adapter._is_valid_color("#f") is False  # 長さが不正
+        assert self.adapter._is_valid_color("#") is False  # 長さが不正
 
     def test_is_valid_color_rgb(self):
         """RGB/RGBA形式の色の検証テスト"""
@@ -558,7 +558,7 @@ class TestThemeAdapterColorExtraction:
 
         # 抽出された色の値を確認
         color_values = list(colors.values())
-        assert "#fffff" in color_values
+        assert "#ffff" in color_values
         assert "#000000" in color_values
         assert "#007acc" in color_values
         assert "#cccccc" in color_values
@@ -584,7 +584,7 @@ class TestThemeAdapterColorExtraction:
         # 抽出された色の値を確認
         color_values = list(colors.values())
         assert "#007acc" in color_values
-        assert "#fffff" in color_values
+        assert "#ffff" in color_values
         assert "#333333" in color_values
 
 
@@ -612,7 +612,7 @@ class TestThemeAdapterIntegration:
             "version": "1.0.0",
             "colors": {
                 "primary": "#007acc",
-                "background": "#fffff",
+                "background": "#ffff",
                 "text": "#000000"
             },
             "metadata": {

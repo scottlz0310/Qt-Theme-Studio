@@ -9,6 +9,7 @@ import json
 import re
 from datetime import datetime
 from typing import Any, Dict, List
+from pathlib import Path
 
 from ..exceptions import ThemeStudioException
 from ..logger import Logger
@@ -74,7 +75,7 @@ class ThemeImportService:
 
         except Exception as e:
             error_msg = "テーマインポートエラー: {str(e)}"
-            self.logger.log_error(error_msg, e)
+            self.logger.log_error(error_msg, )
             raise ImportError(error_msg) from e
 
     def import_from_json(self, file_path: Path) -> Dict[str, Any]:
@@ -96,7 +97,7 @@ class ThemeImportService:
 
         except json.JSONDecodeError as e:
             raise ImportError("JSONファイルの解析エラー: {str(e)}")
-        except Exception:
+        except Exception as e:
             raise ImportError("JSONファイル読み込みエラー: {str(e)}")
 
     def import_from_qss(self, file_path: Path) -> Dict[str, Any]:
@@ -116,7 +117,7 @@ class ThemeImportService:
             # QSSからテーマデータを抽出
             return self.parse_qss_content(qss_content, file_path.stem)
 
-        except Exception:
+        except Exception as e:
             raise ImportError("QSSファイル読み込みエラー: {str(e)}")
 
     def import_from_css(self, file_path: Path) -> Dict[str, Any]:
@@ -136,7 +137,7 @@ class ThemeImportService:
             # CSSからテーマデータを抽出
             return self.parse_css_content(css_content, file_path.stem)
 
-        except Exception:
+        except Exception as e:
             raise ImportError("CSSファイル読み込みエラー: {str(e)}")
 
     def normalize_json_theme(self, data: Any) -> Dict[str, Any]:

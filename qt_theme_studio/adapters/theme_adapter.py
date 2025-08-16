@@ -6,6 +6,8 @@ qt-theme-manager ライブラリ統合アダプター
 """
 
 import json
+import logging
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 
@@ -73,7 +75,7 @@ class ThemeAdapter:
             )
             self.logger.error("{error_msg}\n詳細: {str(e)}")
             raise ThemeManagerError(error_msg)
-        except Exception:
+        except Exception as e:
             error_msg = "qt-theme-managerライブラリの初期化に失敗しました: " "{str(e)}"
             self.logger.error(error_msg)
             raise ThemeManagerError(error_msg)
@@ -120,7 +122,7 @@ class ThemeAdapter:
         except Exception as e:
             if isinstance(e, ThemeLoadError):
                 raise
-            error_msg = "テーマファイルの読み込みに失敗しました: {str(e)}"
+            error_msg = f"テーマファイルの読み込みに失敗しました: {str(e)}"
             self.logger.error(error_msg)
             raise ThemeLoadError(error_msg)
 
@@ -192,7 +194,7 @@ class ThemeAdapter:
                     "サポートされていないエクスポート形式: {format_type}"
                 )
 
-        except Exception:
+        except Exception as e:
             error_msg = "テーマのエクスポートに失敗しました: {str(e)}"
             self.logger.error(error_msg)
             raise ThemeExportError(error_msg)
@@ -220,7 +222,7 @@ class ThemeAdapter:
             self.logger.info("テーマファイルをインポートしました: {file_path}")
             return theme_data
 
-        except Exception:
+        except Exception as e:
             error_msg = "テーマのインポートに失敗しました: {str(e)}"
             self.logger.error(error_msg)
             raise ThemeLoadError(error_msg)
@@ -251,7 +253,7 @@ class ThemeAdapter:
             self._validate_theme_data(theme_data)
         except ThemeValidationError as e:
             result["is_valid"] = False
-            result["errors"].append(str(e))
+            result["errors"].append(str())
 
         # 追加の検証ロジック
         self._validate_theme_structure(theme_data, result)
@@ -269,11 +271,11 @@ class ThemeAdapter:
             return theme_data
 
         except json.JSONDecodeError as e:
-            error_msg = "JSONファイルの解析に失敗しました: {str(e)}"
+            error_msg = "JSONファイルの解析に失敗しました: {e}"
             self.logger.error(error_msg)
             raise ThemeLoadError(error_msg)
-        except Exception:
-            error_msg = "JSONファイルの読み込みに失敗しました: {str(e)}"
+        except Exception as e:
+            error_msg = "JSONファイルの読み込みに失敗しました: {e}"
             self.logger.error(error_msg)
             raise ThemeLoadError(error_msg)
 
@@ -296,8 +298,8 @@ class ThemeAdapter:
             self.logger.info("QSSテーマファイルを読み込みました: {theme_path}")
             return theme_data
 
-        except Exception:
-            error_msg = "QSSファイルの読み込みに失敗しました: {str(e)}"
+        except Exception as e:
+            error_msg = "QSSファイルの読み込みに失敗しました: {e}"
             self.logger.error(error_msg)
             raise ThemeLoadError(error_msg)
 
@@ -320,8 +322,8 @@ class ThemeAdapter:
             self.logger.info("CSSテーマファイルを読み込みました: {theme_path}")
             return theme_data
 
-        except Exception:
-            error_msg = "CSSファイルの読み込みに失敗しました: {str(e)}"
+        except Exception as e:
+            error_msg = "CSSファイルの読み込みに失敗しました: {e}"
             self.logger.error(error_msg)
             raise ThemeLoadError(error_msg)
 
@@ -329,7 +331,7 @@ class ThemeAdapter:
         """テーマデータをJSON形式でエクスポートする"""
         try:
             return json.dumps(theme_data, ensure_ascii=False, indent=2)
-        except Exception:
+        except Exception as e:
             error_msg = "JSON形式でのエクスポートに失敗しました: {str(e)}"
             self.logger.error(error_msg)
             raise ThemeExportError(error_msg)
@@ -345,7 +347,7 @@ class ThemeAdapter:
             qss_content = self._generate_qss_from_theme(theme_data)
             return qss_content
 
-        except Exception:
+        except Exception as e:
             error_msg = "QSS形式でのエクスポートに失敗しました: {str(e)}"
             self.logger.error(error_msg)
             raise ThemeExportError(error_msg)
@@ -361,7 +363,7 @@ class ThemeAdapter:
             css_content = self._generate_css_from_theme(theme_data)
             return css_content
 
-        except Exception:
+        except Exception as e:
             error_msg = "CSS形式でのエクスポートに失敗しました: {str(e)}"
             self.logger.error(error_msg)
             raise ThemeExportError(error_msg)

@@ -65,7 +65,7 @@ def log_function_call(
                 # エラーログ
                 time.time() - start_time
                 error_message = (
-                    "関数呼び出しエラー: {func_name} ({duration:.3f}秒) - {str(e)}"
+                    "関数呼び出しエラー: {func_name} ({duration:.3f}秒) - {str()}"
                 )
                 logger.error(error_message, category)
                 raise
@@ -104,9 +104,9 @@ def log_performance(
 
                 return result
 
-            except Exception as e:
+            except Exception:
                 # エラーが発生した場合もタイマーを終了
-                logger.end_performance_timer(op_name, {"error": str(e)})
+                logger.end_performance_timer(op_name, {"error": str()})
                 raise
 
         return wrapper
@@ -153,10 +153,10 @@ def log_user_action(action_name: Optional[str] = None):
 
                 return result
 
-            except Exception as e:
+            except Exception:
                 # エラー時のユーザー操作ログ
                 details["status"] = "失敗"
-                details["error"] = str(e)
+                details["error"] = str()
                 logger.log_user_action(action, details)
                 raise
 
@@ -196,10 +196,10 @@ def log_theme_operation(operation_name: Optional[str] = None):
 
                 return result
 
-            except Exception as e:
+            except Exception:
                 # エラー時のテーマ操作ログ
                 logger.log_theme_operation(
-                    operation, theme_name, status="失敗", error=str(e)
+                    operation, theme_name, status="失敗", error=str()
                 )
                 raise
 
@@ -242,11 +242,11 @@ def log_file_operation(operation_name: Optional[str] = None):
 
                 return result
 
-            except Exception as e:
+            except Exception:
                 # エラー時のファイル操作ログ
                 if file_path:
                     logger.log_file_operation(
-                        operation, file_path, success=False, error=str(e)
+                        operation, file_path, success=False, error=str()
                     )
                 raise
 

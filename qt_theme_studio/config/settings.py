@@ -8,6 +8,9 @@
 
 import json
 from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
+import logging
+import os
 
 from ..adapters.qt_adapter import QtAdapter
 from .defaults import get_default_settings
@@ -53,7 +56,7 @@ class ApplicationSettings:
         self._user_preferences: Optional[UserPreferences] = None
         self._workspace_manager: Optional[WorkspaceManager] = None
 
-        self.logger.info("設定管理を初期化しました: {self.config_dir}")
+        self.logger.info(f"設定管理を初期化しました: {self.config_dir}")
 
     def _get_default_config_dir(self) -> Path:
         """デフォルトの設定ディレクトリパスを取得する
@@ -92,7 +95,7 @@ class ApplicationSettings:
                 self._settings = self._merge_settings(
                     get_default_settings(), loaded_settings
                 )
-                self.logger.info("設定ファイルを読み込みました: {self.settings_file}")
+                self.logger.info(f"設定ファイルを読み込みました: {self.settings_file}")
             else:
                 # デフォルト設定を使用
                 self._settings = get_default_settings()
@@ -104,7 +107,7 @@ class ApplicationSettings:
                 self.save_settings(self._settings)
 
         except (json.JSONDecodeError, IOError) as e:
-            self.logger.error("設定ファイルの読み込みに失敗しました: {str(e)}")
+            self.logger.error("設定ファイルの読み込みに失敗しました: {e}")
             self.logger.info("デフォルト設定を使用します")
             self._settings = get_default_settings()
 
@@ -126,8 +129,8 @@ class ApplicationSettings:
 
             self.logger.info("設定ファイルを保存しました: {self.settings_file}")
 
-        except (IOError, TypeError):
-            self.logger.error("設定ファイルの保存に失敗しました: {str(e)}")
+        except (IOError, TypeError) as e:
+            self.logger.error("設定ファイルの保存に失敗しました: {e}")
             raise
 
     def get_recent_themes(self) -> List[str]:

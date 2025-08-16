@@ -306,14 +306,197 @@ class WidgetShowcase:
 
         # 基本的なスタイルシートを生成
         stylesheet = self._generate_stylesheet_from_theme(theme_data)
+        
+        # デバッグ情報を出力
+        print("生成されたスタイルシート:")
+        print(stylesheet)
+        print(f"ウィジェット: {self.widget}")
+        print(f"ウィジェットのクラス: {type(self.widget)}")
 
         # ウィジェット全体にスタイルシートを適用
         self.widget.setStyleSheet(stylesheet)
+        
+        # スタイルシートが効かない場合の代替手段: パレットを直接操作
+        self._apply_theme_via_palette(theme_data)
 
+        # デバッグ: 実際のウィジェットの色を確認
+        self._debug_widget_colors()
+        
         self.logger.debug("ウィジェットにテーマを適用しました", LogCategory.UI)
+    
+    def _apply_theme_via_palette(self, theme_data: Dict[str, Any]) -> None:
+        """パレットを直接操作してテーマを適用（スタイルシートの代替手段）"""
+        if not self.widget or not theme_data:
+            return
+        
+        try:
+            colors = theme_data.get("colors", {})
+            if not colors:
+                return
+            
+            # 新しいパレットを作成
+            palette = self.widget.palette()
+            
+            # 背景色を設定
+            if "background" in colors:
+                bg_color = self.QtGui.QColor(colors["background"])
+                palette.setColor(palette.ColorRole.Window, bg_color)
+                palette.setColor(palette.ColorRole.Base, bg_color)
+                palette.setColor(palette.ColorRole.Button, bg_color)
+                palette.setColor(palette.ColorRole.Light, bg_color)
+                palette.setColor(palette.ColorRole.Mid, bg_color)
+                palette.setColor(palette.ColorRole.Dark, bg_color)
+            
+            # テキスト色を設定
+            if "text" in colors:
+                text_color = self.QtGui.QColor(colors["text"])
+                palette.setColor(palette.ColorRole.WindowText, text_color)
+                palette.setColor(palette.ColorRole.Text, text_color)
+                palette.setColor(palette.ColorRole.ButtonText, text_color)
+            
+            # プライマリ色を設定
+            if "primary" in colors:
+                primary_color = self.QtGui.QColor(colors["primary"])
+                palette.setColor(palette.ColorRole.Highlight, primary_color)
+                palette.setColor(palette.ColorRole.Link, primary_color)
+            
+            # パレットをウィジェットに適用
+            self.widget.setPalette(palette)
+            
+            # 子ウィジェットにもパレットを適用
+            for child in self.widget.findChildren(self.QtWidgets.QWidget):
+                try:
+                    child.setPalette(palette)
+                except:
+                    pass
+            
+            # 強制的に再描画を実行
+            self.widget.update()
+            self.widget.repaint()
+            
+            # 子ウィジェットも再描画
+            for child in self.widget.findChildren(self.QtWidgets.QWidget):
+                try:
+                    child.update()
+                    child.repaint()
+                except:
+                    pass
+            
+            print("パレットを直接操作してテーマを適用し、強制再描画を実行しました")
+            
+        except Exception as e:
+            print(f"パレット操作でエラー: {e}")
+    
+    def _debug_widget_colors(self):
+        """ウィジェットの実際の色をデバッグ出力"""
+        if not self.widget:
+            return
+        
+        try:
+            # ウィジェットのパレットを取得
+            palette = self.widget.palette()
+            
+            print("\n=== ウィジェットの実際の色 ===")
+            print(f"ウィジェット: {self.widget}")
+            print(f"ウィジェットのクラス: {type(self.widget)}")
+            
+            # 背景色
+            bg_color = palette.color(palette.ColorRole.Window)
+            print(f"背景色 (Window): {bg_color.name()}")
+            
+            # テキスト色
+            text_color = palette.color(palette.ColorRole.WindowText)
+            print(f"テキスト色 (WindowText): {text_color.name()}")
+            
+            # ベース色
+            base_color = palette.color(palette.ColorRole.Base)
+            print(f"ベース色 (Base): {base_color.name()}")
+            
+            # ベーステキスト色
+            base_text_color = palette.color(palette.ColorRole.Text)
+            print(f"ベーステキスト色 (Text): {base_text_color.name()}")
+            
+            # ボタン色
+            button_color = palette.color(palette.ColorRole.Button)
+            print(f"ボタン色 (Button): {button_color.name()}")
+            
+            # ボタンテキスト色
+            button_text_color = palette.color(palette.ColorRole.ButtonText)
+            print(f"ボタンテキスト色 (ButtonText): {button_text_color.name()}")
+            
+            # スタイルシートの状態
+            stylesheet = self.widget.styleSheet()
+            print(f"現在のスタイルシート: {stylesheet[:200]}...")
+            
+            # スタイルシートの有効性をチェック
+            print("\n--- スタイルシートの有効性チェック ---")
+            print(f"スタイルシートが空: {not bool(stylesheet)}")
+            print(f"スタイルシートの長さ: {len(stylesheet)}")
+            
+            # ウィジェットのスタイル状態
+            print(f"ウィジェットのスタイル: {self.widget.style()}")
+            print(f"ウィジェットのスタイルオブジェクト: {self.widget.style().objectName()}")
+            
+            # スタイルシートが無効化されていないか
+            print(f"スタイルシートが無効: {self.widget.property('styleSheetDisabled')}")
+            
+            # ウィジェットのプロパティ
+            print(f"ウィジェットのプロパティ: {self.widget.dynamicPropertyNames()}")
+            
+            # Qtのスタイルエンジンの状態
+            print("\n--- Qtスタイルエンジンの状態 ---")
+            print(f"QApplicationのスタイル: {self.QtWidgets.QApplication.instance().style().objectName()}")
+            print(f"ウィジェットのスタイルシートプロパティ: "
+                  f"{self.widget.property('styleSheet')}")
+            print(f"ウィジェットのスタイルシートが空: {not bool(self.widget.styleSheet())}")
+            
+            # 強制的にスタイルシートを再適用
+            print("\n--- スタイルシートの強制再適用 ---")
+            self.widget.setStyleSheet("")  # 一旦クリア
+            self.widget.setStyleSheet(stylesheet)  # 再適用
+            print("スタイルシートを強制再適用しました")
+            
+            # 再適用後の状態を確認
+            print(f"再適用後のスタイルシート: {self.widget.styleSheet()[:100]}...")
+            
+            # 子ウィジェットの色も確認
+            print("\n--- 子ウィジェットの色 ---")
+            for child in self.widget.findChildren(self.QtWidgets.QWidget):
+                try:
+                    child_palette = child.palette()
+                    child_bg = child_palette.color(child_palette.ColorRole.Window)
+                    child_text = child_palette.color(child_palette.ColorRole.WindowText)
+                    
+                    # 子ウィジェットのスタイルシートもチェック
+                    child_stylesheet = child.styleSheet()
+                    has_custom_style = bool(child_stylesheet)
+                    
+                    # ウィジェットの詳細情報
+                    child_visible = child.isVisible()
+                    child_enabled = child.isEnabled()
+                    child_geometry = child.geometry()
+                    
+                    print(f"子ウィジェット {type(child).__name__}: "
+                          f"背景={child_bg.name()}, テキスト={child_text.name()}, "
+                          f"カスタムスタイル={has_custom_style}, "
+                          f"表示={child_visible}, 有効={child_enabled}, "
+                          f"位置=({child_geometry.x()},{child_geometry.y()}) "
+                          f"サイズ=({child_geometry.width()}x{child_geometry.height()})")
+                    
+                    # カスタムスタイルがある場合は詳細を表示
+                    if has_custom_style:
+                        print(f"  → カスタムスタイルシート: {child_stylesheet[:100]}...")
+                        
+                except Exception as e:
+                    print(f"子ウィジェット {type(child).__name__}: エラー - {e}")
+            
+            print("=" * 40)
+            
+        except Exception as e:
+            print(f"色のデバッグ中にエラー: {e}")
 
     def _generate_stylesheet_from_theme(self, theme_data: Dict[str, Any]) -> str:
-        """テーマデータからスタイルシートを生成します
+        """テーマデータからスタイルシートを生成します（qt-theme-manager使用）
 
         Args:
             theme_data: テーマデータ
@@ -321,271 +504,95 @@ class WidgetShowcase:
         Returns:
             str: 生成されたスタイルシート
         """
-        styles = []
-
-        # 色設定の適用
-        if "colors" in theme_data:
-            colors = theme_data["colors"]
-
-            # 基本的な背景色とテキスト色
-            if "background" in colors:
-                bg_color = colors["background"]
-                styles.append("QWidget {{ background-color: {bg_color}; }}")
-
-            if "text" in colors:
-                text_color = colors["text"]
-                # より具体的なセレクターでテキスト色を確実に適用
-                styles.append(
-                    """
-                * {{ color: {text_color} !important; }}
-                QWidget {{ color: {text_color}; }}
-                QLabel {{ color: {text_color}; }}
-                QGroupBox {{ color: {text_color}; }}
-                QGroupBox::title {{ color: {text_color}; }}
-                QCheckBox {{ color: {text_color}; }}
-                QRadioButton {{ color: {text_color}; }}
-                QTreeWidget {{ color: {text_color}; }}
-                QTreeWidget::item {{ color: {text_color}; }}
-                QListWidget {{ color: {text_color}; }}
-                QListWidget::item {{ color: {text_color}; }}
-                QComboBox {{ color: {text_color}; }}
-                QSpinBox {{ color: {text_color}; }}
-                QLineEdit {{ color: {text_color}; }}
-                QTextEdit {{ color: {text_color}; }}
-                QTabWidget {{ color: {text_color}; }}
-                QTabBar::tab {{ color: {text_color}; }}
-                """
-                )
-
-            # ボタンのスタイル
-            if "primary" in colors:
-                # 無効状態の色をテーマから取得（フォールバック付き）
-                bg_color = colors.get("background", "#f0f0f0")
-                text_color = colors.get("text", "#333333")
-
-                disabled_bg = colors.get(
-                    "disabled",
-                    colors.get("surface", self._lighten_color(bg_color, 0.1)),
-                )
-                disabled_text = colors.get(
-                    "text_disabled",
-                    colors.get("text_muted", self._darken_color(text_color, 0.5)),
-                )
-
-                styles.append(
-                    """
-                QPushButton {{
-                    background-color: {colors['primary']};
-                    color: {self._get_optimal_text_color(colors['primary'])};
-                    border: 1px solid {colors['primary']};
-                    padding: 5px 10px;
-                    border-radius: 3px;
-                }}
-                QPushButton:hover {{
-                    background-color: {self._darken_color(colors['primary'])};
-                }}
-                QPushButton:pressed {{
-                    background-color: {self._darken_color(colors['primary'], 0.2)};
-                }}
-                QPushButton:disabled {{
-                    background-color: {disabled_bg};
-                    color: {disabled_text};
-                }}
-                """
-                )
-
-            # 入力フィールドのスタイル
-            if "background" in colors and "text" in colors:
-                # ボーダー色をテーマから取得（フォールバック付き）
-                bg_color = colors.get("background", "#fffff")
-                border_color = colors.get(
-                    "border", colors.get("surface", self._darken_color(bg_color, 0.2))
-                )
-                focus_color = colors.get("primary", colors.get("accent", "#0078d4"))
-
-                styles.append(
-                    """
-                QLineEdit, QTextEdit, QSpinBox, QComboBox {{
-                    background-color: {colors['background']};
-                    color: {colors['text']};
-                    border: 1px solid {border_color};
-                    padding: 3px;
-                    border-radius: 2px;
-                }}
-                QLineEdit:focus, QTextEdit:focus, QSpinBox:focus, QComboBox:focus {{
-                    border-color: {focus_color};
-                }}
-                """
-                )
-
-            # QGroupBoxのスタイル
-            if "background" in colors and "text" in colors:
-                border_color = colors.get(
-                    "border",
-                    colors.get(
-                        "surface", self._darken_color(colors["background"], 0.2)
-                    ),
-                )
-                styles.append(
-                    """
-                QGroupBox {{
-                    color: {colors['text']};
-                    border: 1px solid {border_color};
-                    border-radius: 4px;
-                    margin-top: 10px;
-                    padding-top: 5px;
-                }}
-                QGroupBox::title {{
-                    color: {colors['text']};
-                    subcontrol-origin: margin;
-                    left: 10px;
-                    padding: 0 5px 0 5px;
-                }}
-                """
-                )
-
-            # リストウィジェットのスタイル（選択・非選択状態）
-            if "background" in colors and "text" in colors:
-                selection_bg = colors.get("primary", colors.get("accent", "#0078d4"))
-                self._get_optimal_text_color(selection_bg)
-                alternate_bg = colors.get(
-                    "alternate", self._lighten_color(colors["background"], 0.05)
-                )
-
-                styles.append(
-                    """
-                QListWidget, QTreeWidget {{
-                    background-color: {colors['background']};
-                    color: {colors['text']};
-                    border: 1px solid {border_color};
-                    alternate-background-color: {alternate_bg};
-                }}
-                QListWidget::item, QTreeWidget::item {{
-                    color: {colors['text']};
-                }}
-                QListWidget::item:selected, QTreeWidget::item:selected {{
-                    background-color: {selection_bg};
-                    color: {selection_text};
-                }}
-                QListWidget::item:hover, QTreeWidget::item:hover {{
-                    background-color: {self._lighten_color(selection_bg, 0.3)};
-                    color: {colors['text']};
-                }}
-                """
-                )
-
-            # チェックボックス・ラジオボタンのスタイル
-            if "primary" in colors and "text" in colors:
-                styles.append(
-                    """
-                QCheckBox, QRadioButton {{
-                    color: {colors['text']};
-                }}
-                QCheckBox::indicator:checked, QRadioButton::indicator:checked {{
-                    background-color: {colors['primary']};
-                    border: 1px solid {colors['primary']};
-                }}
-                QCheckBox::indicator:unchecked, QRadioButton::indicator:unchecked {{
-                    background-color: {colors['background']};
-                    border: 1px solid {border_color};
-                }}
-                """
-                )
-
-            # プログレスバーのスタイル
-            if "primary" in colors:
-                styles.append(
-                    """
-                QProgressBar {{
-                    background-color: {colors.get('background', '#fffff')};
-                    color: {colors.get('text', '#000000')};
-                    border: 1px solid {border_color};
-                    border-radius: 3px;
-                    text-align: center;
-                }}
-                QProgressBar::chunk {{
-                    background-color: {colors['primary']};
-                    border-radius: 2px;
-                }}
-                """
-                )
-
-            # スライダーのスタイル
-            if "primary" in colors:
-                styles.append(
-                    """
-                QSlider::groove:horizontal {{
-                    background-color: {border_color};
-                    height: 6px;
-                    border-radius: 3px;
-                }}
-                QSlider::handle:horizontal {{
-                    background-color: {colors['primary']};
-                    border: 1px solid {colors['primary']};
-                    width: 16px;
-                    margin: -5px 0;
-                    border-radius: 8px;
-                }}
-                QSlider::sub-page:horizontal {{
-                    background-color: {colors['primary']};
-                    border-radius: 3px;
-                }}
-                """
-                )
-
-            # タブウィジェットのスタイル
-            if "background" in colors and "text" in colors:
-                tab_selected_bg = colors.get("primary", colors.get("accent", "#0078d4"))
-                self._get_optimal_text_color(tab_selected_bg)
-
-                styles.append(
-                    """
-                QTabWidget::pane {{
-                    background-color: {colors['background']};
-                    border: 1px solid {border_color};
-                }}
-                QTabBar::tab {{
-                    background-color: {self._lighten_color(colors['background'], 0.1)};
-                    color: {colors['text']};
-                    border: 1px solid {border_color};
-                    padding: 5px 10px;
-                    margin-right: 2px;
-                }}
-                QTabBar::tab:selected {{
-                    background-color: {tab_selected_bg};
-                    color: {tab_selected_text};
-                }}
-                QTabBar::tab:hover {{
-                    background-color: {self._lighten_color(tab_selected_bg, 0.3)};
-                }}
-                """
-                )
-
-            # QLabel用のスタイル
-            if "text" in colors:
-                styles.append(
-                    """
-                QLabel {{
-                    color: {colors['text']};
-                }}
-                """
-                )
-
-        # フォント設定の適用
-        if "fonts" in theme_data and "default" in theme_data["fonts"]:
-            font = theme_data["fonts"]["default"]
-            font.get("family", "Arial")
-            font.get("size", 12)
-            font_style = "font-family: {family}; font-size: {size}px;"
-
-            if font.get("bold", False):
-                font_style += " font-weight: bold;"
-            if font.get("italic", False):
-                font_style += " font-style: italic;"
-
-            styles.append("QWidget {{ {font_style} }}")
-
-        return "\\n".join(styles)
+        try:
+            # qt-theme-managerのStylesheetGeneratorを使用
+            import qt_theme_manager
+            
+            # テーマ設定をqt-theme-manager形式に変換
+            theme_config = self._convert_to_qt_theme_manager_format(theme_data)
+            
+            # 基本モードでスタイルシート生成（プレビュー用）
+            generator = qt_theme_manager.StylesheetGenerator(theme_config, advanced_mode=False)
+            stylesheet = generator.generate_qss()
+            
+            self.logger.debug("qt-theme-managerでスタイルシートを生成しました", LogCategory.UI)
+            return stylesheet
+            
+        except ImportError:
+            self.logger.warning("qt-theme-managerが利用できません。フォールバック処理を使用します", LogCategory.UI)
+            return self._generate_stylesheet_fallback(theme_data)
+        except Exception as e:
+            self.logger.error(
+                f"qt-theme-managerでのスタイルシート生成に失敗: {e}", 
+                LogCategory.UI
+            )
+            return self._generate_stylesheet_fallback(theme_data)
+    
+    def _convert_to_qt_theme_manager_format(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Qt-Theme-Studio形式をqt-theme-manager形式に変換"""
+        try:
+            colors = theme_data.get("colors", {})
+            
+            # qt-theme-managerの標準形式に変換
+            theme_config = {
+                "colors": {
+                    "primary": colors.get("primary", "#007acc"),
+                    "secondary": colors.get("secondary", "#6c757d"),
+                    "background": colors.get("background", "#ffffff"),
+                    "surface": colors.get("surface", colors.get("background", "#ffffff")),
+                    "text": colors.get("text", "#333333"),
+                    "text_secondary": colors.get("text_secondary", colors.get("text", "#666666")),
+                    "border": colors.get("border", "#dee2e6"),
+                    "error": colors.get("error", "#dc3545"),
+                    "warning": colors.get("warning", "#ffc107"),
+                    "success": colors.get("success", "#28a745"),
+                },
+                "fonts": theme_data.get("fonts", {}),
+                "spacing": theme_data.get("spacing", {}),
+                "border_radius": theme_data.get("border_radius", {}),
+            }
+            
+            return theme_config
+            
+        except Exception as e:
+            self.logger.error(f"テーマ形式変換に失敗: {e}", LogCategory.UI)
+            # フォールバック: 基本的な色設定のみ
+            return {
+                "colors": {
+                    "primary": "#007acc",
+                    "background": "#ffffff",
+                    "text": "#333333",
+                }
+            }
+    
+    def _generate_stylesheet_fallback(self, theme_data: Dict[str, Any]) -> str:
+        """フォールバック用の簡略化されたスタイルシート生成"""
+        try:
+            colors = theme_data.get("colors", {})
+            bg_color = colors.get("background", "#ffffff")
+            text_color = colors.get("text", "#333333")
+            primary_color = colors.get("primary", "#007acc")
+            
+            # プレビュー用の基本的なスタイルシートのみ
+            stylesheet = f"""
+            * {{ 
+                background-color: {bg_color} !important; 
+                color: {text_color} !important; 
+            }}
+            QPushButton {{ 
+                background-color: {primary_color}; 
+                color: {text_color}; 
+                border: 1px solid {primary_color};
+                padding: 5px 10px;
+                border-radius: 3px;
+            }}
+            """
+            
+            return stylesheet
+            
+        except Exception as e:
+            self.logger.error(f"フォールバックスタイルシート生成に失敗: {e}", LogCategory.UI)
+            return ""
 
     def _get_optimal_text_color(self, background_color: str) -> str:
         """背景色に対して最適なテキスト色を取得します
@@ -612,7 +619,7 @@ class WidgetShowcase:
             if luminance > 0.5:
                 return "#000000"  # 明るい背景には黒いテキスト
             else:
-                return "#fffff"  # 暗い背景には白いテキスト
+                return "#ffff"  # 暗い背景には白いテキスト
         except (ValueError, IndexError):
             return "#000000"  # エラーの場合は黒を返す
 
@@ -804,7 +811,7 @@ class PreviewWindow:
 
         except Exception:
             self.logger.error(
-                "プレビュー更新中にエラーが発生しました: {str(e)}", LogCategory.UI
+                "プレビュー更新中にエラーが発生しました: {str()}", LogCategory.UI
             )
         finally:
             self.pending_theme_data = None
@@ -844,14 +851,14 @@ class PreviewWindow:
 
         except Exception:
             self.logger.error(
-                "プレビュー画像のエクスポートに失敗しました: {str(e)}", LogCategory.UI
+                "プレビュー画像のエクスポートに失敗しました: {str()}", LogCategory.UI
             )
 
             # エラーメッセージを表示
             self.QtWidgets.QMessageBox.critical(
                 self.widget,
                 "エクスポートエラー",
-                "プレビュー画像のエクスポートに失敗しました:\\n{str(e)}",
+                "プレビュー画像のエクスポートに失敗しました:\\n{str()}",
             )
 
     def get_widget_showcase(self) -> Optional[WidgetShowcase]:
@@ -933,10 +940,10 @@ class PreviewWindow:
                 LogCategory.UI,
             )
 
-        except Exception as e:
-            results["error"] = str(e)
+        except Exception:
+            results["error"] = str()
             self.logger.error(
-                "レスポンシブレイアウトテストでエラーが発生しました: {str(e)}",
+                "レスポンシブレイアウトテストでエラーが発生しました: {str()}",
                 LogCategory.UI,
             )
         finally:

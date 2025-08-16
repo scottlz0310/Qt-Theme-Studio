@@ -9,6 +9,9 @@ import argparse
 import json
 import sys
 from typing import Any, Dict, List, Optional
+from pathlib import Path
+import logging
+import os
 
 from .services.quality_service import QualityService
 from .services.test_api import HeadlessTestRunner
@@ -49,16 +52,16 @@ class ThemeStudioCLI:
 使用例:
   # テーマの品質チェック
   qt-theme-studio quality-check theme.json
-  
+
   # 自動テストスイート実行
   qt-theme-studio test theme.json
-  
+
   # CI/CD用レポート生成
   qt-theme-studio ci-report theme.json --output report.json
-  
+
   # テーマ検証のみ
   qt-theme-studio validate theme.json --wcag-level AAA
-  
+
   # ヘッドレスモードでのテーマエクスポート
   qt-theme-studio export theme.json --format qss --output theme.qss
             """,
@@ -185,7 +188,7 @@ class ThemeStudioCLI:
         try:
             return self.theme_service.load_theme_from_file(theme_file)
         except Exception:
-            raise CLIError("テーマファイル読み込みエラー: {str(e)}")
+            raise CLIError("テーマファイル読み込みエラー: {str()}")
 
     def cmd_quality_check(self, args: argparse.Namespace) -> int:
         """品質チェックコマンドを実行する
@@ -248,10 +251,10 @@ class ThemeStudioCLI:
             return 0 if report.overall_score >= args.threshold else 1
 
         except CLIError:
-            print("エラー: {str(e)}", file=sys.stderr)
+            print("エラー: {str()}", file=sys.stderr)
             return 1
         except Exception:
-            print("予期しないエラーが発生しました: {str(e)}", file=sys.stderr)
+            print("予期しないエラーが発生しました: {str()}", file=sys.stderr)
             return 1
 
     def cmd_test(self, args: argparse.Namespace) -> int:
@@ -303,10 +306,10 @@ class ThemeStudioCLI:
             return 0 if result["success"] else 1
 
         except CLIError:
-            print("エラー: {str(e)}", file=sys.stderr)
+            print("エラー: {str()}", file=sys.stderr)
             return 1
         except Exception:
-            print("予期しないエラーが発生しました: {str(e)}", file=sys.stderr)
+            print("予期しないエラーが発生しました: {str()}", file=sys.stderr)
             return 1
 
     def cmd_ci_report(self, args: argparse.Namespace) -> int:
@@ -359,10 +362,10 @@ class ThemeStudioCLI:
             return 0 if ci_summary["overall_status"] == "PASS" else 1
 
         except CLIError:
-            print("エラー: {str(e)}", file=sys.stderr)
+            print("エラー: {str()}", file=sys.stderr)
             return 1
         except Exception:
-            print("予期しないエラーが発生しました: {str(e)}", file=sys.stderr)
+            print("予期しないエラーが発生しました: {str()}", file=sys.stderr)
             return 1
 
     def cmd_validate(self, args: argparse.Namespace) -> int:
@@ -446,10 +449,10 @@ class ThemeStudioCLI:
             return 0 if is_valid else 1
 
         except CLIError:
-            print("エラー: {str(e)}", file=sys.stderr)
+            print("エラー: {str()}", file=sys.stderr)
             return 1
         except Exception:
-            print("予期しないエラーが発生しました: {str(e)}", file=sys.stderr)
+            print("予期しないエラーが発生しました: {str()}", file=sys.stderr)
             return 1
 
     def cmd_export(self, args: argparse.Namespace) -> int:
@@ -518,10 +521,10 @@ class ThemeStudioCLI:
                 return 1
 
         except CLIError:
-            print("エラー: {str(e)}", file=sys.stderr)
+            print("エラー: {str()}", file=sys.stderr)
             return 1
         except Exception:
-            print("予期しないエラーが発生しました: {str(e)}", file=sys.stderr)
+            print("予期しないエラーが発生しました: {str()}", file=sys.stderr)
             return 1
 
     def run(self, args: Optional[List[str]] = None) -> int:

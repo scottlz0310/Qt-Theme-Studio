@@ -6,6 +6,7 @@
 日本語UIテキストでユーザーインターフェースを構成します。
 """
 
+import os
 from typing import Any, Dict, Optional
 
 from ..adapters.qt_adapter import QtAdapter
@@ -92,11 +93,24 @@ class MainWindow:
         self.current_source_file: Optional[str] = None
         self.current_source_theme_key: Optional[str] = None
 
-        # メインウィンドウを作成
-        self.create_window()
+        # メインウィンドウの作成は後で行う（QApplication作成後）
+        # self.create_window()
 
         # デフォルトテーマを作成して保存ボタンを有効化
         self._create_default_theme()
+    
+    def initialize_window(self):
+        """メインウィンドウを初期化（QApplication作成後に呼び出し）"""
+        try:
+            self.create_window()
+            
+            # プレビューウィンドウを作成
+            self._create_preview_window()
+            
+            self.logger.info("メインウィンドウを初期化しました", LogCategory.UI)
+        except Exception as e:
+            self.logger.error(f"メインウィンドウの初期化に失敗しました: {e}", LogCategory.ERROR)
+            raise
 
     def _create_default_theme(self) -> Dict[str, Any]:
         """デフォルトテーマを作成"""
@@ -105,7 +119,7 @@ class MainWindow:
             "version": "1.0.0",
             "description": "Qt-Theme-Studioのデフォルトテーマ",
             "colors": {
-                "background": "#fffff",
+                "background": "#ffffff",
                 "text": "#333333",
                 "primary": "#007acc",
                 "secondary": "#6c757d",
@@ -176,7 +190,7 @@ class MainWindow:
             # ステータス更新
             theme_name = theme_data.get("name", "Generated Theme")
             self.update_theme_status(theme_name)
-            self.set_status_message("生成テーマ「{theme_name}」を適用しました", 3000)
+            self.set_status_message(f"生成テーマ「{theme_name}」を適用しました", 3000)
 
             self.logger.log_user_action("生成テーマ適用", {"theme_name": theme_name})
 
@@ -437,7 +451,7 @@ class MainWindow:
             # ステータス更新
             theme_name = theme_data.get("name", "Unnamed")
             self.update_theme_status(theme_name)
-            self.set_status_message("テーマ「{theme_name}」を読み込みました", 3000)
+            self.set_status_message(f"テーマ「{theme_name}」を読み込みました", 3000)
 
             # 最近使用したテーマに追加
             self.settings.add_recent_theme(file_path)
@@ -1436,7 +1450,7 @@ class MainWindow:
             theme_name: テーマ名
         """
         if hasattr(self, "status_theme_label") and self.status_theme_label:
-            self.status_theme_label.setText("テーマ: {theme_name}")
+            self.status_theme_label.setText(f"テーマ: {theme_name}")
 
     def set_actions_enabled(self, action_names: list, enabled: bool) -> None:
         """
