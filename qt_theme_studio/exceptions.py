@@ -5,26 +5,26 @@ Qt-Theme-Studio カスタム例外クラス
 すべてのカスタム例外クラスを定義します。
 """
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 class ThemeStudioException(Exception):
     """
     Qt-Theme-Studio基底例外クラス
-    
+
     すべてのQt-Theme-Studio固有の例外の基底クラスです。
     日本語エラーメッセージとエラーコードをサポートします。
     """
-    
+
     def __init__(
-        self, 
-        message: str, 
+        self,
+        message: str,
         error_code: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         """
         例外を初期化します
-        
+
         Args:
             message: 日本語エラーメッセージ
             error_code: エラーコード（オプション）
@@ -34,38 +34,38 @@ class ThemeStudioException(Exception):
         self.message = message
         self.error_code = error_code
         self.details = details or {}
-    
+
     def __str__(self) -> str:
         """文字列表現を返します"""
         if self.error_code:
-            return f"[{self.error_code}] {self.message}"
+            return "[{self.error_code}] {self.message}"
         return self.message
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """例外情報を辞書形式で返します"""
         return {
             "type": self.__class__.__name__,
             "message": self.message,
             "error_code": self.error_code,
-            "details": self.details
+            "details": self.details,
         }
 
 
 class QtFrameworkNotFoundError(ThemeStudioException):
     """
     Qtフレームワーク未検出エラー
-    
+
     PySide6、PyQt6、PyQt5のいずれも検出されない場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str = "利用可能なQtフレームワークが見つかりません",
-        attempted_frameworks: Optional[list] = None
+        attempted_frameworks: Optional[list] = None,
     ):
         """
         Qtフレームワーク未検出エラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             attempted_frameworks: 検出を試行したフレームワークのリスト
@@ -73,14 +73,12 @@ class QtFrameworkNotFoundError(ThemeStudioException):
         details = {}
         if attempted_frameworks:
             details["attempted_frameworks"] = attempted_frameworks
-        
+
         super().__init__(
-            message=message,
-            error_code="QT_FRAMEWORK_NOT_FOUND",
-            details=details
+            message=message, error_code="QT_FRAMEWORK_NOT_FOUND", details=details
         )
         self.attempted_frameworks = attempted_frameworks or []
-    
+
     def get_installation_guide(self) -> str:
         """インストール手順を返します"""
         return (
@@ -94,19 +92,19 @@ class QtFrameworkNotFoundError(ThemeStudioException):
 class ThemeLoadError(ThemeStudioException):
     """
     テーマ読み込みエラー
-    
+
     テーマファイルの読み込みに失敗した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         file_path: Optional[str] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         テーマ読み込みエラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             file_path: 読み込みに失敗したファイルパス
@@ -117,11 +115,9 @@ class ThemeLoadError(ThemeStudioException):
             details["file_path"] = file_path
         if original_error:
             details["original_error"] = str(original_error)
-        
+
         super().__init__(
-            message=message,
-            error_code="THEME_LOAD_ERROR",
-            details=details
+            message=message, error_code="THEME_LOAD_ERROR", details=details
         )
         self.file_path = file_path
         self.original_error = original_error
@@ -130,19 +126,19 @@ class ThemeLoadError(ThemeStudioException):
 class ThemeSaveError(ThemeStudioException):
     """
     テーマ保存エラー
-    
+
     テーマファイルの保存に失敗した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         file_path: Optional[str] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         テーマ保存エラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             file_path: 保存に失敗したファイルパス
@@ -153,11 +149,9 @@ class ThemeSaveError(ThemeStudioException):
             details["file_path"] = file_path
         if original_error:
             details["original_error"] = str(original_error)
-        
+
         super().__init__(
-            message=message,
-            error_code="THEME_SAVE_ERROR",
-            details=details
+            message=message, error_code="THEME_SAVE_ERROR", details=details
         )
         self.file_path = file_path
         self.original_error = original_error
@@ -166,19 +160,19 @@ class ThemeSaveError(ThemeStudioException):
 class ThemeValidationError(ThemeStudioException):
     """
     テーマ検証エラー
-    
+
     テーマの検証に失敗した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         validation_errors: Optional[list] = None,
-        theme_name: Optional[str] = None
+        theme_name: Optional[str] = None,
     ):
         """
         テーマ検証エラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             validation_errors: 検証エラーのリスト
@@ -189,11 +183,9 @@ class ThemeValidationError(ThemeStudioException):
             details["validation_errors"] = validation_errors
         if theme_name:
             details["theme_name"] = theme_name
-        
+
         super().__init__(
-            message=message,
-            error_code="THEME_VALIDATION_ERROR",
-            details=details
+            message=message, error_code="THEME_VALIDATION_ERROR", details=details
         )
         self.validation_errors = validation_errors or []
         self.theme_name = theme_name
@@ -202,20 +194,20 @@ class ThemeValidationError(ThemeStudioException):
 class ExportError(ThemeStudioException):
     """
     エクスポートエラー
-    
+
     テーマのエクスポートに失敗した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         export_format: Optional[str] = None,
         file_path: Optional[str] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         エクスポートエラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             export_format: エクスポート形式
@@ -229,12 +221,8 @@ class ExportError(ThemeStudioException):
             details["file_path"] = file_path
         if original_error:
             details["original_error"] = str(original_error)
-        
-        super().__init__(
-            message=message,
-            error_code="EXPORT_ERROR",
-            details=details
-        )
+
+        super().__init__(message=message, error_code="EXPORT_ERROR", details=details)
         self.export_format = export_format
         self.file_path = file_path
         self.original_error = original_error
@@ -243,20 +231,20 @@ class ExportError(ThemeStudioException):
 class ImportError(ThemeStudioException):
     """
     インポートエラー
-    
+
     テーマのインポートに失敗した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         import_format: Optional[str] = None,
         file_path: Optional[str] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         インポートエラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             import_format: インポート形式
@@ -270,12 +258,8 @@ class ImportError(ThemeStudioException):
             details["file_path"] = file_path
         if original_error:
             details["original_error"] = str(original_error)
-        
-        super().__init__(
-            message=message,
-            error_code="IMPORT_ERROR",
-            details=details
-        )
+
+        super().__init__(message=message, error_code="IMPORT_ERROR", details=details)
         self.import_format = import_format
         self.file_path = file_path
         self.original_error = original_error
@@ -284,20 +268,20 @@ class ImportError(ThemeStudioException):
 class ConfigurationError(ThemeStudioException):
     """
     設定エラー
-    
+
     アプリケーション設定の読み込みや保存に失敗した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         config_key: Optional[str] = None,
         config_file: Optional[str] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         設定エラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             config_key: 設定キー
@@ -311,11 +295,9 @@ class ConfigurationError(ThemeStudioException):
             details["config_file"] = config_file
         if original_error:
             details["original_error"] = str(original_error)
-        
+
         super().__init__(
-            message=message,
-            error_code="CONFIGURATION_ERROR",
-            details=details
+            message=message, error_code="CONFIGURATION_ERROR", details=details
         )
         self.config_key = config_key
         self.config_file = config_file
@@ -325,19 +307,19 @@ class ConfigurationError(ThemeStudioException):
 class PreviewError(ThemeStudioException):
     """
     プレビューエラー
-    
+
     テーマプレビューの生成や更新に失敗した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         widget_type: Optional[str] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         プレビューエラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             widget_type: ウィジェットタイプ
@@ -348,12 +330,8 @@ class PreviewError(ThemeStudioException):
             details["widget_type"] = widget_type
         if original_error:
             details["original_error"] = str(original_error)
-        
-        super().__init__(
-            message=message,
-            error_code="PREVIEW_ERROR",
-            details=details
-        )
+
+        super().__init__(message=message, error_code="PREVIEW_ERROR", details=details)
         self.widget_type = widget_type
         self.original_error = original_error
 
@@ -361,20 +339,20 @@ class PreviewError(ThemeStudioException):
 class AccessibilityError(ThemeStudioException):
     """
     アクセシビリティエラー
-    
+
     アクセシビリティ検証や色コントラスト計算に失敗した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         wcag_level: Optional[str] = None,
         colors: Optional[list] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         アクセシビリティエラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             wcag_level: WCAGレベル
@@ -388,11 +366,9 @@ class AccessibilityError(ThemeStudioException):
             details["colors"] = colors
         if original_error:
             details["original_error"] = str(original_error)
-        
+
         super().__init__(
-            message=message,
-            error_code="ACCESSIBILITY_ERROR",
-            details=details
+            message=message, error_code="ACCESSIBILITY_ERROR", details=details
         )
         self.wcag_level = wcag_level
         self.colors = colors or []
@@ -402,19 +378,19 @@ class AccessibilityError(ThemeStudioException):
 class ApplicationCrashError(ThemeStudioException):
     """
     アプリケーションクラッシュエラー
-    
+
     アプリケーションの予期しないクラッシュが発生した場合に発生します。
     """
-    
+
     def __init__(
-        self, 
+        self,
         message: str,
         crash_context: Optional[Dict[str, Any]] = None,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ):
         """
         アプリケーションクラッシュエラーを初期化します
-        
+
         Args:
             message: エラーメッセージ
             crash_context: クラッシュ時のコンテキスト情報
@@ -425,11 +401,9 @@ class ApplicationCrashError(ThemeStudioException):
             details.update(crash_context)
         if original_error:
             details["original_error"] = str(original_error)
-        
+
         super().__init__(
-            message=message,
-            error_code="APPLICATION_CRASH",
-            details=details
+            message=message, error_code="APPLICATION_CRASH", details=details
         )
         self.crash_context = crash_context or {}
         self.original_error = original_error

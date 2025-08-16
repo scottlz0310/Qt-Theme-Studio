@@ -6,36 +6,33 @@ Qt-Theme-Studio テーマ管理サービス
 """
 
 import json
-import logging
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from ..adapters.theme_adapter import ThemeAdapter, ThemeManagerError
+from ..adapters.theme_adapter import ThemeAdapter
 from ..exceptions import ThemeStudioException
 from ..utilities.japanese_file_handler import JapaneseFileHandler
 
 
 class ThemeValidationError(ThemeStudioException):
     """テーマ検証エラー"""
-    pass
 
 
 class ThemeConversionError(ThemeStudioException):
     """テーマ形式変換エラー"""
-    pass
 
 
 class ThemeTemplateError(ThemeStudioException):
     """テーマテンプレートエラー"""
-    pass
 
 
 class ValidationResult:
     """テーマ検証結果"""
-    
-    def __init__(self, is_valid: bool, errors: List[str] = None, warnings: List[str] = None):
+
+    def __init__(
+        self, is_valid: bool, errors: List[str] = None, warnings: List[str] = None
+    ):
         """ValidationResultを初期化する
-        
+
         Args:
             is_valid (bool): 検証が成功した場合True
             errors (List[str], optional): エラーメッセージのリスト
@@ -44,49 +41,55 @@ class ValidationResult:
         self.is_valid = is_valid
         self.errors = errors or []
         self.warnings = warnings or []
-    
+
     def add_error(self, message: str) -> None:
         """エラーメッセージを追加する
-        
+
         Args:
             message (str): エラーメッセージ
         """
         self.errors.append(message)
         self.is_valid = False
-    
+
     def add_warning(self, message: str) -> None:
         """警告メッセージを追加する
-        
+
         Args:
             message (str): 警告メッセージ
         """
         self.warnings.append(message)
-    
+
     def __str__(self) -> str:
         """文字列表現を返す"""
-        status = "有効" if self.is_valid else "無効"
-        result = f"テーマ検証結果: {status}\n"
-        
+        "有効" if self.is_valid else "無効"
+        result = "テーマ検証結果: {status}\n"
+
         if self.errors:
-            result += f"エラー ({len(self.errors)}):\n"
+            result += "エラー ({len(self.errors)}):\n"
             for error in self.errors:
-                result += f"  - {error}\n"
-        
+                result += "  - {error}\n"
+
         if self.warnings:
-            result += f"警告 ({len(self.warnings)}):\n"
+            result += "警告 ({len(self.warnings)}):\n"
             for warning in self.warnings:
-                result += f"  - {warning}\n"
-        
+                result += "  - {warning}\n"
+
         return result
 
 
 class ThemeTemplate:
     """テーマテンプレート"""
-    
-    def __init__(self, name: str, description: str, data: Dict[str, Any], 
-                 category: str = "general", tags: List[str] = None):
+
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        data: Dict[str, Any],
+        category: str = "general",
+        tags: List[str] = None,
+    ):
         """ThemeTemplateを初期化する
-        
+
         Args:
             name (str): テンプレート名
             description (str): テンプレートの説明
@@ -99,51 +102,54 @@ class ThemeTemplate:
         self.data = data
         self.category = category
         self.tags = tags or []
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """辞書形式に変換する
-        
+
         Returns:
             Dict[str, Any]: テンプレートデータ
         """
         return {
-            'name': self.name,
-            'description': self.description,
-            'category': self.category,
-            'tags': self.tags,
-            'data': self.data
+            "name": self.name,
+            "description": self.description,
+            "category": self.category,
+            "tags": self.tags,
+            "data": self.data,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ThemeTemplate':
+    def from_dict(cls, data: Dict[str, Any]) -> "ThemeTemplate":
         """辞書からテンプレートを作成する
-        
+
         Args:
             data (Dict[str, Any]): テンプレートデータ
-            
+
         Returns:
             ThemeTemplate: テンプレートインスタンス
         """
         return cls(
-            name=data['name'],
-            description=data['description'],
-            data=data['data'],
-            category=data.get('category', 'general'),
-            tags=data.get('tags', [])
+            name=data["name"],
+            description=data["description"],
+            data=data["data"],
+            category=data.get("category", "general"),
+            tags=data.get("tags", []),
         )
 
 
 class ThemeService:
     """テーマ管理サービス
-    
+
     テーマの検証、形式変換、テンプレート管理などの
     テーマ関連のビジネスロジックを提供します。
     """
-    
-    def __init__(self, theme_adapter: Optional[ThemeAdapter] = None, 
-                 file_handler: Optional[JapaneseFileHandler] = None):
+
+    def __init__(
+        self,
+        theme_adapter: Optional[ThemeAdapter] = None,
+        file_handler: Optional[JapaneseFileHandler] = None,
+    ):
         """ThemeServiceを初期化する
-        
+
         Args:
             theme_adapter (Optional[ThemeAdapter]): テーマアダプター
             file_handler (Optional[JapaneseFileHandler]): 日本語ファイル処理
@@ -152,243 +158,262 @@ class ThemeService:
         self.theme_adapter = theme_adapter or ThemeAdapter()
         self.file_handler = file_handler or JapaneseFileHandler()
         self._templates_cache: Optional[List[ThemeTemplate]] = None
-        
+
         # 必須プロパティの定義
         self.required_properties = {
-            'name': str,
-            'version': str,
-            'colors': dict,
-            'fonts': dict
+            "name": str,
+            "version": str,
+            "colors": dict,
+            "fonts": dict,
         }
-        
+
         # 推奨プロパティの定義
         self.recommended_properties = {
-            'description': str,
-            'author': str,
-            'created_date': str,
-            'sizes': dict,
-            'spacing': dict
+            "description": str,
+            "author": str,
+            "created_date": str,
+            "sizes": dict,
+            "spacing": dict,
         }
-        
+
         self.logger.info("テーマサービスを初期化しました")
-    
+
     def load_theme_from_file(self, file_path: str) -> Optional[Dict[str, Any]]:
         """
         日本語ファイルパスからテーマを読み込みます
-        
+
         Args:
             file_path: テーマファイルのパス
-            
+
         Returns:
             Dict[str, Any]: テーマデータ（失敗時はNone）
         """
         try:
             # パスを正規化
             normalized_path = self.file_handler.normalize_path(file_path)
-            
+
             # ファイルを安全に読み込み
             content = self.file_handler.safe_read(normalized_path)
             if content is None:
-                self.logger.error(f"テーマファイルの読み込みに失敗しました: {file_path}")
+                self.logger.error("テーマファイルの読み込みに失敗しました: {file_path}")
                 return None
-            
+
             # JSONとしてパース
             theme_data = json.loads(content)
-            
-            self.logger.info(f"テーマファイルを読み込みました: {file_path}")
+
+            self.logger.info("テーマファイルを読み込みました: {file_path}")
             return theme_data
-            
+
         except json.JSONDecodeError as e:
-            self.logger.error(f"テーマファイルのJSON解析に失敗しました: {str(e)}")
+            self.logger.error("テーマファイルのJSON解析に失敗しました: {str(e)}")
             return None
-        except Exception as e:
-            self.logger.error(f"テーマファイルの読み込み中にエラーが発生しました: {str(e)}")
+        except Exception:
+            self.logger.error(
+                "テーマファイルの読み込み中にエラーが発生しました: {str(e)}"
+            )
             return None
-    
+
     def save_theme_to_file(self, theme_data: Dict[str, Any], file_path: str) -> bool:
         """
         テーマを日本語ファイルパスに保存します
-        
+
         Args:
             theme_data: テーマデータ
             file_path: 保存先ファイルパス
-            
+
         Returns:
             bool: 成功した場合True
         """
         try:
             # パスを正規化
             normalized_path = self.file_handler.normalize_path(file_path)
-            
+
             # 安全なファイル名を生成
-            safe_filename = self.file_handler.get_safe_filename(Path(normalized_path).name)
+            safe_filename = self.file_handler.get_safe_filename(
+                Path(normalized_path).name
+            )
             safe_path = str(Path(normalized_path).parent / safe_filename)
-            
+
             # JSONとして整形
             content = json.dumps(theme_data, ensure_ascii=False, indent=2)
-            
+
             # ファイルを安全に書き込み
             success = self.file_handler.safe_write(safe_path, content)
-            
+
             if success:
-                self.logger.info(f"テーマファイルを保存しました: {safe_path}")
+                self.logger.info("テーマファイルを保存しました: {safe_path}")
             else:
-                self.logger.error(f"テーマファイルの保存に失敗しました: {safe_path}")
-            
+                self.logger.error("テーマファイルの保存に失敗しました: {safe_path}")
+
             return success
-            
-        except Exception as e:
-            self.logger.error(f"テーマファイルの保存中にエラーが発生しました: {str(e)}")
+
+        except Exception:
+            self.logger.error("テーマファイルの保存中にエラーが発生しました: {str(e)}")
             return False
-    
+
     def validate_japanese_theme_path(self, file_path: str) -> bool:
         """
         日本語テーマファイルパスの妥当性を検証します
-        
+
         Args:
             file_path: 検証するファイルパス
-            
+
         Returns:
             bool: 妥当な場合True
         """
         return self.file_handler.validate_path(file_path)
-    
+
     def get_theme_encoding_info(self, file_path: str) -> Dict[str, Any]:
         """
         テーマファイルのエンコーディング情報を取得します
-        
+
         Args:
             file_path: テーマファイルのパス
-            
+
         Returns:
             Dict[str, Any]: エンコーディング情報
         """
         return self.file_handler.get_encoding_info(file_path)
-    
-    def convert_theme_encoding(self, file_path: str, target_encoding: str = 'utf-8') -> bool:
+
+    def convert_theme_encoding(
+        self, file_path: str, target_encoding: str = "utf-8"
+    ) -> bool:
         """
         テーマファイルのエンコーディングを変換します
-        
+
         Args:
             file_path: テーマファイルのパス
             target_encoding: 変換先エンコーディング
-            
+
         Returns:
             bool: 成功した場合True
         """
         return self.file_handler.convert_encoding(file_path, target_encoding)
-    
+
     def validate_theme(self, theme_data: Dict[str, Any]) -> ValidationResult:
         """テーマデータを検証する
-        
+
         Args:
             theme_data (Dict[str, Any]): テーマデータ
-            
+
         Returns:
             ValidationResult: 検証結果
         """
         self.logger.debug("テーマデータの検証を開始します")
         result = ValidationResult(True)
-        
+
         try:
             # 必須プロパティの検証
             self._validate_required_properties(theme_data, result)
-            
+
             # 色データの検証
-            self._validate_colors(theme_data.get('colors', {}), result)
-            
+            self._validate_colors(theme_data.get("colors", {}), result)
+
             # フォントデータの検証
-            self._validate_fonts(theme_data.get('fonts', {}), result)
-            
+            self._validate_fonts(theme_data.get("fonts", {}), result)
+
             # サイズデータの検証
-            if 'sizes' in theme_data:
-                self._validate_sizes(theme_data['sizes'], result)
-            
+            if "sizes" in theme_data:
+                self._validate_sizes(theme_data["sizes"], result)
+
             # 推奨プロパティの確認
             self._check_recommended_properties(theme_data, result)
-            
+
             # qt-theme-manager互換性の検証
             self._validate_qt_theme_manager_compatibility(theme_data, result)
-            
-            self.logger.debug(f"テーマ検証完了: {'成功' if result.is_valid else '失敗'}")
+
+            self.logger.debug("テーマ検証完了: {'成功' if result.is_valid else '失敗'}")
             return result
-            
-        except Exception as e:
-            self.logger.error(f"テーマ検証中にエラーが発生しました: {str(e)}")
-            result.add_error(f"検証処理中にエラーが発生しました: {str(e)}")
+
+        except Exception:
+            self.logger.error("テーマ検証中にエラーが発生しました: {str(e)}")
+            result.add_error("検証処理中にエラーが発生しました: {str(e)}")
             return result
-    
-    def _validate_required_properties(self, theme_data: Dict[str, Any], 
-                                    result: ValidationResult) -> None:
+
+    def _validate_required_properties(
+        self, theme_data: Dict[str, Any], result: ValidationResult
+    ) -> None:
         """必須プロパティを検証する"""
         for prop_name, prop_type in self.required_properties.items():
             if prop_name not in theme_data:
-                result.add_error(f"必須プロパティが不足しています: {prop_name}")
+                result.add_error("必須プロパティが不足しています: {prop_name}")
             elif not isinstance(theme_data[prop_name], prop_type):
                 result.add_error(
-                    f"プロパティの型が正しくありません: {prop_name} "
-                    f"(期待: {prop_type.__name__}, 実際: {type(theme_data[prop_name]).__name__})"
+                    "プロパティの型が正しくありません: {prop_name} "
+                    "(期待: {prop_type.__name__}, 実際: {type(theme_data[prop_name]).__name__})"
                 )
-    
-    def _validate_colors(self, colors: Dict[str, Any], result: ValidationResult) -> None:
+
+    def _validate_colors(
+        self, colors: Dict[str, Any], result: ValidationResult
+    ) -> None:
         """色データを検証する"""
         if not colors:
             result.add_error("色データが空です")
             return
-        
+
         # 基本色の存在確認
-        basic_colors = ['primary', 'secondary', 'background', 'surface', 'text']
+        basic_colors = ["primary", "secondary", "background", "surface", "text"]
         for color_name in basic_colors:
             if color_name not in colors:
-                result.add_warning(f"推奨される基本色が不足しています: {color_name}")
-        
+                result.add_warning("推奨される基本色が不足しています: {color_name}")
+
         # 色値の形式検証
         for color_name, color_value in colors.items():
             if not self._is_valid_color_format(color_value):
-                result.add_error(f"無効な色形式です: {color_name} = {color_value}")
-    
+                result.add_error("無効な色形式です: {color_name} = {color_value}")
+
     def _validate_fonts(self, fonts: Dict[str, Any], result: ValidationResult) -> None:
         """フォントデータを検証する"""
         if not fonts:
             result.add_error("フォントデータが空です")
             return
-        
+
         # 基本フォントの存在確認
-        basic_fonts = ['default', 'heading', 'monospace']
+        basic_fonts = ["default", "heading", "monospace"]
         for font_name in basic_fonts:
             if font_name not in fonts:
-                result.add_warning(f"推奨される基本フォントが不足しています: {font_name}")
-        
+                result.add_warning(
+                    "推奨される基本フォントが不足しています: {font_name}"
+                )
+
         # フォント設定の検証
         for font_name, font_config in fonts.items():
             if isinstance(font_config, dict):
-                if 'family' not in font_config:
-                    result.add_error(f"フォント設定にfamilyが不足しています: {font_name}")
-                if 'size' in font_config and not isinstance(font_config['size'], (int, float)):
-                    result.add_error(f"フォントサイズが数値ではありません: {font_name}")
-    
+                if "family" not in font_config:
+                    result.add_error(
+                        "フォント設定にfamilyが不足しています: {font_name}"
+                    )
+                if "size" in font_config and not isinstance(
+                    font_config["size"], (int, float)
+                ):
+                    result.add_error("フォントサイズが数値ではありません: {font_name}")
+
     def _validate_sizes(self, sizes: Dict[str, Any], result: ValidationResult) -> None:
         """サイズデータを検証する"""
         for size_name, size_value in sizes.items():
             if not isinstance(size_value, (int, float)):
-                result.add_error(f"サイズ値が数値ではありません: {size_name} = {size_value}")
+                result.add_error(
+                    "サイズ値が数値ではありません: {size_name} = {size_value}"
+                )
             elif size_value < 0:
-                result.add_error(f"サイズ値が負の値です: {size_name} = {size_value}")
-    
-    def _check_recommended_properties(self, theme_data: Dict[str, Any], 
-                                    result: ValidationResult) -> None:
+                result.add_error("サイズ値が負の値です: {size_name} = {size_value}")
+
+    def _check_recommended_properties(
+        self, theme_data: Dict[str, Any], result: ValidationResult
+    ) -> None:
         """推奨プロパティを確認する"""
         for prop_name, prop_type in self.recommended_properties.items():
             if prop_name not in theme_data:
-                result.add_warning(f"推奨プロパティが不足しています: {prop_name}")
+                result.add_warning("推奨プロパティが不足しています: {prop_name}")
             elif not isinstance(theme_data[prop_name], prop_type):
                 result.add_warning(
-                    f"推奨プロパティの型が正しくありません: {prop_name} "
-                    f"(期待: {prop_type.__name__}, 実際: {type(theme_data[prop_name]).__name__})"
+                    "推奨プロパティの型が正しくありません: {prop_name} "
+                    "(期待: {prop_type.__name__}, 実際: {type(theme_data[prop_name]).__name__})"
                 )
-    
-    def _validate_qt_theme_manager_compatibility(self, theme_data: Dict[str, Any], 
-                                               result: ValidationResult) -> None:
+
+    def _validate_qt_theme_manager_compatibility(
+        self, theme_data: Dict[str, Any], result: ValidationResult
+    ) -> None:
         """qt-theme-manager互換性を検証する"""
         try:
             # テーマアダプターを使用して互換性をチェック
@@ -397,235 +422,264 @@ class ThemeService:
                 # これは実装の詳細に依存するため、基本的な構造チェックのみ行う
                 pass
             else:
-                result.add_warning("qt-theme-managerが初期化されていないため、互換性チェックをスキップしました")
-                
-        except Exception as e:
-            result.add_warning(f"qt-theme-manager互換性チェック中にエラーが発生しました: {str(e)}")
-    
+                result.add_warning(
+                    "qt-theme-managerが初期化されていないため、互換性チェックをスキップしました"
+                )
+
+        except Exception:
+            result.add_warning(
+                "qt-theme-manager互換性チェック中にエラーが発生しました: {str(e)}"
+            )
+
     def _is_valid_color_format(self, color_value: Any) -> bool:
         """色値の形式が有効かどうかを確認する
-        
+
         Args:
             color_value: 色値
-            
+
         Returns:
             bool: 有効な場合True
         """
         if not isinstance(color_value, str):
             return False
-        
+
         color_value = color_value.strip()
-        
+
         # 16進数形式 (#RGB, #RRGGBB, #RRGGBBAA)
-        if color_value.startswith('#'):
+        if color_value.startswith("#"):
             hex_part = color_value[1:]
-            if len(hex_part) in [3, 6, 8] and all(c in '0123456789ABCDEFabcdef' for c in hex_part):
+            if len(hex_part) in [3, 6, 8] and all(
+                c in "0123456789ABCDEFabcde" for c in hex_part
+            ):
                 return True
-        
+
         # RGB/RGBA形式 (rgb(r,g,b), rgba(r,g,b,a))
-        if color_value.startswith(('rgb(', 'rgba(')):
+        if color_value.startswith(("rgb(", "rgba(")):
             return True  # 簡易チェック（詳細な検証は必要に応じて実装）
-        
+
         # 名前付き色（基本的なもののみ）
         named_colors = {
-            'black', 'white', 'red', 'green', 'blue', 'yellow', 'cyan', 'magenta',
-            'gray', 'grey', 'darkgray', 'darkgrey', 'lightgray', 'lightgrey',
-            'transparent'
+            "black",
+            "white",
+            "red",
+            "green",
+            "blue",
+            "yellow",
+            "cyan",
+            "magenta",
+            "gray",
+            "grey",
+            "darkgray",
+            "darkgrey",
+            "lightgray",
+            "lightgrey",
+            "transparent",
         }
         if color_value.lower() in named_colors:
             return True
-        
-        return False 
-        
-    def convert_theme_format(self, theme_data: Dict[str, Any], 
-                           target_format: str) -> Union[str, Dict[str, Any]]:
+
+        return False
+
+    def convert_theme_format(
+        self, theme_data: Dict[str, Any], target_format: str
+    ) -> Union[str, Dict[str, Any]]:
         """テーマを指定された形式に変換する
-        
+
         Args:
             theme_data (Dict[str, Any]): 変換元のテーマデータ
             target_format (str): 変換先の形式 ('json', 'qss', 'css')
-            
+
         Returns:
             Union[str, Dict[str, Any]]: 変換されたテーマデータ
-            
+
         Raises:
             ThemeConversionError: 変換に失敗した場合
         """
-        self.logger.debug(f"テーマを{target_format}形式に変換します")
-        
+        self.logger.debug("テーマを{target_format}形式に変換します")
+
         try:
             # 入力データの検証
             validation_result = self.validate_theme(theme_data)
             if not validation_result.is_valid:
                 raise ThemeConversionError(
-                    f"変換元のテーマデータが無効です: {', '.join(validation_result.errors)}"
+                    "変換元のテーマデータが無効です: {', '.join(validation_result.errors)}"
                 )
-            
+
             target_format = target_format.lower()
-            
-            if target_format == 'json':
+
+            if target_format == "json":
                 return self._convert_to_json(theme_data)
-            elif target_format == 'qss':
+            elif target_format == "qss":
                 return self._convert_to_qss(theme_data)
-            elif target_format == 'css':
+            elif target_format == "css":
                 return self._convert_to_css(theme_data)
             else:
-                raise ThemeConversionError(f"サポートされていない形式です: {target_format}")
-                
+                raise ThemeConversionError(
+                    "サポートされていない形式です: {target_format}"
+                )
+
         except Exception as e:
-            self.logger.error(f"テーマ形式変換中にエラーが発生しました: {str(e)}")
+            self.logger.error("テーマ形式変換中にエラーが発生しました: {str(e)}")
             if isinstance(e, ThemeConversionError):
                 raise
-            raise ThemeConversionError(f"形式変換中にエラーが発生しました: {str(e)}")
-    
+            raise ThemeConversionError("形式変換中にエラーが発生しました: {str(e)}")
+
     def _convert_to_json(self, theme_data: Dict[str, Any]) -> str:
         """JSON形式に変換する"""
         try:
             return json.dumps(theme_data, ensure_ascii=False, indent=2)
-        except Exception as e:
-            raise ThemeConversionError(f"JSON変換に失敗しました: {str(e)}")
-    
+        except Exception:
+            raise ThemeConversionError("JSON変換に失敗しました: {str(e)}")
+
     def _convert_to_qss(self, theme_data: Dict[str, Any]) -> str:
         """QSS形式に変換する"""
         try:
             qss_lines = []
-            qss_lines.append(f"/* {theme_data.get('name', 'Unnamed Theme')} */")
-            qss_lines.append(f"/* Version: {theme_data.get('version', '1.0.0')} */")
+            qss_lines.append("/* {theme_data.get('name', 'Unnamed Theme')} */")
+            qss_lines.append("/* Version: {theme_data.get('version', '1.0.0')} */")
             qss_lines.append("")
-            
-            colors = theme_data.get('colors', {})
-            fonts = theme_data.get('fonts', {})
-            
+
+            colors = theme_data.get("colors", {})
+            fonts = theme_data.get("fonts", {})
+
             # 基本的なウィジェットスタイルを生成
-            if 'background' in colors:
-                qss_lines.append(f"QWidget {{")
-                qss_lines.append(f"    background-color: {colors['background']};")
-                if 'text' in colors:
-                    qss_lines.append(f"    color: {colors['text']};")
-                if 'default' in fonts:
-                    font_config = fonts['default']
+            if "background" in colors:
+                qss_lines.append("QWidget {{")
+                qss_lines.append("    background-color: {colors['background']};")
+                if "text" in colors:
+                    qss_lines.append("    color: {colors['text']};")
+                if "default" in fonts:
+                    font_config = fonts["default"]
                     if isinstance(font_config, dict):
-                        if 'family' in font_config:
-                            qss_lines.append(f"    font-family: {font_config['family']};")
-                        if 'size' in font_config:
-                            qss_lines.append(f"    font-size: {font_config['size']}pt;")
+                        if "family" in font_config:
+                            qss_lines.append(
+                                "    font-family: {font_config['family']};"
+                            )
+                        if "size" in font_config:
+                            qss_lines.append("    font-size: {font_config['size']}pt;")
                 qss_lines.append("}")
                 qss_lines.append("")
-            
+
             # ボタンスタイル
-            if 'primary' in colors:
+            if "primary" in colors:
                 qss_lines.append("QPushButton {")
-                qss_lines.append(f"    background-color: {colors['primary']};")
-                qss_lines.append(f"    color: {colors.get('text', '#ffffff')};")
+                qss_lines.append("    background-color: {colors['primary']};")
+                qss_lines.append("    color: {colors.get('text', '#fffff')};")
                 qss_lines.append("    border: 1px solid #cccccc;")
                 qss_lines.append("    padding: 5px 10px;")
                 qss_lines.append("    border-radius: 3px;")
                 qss_lines.append("}")
                 qss_lines.append("")
-                
+
                 qss_lines.append("QPushButton:hover {")
-                qss_lines.append(f"    background-color: {colors.get('secondary', colors['primary'])};")
+                qss_lines.append(
+                    "    background-color: {colors.get('secondary', colors['primary'])};"
+                )
                 qss_lines.append("}")
                 qss_lines.append("")
-            
+
             return "\n".join(qss_lines)
-            
-        except Exception as e:
-            raise ThemeConversionError(f"QSS変換に失敗しました: {str(e)}")
-    
+
+        except Exception:
+            raise ThemeConversionError("QSS変換に失敗しました: {str(e)}")
+
     def _convert_to_css(self, theme_data: Dict[str, Any]) -> str:
         """CSS形式に変換する"""
         try:
             css_lines = []
-            css_lines.append(f"/* {theme_data.get('name', 'Unnamed Theme')} */")
-            css_lines.append(f"/* Version: {theme_data.get('version', '1.0.0')} */")
+            css_lines.append("/* {theme_data.get('name', 'Unnamed Theme')} */")
+            css_lines.append("/* Version: {theme_data.get('version', '1.0.0')} */")
             css_lines.append("")
-            
-            colors = theme_data.get('colors', {})
-            fonts = theme_data.get('fonts', {})
-            
+
+            colors = theme_data.get("colors", {})
+            fonts = theme_data.get("fonts", {})
+
             # CSS変数の定義
             css_lines.append(":root {")
             for color_name, color_value in colors.items():
-                css_lines.append(f"    --color-{color_name}: {color_value};")
+                css_lines.append("    --color-{color_name}: {color_value};")
             css_lines.append("}")
             css_lines.append("")
-            
+
             # 基本スタイル
             css_lines.append("body {")
-            if 'background' in colors:
-                css_lines.append(f"    background-color: var(--color-background);")
-            if 'text' in colors:
-                css_lines.append(f"    color: var(--color-text);")
-            if 'default' in fonts:
-                font_config = fonts['default']
+            if "background" in colors:
+                css_lines.append("    background-color: var(--color-background);")
+            if "text" in colors:
+                css_lines.append("    color: var(--color-text);")
+            if "default" in fonts:
+                font_config = fonts["default"]
                 if isinstance(font_config, dict):
-                    if 'family' in font_config:
-                        css_lines.append(f"    font-family: {font_config['family']};")
-                    if 'size' in font_config:
-                        css_lines.append(f"    font-size: {font_config['size']}pt;")
+                    if "family" in font_config:
+                        css_lines.append("    font-family: {font_config['family']};")
+                    if "size" in font_config:
+                        css_lines.append("    font-size: {font_config['size']}pt;")
             css_lines.append("}")
             css_lines.append("")
-            
+
             # ボタンスタイル
-            if 'primary' in colors:
+            if "primary" in colors:
                 css_lines.append("button, .btn {")
-                css_lines.append(f"    background-color: var(--color-primary);")
-                css_lines.append(f"    color: var(--color-text, #ffffff);")
+                css_lines.append("    background-color: var(--color-primary);")
+                css_lines.append("    color: var(--color-text, #ffffff);")
                 css_lines.append("    border: 1px solid #cccccc;")
                 css_lines.append("    padding: 5px 10px;")
                 css_lines.append("    border-radius: 3px;")
                 css_lines.append("    cursor: pointer;")
                 css_lines.append("}")
                 css_lines.append("")
-                
+
                 css_lines.append("button:hover, .btn:hover {")
-                css_lines.append(f"    background-color: var(--color-secondary, var(--color-primary));")
+                css_lines.append(
+                    "    background-color: var(--color-secondary, var(--color-primary));"
+                )
                 css_lines.append("}")
                 css_lines.append("")
-            
+
             return "\n".join(css_lines)
-            
-        except Exception as e:
-            raise ThemeConversionError(f"CSS変換に失敗しました: {str(e)}")
-    
+
+        except Exception:
+            raise ThemeConversionError("CSS変換に失敗しました: {str(e)}")
+
     def get_theme_templates(self) -> List[ThemeTemplate]:
         """利用可能なテーマテンプレートを取得する
-        
+
         Returns:
             List[ThemeTemplate]: テーマテンプレートのリスト
         """
         if self._templates_cache is not None:
             return self._templates_cache
-        
+
         self.logger.debug("テーマテンプレートを読み込みます")
-        
+
         try:
             templates = []
-            
+
             # 組み込みテンプレートを追加
             templates.extend(self._get_builtin_templates())
-            
+
             # ユーザー定義テンプレートを読み込み（将来の拡張用）
             # templates.extend(self._load_user_templates())
-            
+
             self._templates_cache = templates
-            self.logger.info(f"{len(templates)}個のテーマテンプレートを読み込みました")
-            
+            self.logger.info("{len(templates)}個のテーマテンプレートを読み込みました")
+
             return templates
-            
-        except Exception as e:
-            self.logger.error(f"テーマテンプレートの読み込み中にエラーが発生しました: {str(e)}")
+
+        except Exception:
+            self.logger.error(
+                "テーマテンプレートの読み込み中にエラーが発生しました: {str(e)}"
+            )
             return []
-    
+
     def _get_builtin_templates(self) -> List[ThemeTemplate]:
         """組み込みテーマテンプレートを取得する
-        
+
         Returns:
             List[ThemeTemplate]: 組み込みテンプレートのリスト
         """
         templates = []
-        
+
         # ライトテーマテンプレート
         light_theme = ThemeTemplate(
             name="ライトテーマ",
@@ -649,36 +703,36 @@ class ThemeService:
                     "error": "#D32F2F",
                     "warning": "#F57C00",
                     "success": "#388E3C",
-                    "info": "#1976D2"
+                    "info": "#1976D2",
                 },
                 "fonts": {
                     "default": {
-                        "family": "Segoe UI, Arial, sans-serif",
+                        "family": "Segoe UI, Arial, sans-seri",
                         "size": 9,
-                        "weight": "normal"
+                        "weight": "normal",
                     },
                     "heading": {
-                        "family": "Segoe UI, Arial, sans-serif",
+                        "family": "Segoe UI, Arial, sans-seri",
                         "size": 12,
-                        "weight": "bold"
+                        "weight": "bold",
                     },
                     "monospace": {
                         "family": "Consolas, Monaco, monospace",
                         "size": 9,
-                        "weight": "normal"
-                    }
+                        "weight": "normal",
+                    },
                 },
                 "sizes": {
                     "border_radius": 4,
                     "border_width": 1,
                     "padding": 8,
                     "margin": 4,
-                    "icon_size": 16
-                }
-            }
+                    "icon_size": 16,
+                },
+            },
         )
         templates.append(light_theme)
-        
+
         # ダークテーマテンプレート
         dark_theme = ThemeTemplate(
             name="ダークテーマ",
@@ -702,36 +756,36 @@ class ThemeService:
                     "error": "#F44336",
                     "warning": "#FF9800",
                     "success": "#4CAF50",
-                    "info": "#2196F3"
+                    "info": "#2196F3",
                 },
                 "fonts": {
                     "default": {
-                        "family": "Segoe UI, Arial, sans-serif",
+                        "family": "Segoe UI, Arial, sans-seri",
                         "size": 9,
-                        "weight": "normal"
+                        "weight": "normal",
                     },
                     "heading": {
-                        "family": "Segoe UI, Arial, sans-serif",
+                        "family": "Segoe UI, Arial, sans-seri",
                         "size": 12,
-                        "weight": "bold"
+                        "weight": "bold",
                     },
                     "monospace": {
                         "family": "Consolas, Monaco, monospace",
                         "size": 9,
-                        "weight": "normal"
-                    }
+                        "weight": "normal",
+                    },
                 },
                 "sizes": {
                     "border_radius": 4,
                     "border_width": 1,
                     "padding": 8,
                     "margin": 4,
-                    "icon_size": 16
-                }
-            }
+                    "icon_size": 16,
+                },
+            },
         )
         templates.append(dark_theme)
-        
+
         # ハイコントラストテーマテンプレート
         high_contrast_theme = ThemeTemplate(
             name="ハイコントラストテーマ",
@@ -755,44 +809,44 @@ class ThemeService:
                     "error": "#FF0000",
                     "warning": "#FF8000",
                     "success": "#008000",
-                    "info": "#0000FF"
+                    "info": "#0000FF",
                 },
                 "fonts": {
                     "default": {
-                        "family": "Arial, sans-serif",
+                        "family": "Arial, sans-seri",
                         "size": 10,
-                        "weight": "bold"
+                        "weight": "bold",
                     },
                     "heading": {
-                        "family": "Arial, sans-serif",
+                        "family": "Arial, sans-seri",
                         "size": 14,
-                        "weight": "bold"
+                        "weight": "bold",
                     },
                     "monospace": {
                         "family": "Courier New, monospace",
                         "size": 10,
-                        "weight": "bold"
-                    }
+                        "weight": "bold",
+                    },
                 },
                 "sizes": {
                     "border_radius": 0,
                     "border_width": 2,
                     "padding": 10,
                     "margin": 6,
-                    "icon_size": 20
-                }
-            }
+                    "icon_size": 20,
+                },
+            },
         )
         templates.append(high_contrast_theme)
-        
+
         return templates
-    
+
     def get_template_by_name(self, name: str) -> Optional[ThemeTemplate]:
         """名前でテーマテンプレートを取得する
-        
+
         Args:
             name (str): テンプレート名
-            
+
         Returns:
             Optional[ThemeTemplate]: テンプレート（見つからない場合はNone）
         """
@@ -801,64 +855,66 @@ class ThemeService:
             if template.name == name:
                 return template
         return None
-    
+
     def get_templates_by_category(self, category: str) -> List[ThemeTemplate]:
         """カテゴリでテーマテンプレートを取得する
-        
+
         Args:
             category (str): カテゴリ名
-            
+
         Returns:
             List[ThemeTemplate]: 該当するテンプレートのリスト
         """
         templates = self.get_theme_templates()
         return [template for template in templates if template.category == category]
-    
+
     def get_templates_by_tag(self, tag: str) -> List[ThemeTemplate]:
         """タグでテーマテンプレートを取得する
-        
+
         Args:
             tag (str): タグ名
-            
+
         Returns:
             List[ThemeTemplate]: 該当するテンプレートのリスト
         """
         templates = self.get_theme_templates()
         return [template for template in templates if tag in template.tags]
-    
-    def create_theme_from_template(self, template_name: str, 
-                                 custom_name: Optional[str] = None) -> Dict[str, Any]:
+
+    def create_theme_from_template(
+        self, template_name: str, custom_name: Optional[str] = None
+    ) -> Dict[str, Any]:
         """テンプレートから新しいテーマを作成する
-        
+
         Args:
             template_name (str): テンプレート名
             custom_name (Optional[str]): カスタムテーマ名
-            
+
         Returns:
             Dict[str, Any]: 作成されたテーマデータ
-            
+
         Raises:
             ThemeTemplateError: テンプレートが見つからない場合
         """
         template = self.get_template_by_name(template_name)
         if template is None:
-            raise ThemeTemplateError(f"テンプレートが見つかりません: {template_name}")
-        
+            raise ThemeTemplateError("テンプレートが見つかりません: {template_name}")
+
         # テンプレートデータをコピー
         theme_data = template.data.copy()
-        
+
         # カスタム名が指定されている場合は更新
         if custom_name:
-            theme_data['name'] = custom_name
-        
+            theme_data["name"] = custom_name
+
         # 作成日時を追加
         from datetime import datetime
-        theme_data['created_date'] = datetime.now().isoformat()
-        theme_data['template_source'] = template_name
-        
-        self.logger.info(f"テンプレート '{template_name}' からテーマを作成しました")
+
+        theme_data["created_date"] = datetime.now().isoformat()
+        theme_data["template_source"] = template_name
+
+        self.logger.info("テンプレート '{template_name}' からテーマを作成しました")
         return theme_data
-    
+
     def clear_templates_cache(self) -> None:
         """テンプレートキャッシュをクリアする"""
         self._templates_cache = None

@@ -7,15 +7,11 @@ Qt-Theme-Studio プログラマティックテストAPI
 """
 
 import json
-import logging
-import os
 import sys
 import tempfile
 import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List
 
-from ..adapters.theme_adapter import ThemeAdapter
 from ..exceptions import ThemeStudioException
 from ..services.export_service import ExportService
 from ..services.theme_service import ThemeService
@@ -24,7 +20,6 @@ from ..services.validation_service import ValidationService
 
 class TestAPIException(ThemeStudioException):
     """テストAPI例外"""
-    pass
 
 
 class HeadlessTestRunner:
@@ -99,11 +94,11 @@ class HeadlessTestRunner:
                 'validation_errors': validation_errors
             })
             
-            self.logger.info(f"テーマ読み込み成功: {theme_path} ({load_time:.3f}秒)")
+            self.logger.info("テーマ読み込み成功: {theme_path} ({load_time:.3f}秒)")
             
         except Exception as e:
             result['error_message'] = str(e)
-            self.logger.error(f"テーマ読み込み失敗: {theme_path} - {str(e)}")
+            self.logger.error("テーマ読み込み失敗: {theme_path} - {str(e)}")
         
         finally:
             result['end_time'] = time.time()
@@ -168,11 +163,11 @@ class HeadlessTestRunner:
                         'export_time': format_time
                     })
                     
-                    self.logger.debug(f"{format_name}エクスポート成功 ({format_time:.3f}秒)")
+                    self.logger.debug("{format_name}エクスポート成功 ({format_time:.3f}秒)")
                     
                 except Exception as e:
                     format_result['error_message'] = str(e)
-                    self.logger.warning(f"{format_name}エクスポート失敗: {str(e)}")
+                    self.logger.warning("{format_name}エクスポート失敗: {str(e)}")
                 
                 result['export_results'][format_name] = format_result
             
@@ -184,14 +179,14 @@ class HeadlessTestRunner:
             result['success'] = successful_exports > 0
             
             if result['success']:
-                self.logger.info(f"エクスポートテスト完了: {successful_exports}/{len(export_formats)} 成功")
+                self.logger.info("エクスポートテスト完了: {successful_exports}/{len(export_formats)} 成功")
             else:
                 result['error_message'] = "すべてのエクスポート形式で失敗しました"
                 self.logger.error("すべてのエクスポート形式で失敗しました")
             
         except Exception as e:
             result['error_message'] = str(e)
-            self.logger.error(f"エクスポートテスト中にエラーが発生しました: {str(e)}")
+            self.logger.error("エクスポートテスト中にエラーが発生しました: {str(e)}")
         
         finally:
             result['end_time'] = time.time()
@@ -265,15 +260,15 @@ class HeadlessTestRunner:
             else:
                 error_parts = []
                 if not result['structure_validation']['success']:
-                    error_parts.append(f"構造エラー: {len(structure_errors)}個")
+                    error_parts.append("構造エラー: {len(structure_errors)}個")
                 if not result['accessibility_validation']['success']:
-                    error_parts.append(f"アクセシビリティ違反: {len(accessibility_report.violations)}個")
+                    error_parts.append("アクセシビリティ違反: {len(accessibility_report.violations)}個")
                 result['error_message'] = "; ".join(error_parts)
-                self.logger.warning(f"テーマ検証テスト失敗: {result['error_message']}")
+                self.logger.warning("テーマ検証テスト失敗: {result['error_message']}")
             
         except Exception as e:
             result['error_message'] = str(e)
-            self.logger.error(f"検証テスト中にエラーが発生しました: {str(e)}")
+            self.logger.error("検証テスト中にエラーが発生しました: {str(e)}")
         
         finally:
             result['end_time'] = time.time()
@@ -343,7 +338,7 @@ class HeadlessTestRunner:
                     
                 except Exception as e:
                     format_result['error_message'] = str(e)
-                    self.logger.warning(f"{format_name}ラウンドトリップ失敗: {str(e)}")
+                    self.logger.warning("{format_name}ラウンドトリップ失敗: {str(e)}")
                 
                 result['format_results'][format_name] = format_result
             
@@ -353,14 +348,14 @@ class HeadlessTestRunner:
             result['success'] = successful_roundtrips > 0
             
             if result['success']:
-                self.logger.info(f"ラウンドトリップテスト成功: {successful_roundtrips}形式")
+                self.logger.info("ラウンドトリップテスト成功: {successful_roundtrips}形式")
             else:
                 result['error_message'] = "すべての形式でラウンドトリップに失敗しました"
                 self.logger.error("ラウンドトリップテスト失敗")
             
         except Exception as e:
             result['error_message'] = str(e)
-            self.logger.error(f"ラウンドトリップテスト中にエラーが発生しました: {str(e)}")
+            self.logger.error("ラウンドトリップテスト中にエラーが発生しました: {str(e)}")
         
         finally:
             result['end_time'] = time.time()
@@ -394,9 +389,9 @@ class HeadlessTestRunner:
         
         for color_name in set(original_colors.keys()) | set(imported_colors.keys()):
             if color_name not in original_colors:
-                differences.append(f"色が追加されました: {color_name}")
+                differences.append("色が追加されました: {color_name}")
             elif color_name not in imported_colors:
-                differences.append(f"色が削除されました: {color_name}")
+                differences.append("色が削除されました: {color_name}")
             elif original_colors[color_name] != imported_colors[color_name]:
                 differences.append(f"色が変更されました: {color_name} '{original_colors[color_name]}' != '{imported_colors[color_name]}'")
         
@@ -406,11 +401,11 @@ class HeadlessTestRunner:
         
         for font_name in set(original_fonts.keys()) | set(imported_fonts.keys()):
             if font_name not in original_fonts:
-                differences.append(f"フォントが追加されました: {font_name}")
+                differences.append("フォントが追加されました: {font_name}")
             elif font_name not in imported_fonts:
-                differences.append(f"フォントが削除されました: {font_name}")
+                differences.append("フォントが削除されました: {font_name}")
             elif original_fonts[font_name] != imported_fonts[font_name]:
-                differences.append(f"フォントが変更されました: {font_name}")
+                differences.append("フォントが変更されました: {font_name}")
         
         return differences
     
@@ -485,7 +480,7 @@ class HeadlessTestRunner:
             
         except Exception as e:
             result['error_message'] = str(e)
-            self.logger.error(f"パフォーマンステスト中にエラーが発生しました: {str(e)}")
+            self.logger.error("パフォーマンステスト中にエラーが発生しました: {str(e)}")
         
         finally:
             result['end_time'] = time.time()
@@ -594,11 +589,11 @@ class HeadlessTestRunner:
                 'failed_tests': suite_result['tests_run'] - suite_result['tests_passed']
             }
             
-            self.logger.info(f"テストスイート完了: {suite_result['tests_passed']}/{suite_result['tests_run']} 成功 ({success_rate:.1f}%)")
+            self.logger.info("テストスイート完了: {suite_result['tests_passed']}/{suite_result['tests_run']} 成功 ({success_rate:.1f}%)")
             
         except Exception as e:
             suite_result['error_message'] = str(e)
-            self.logger.error(f"テストスイート実行中にエラーが発生しました: {str(e)}")
+            self.logger.error("テストスイート実行中にエラーが発生しました: {str(e)}")
         
         finally:
             suite_result['end_time'] = time.time()
@@ -647,7 +642,7 @@ class HeadlessTestRunner:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(test_report, f, ensure_ascii=False, indent=2)
         
-        self.logger.info(f"テスト結果をエクスポートしました: {output_path}")
+        self.logger.info("テスト結果をエクスポートしました: {output_path}")
 
 
 class CommandLineTestRunner:
@@ -676,10 +671,10 @@ class CommandLineTestRunner:
                 return 1
             
             theme_file = args[1]
-            output_file = args[2] if len(args) > 2 else f"test_results_{int(time.time())}.json"
+            output_file = args[2] if len(args) > 2 else "test_results_{int(time.time())}.json"
             
-            print(f"テーマファイル: {theme_file}")
-            print(f"結果出力先: {output_file}")
+            print("テーマファイル: {theme_file}")
+            print("結果出力先: {output_file}")
             print()
             
             # 包括的テストスイート実行
@@ -689,29 +684,29 @@ class CommandLineTestRunner:
             print("=" * 60)
             print("テスト結果サマリー")
             print("=" * 60)
-            print(f"実行テスト数: {result['tests_run']}")
-            print(f"成功テスト数: {result['tests_passed']}")
-            print(f"失敗テスト数: {result['tests_run'] - result['tests_passed']}")
-            print(f"成功率: {result['summary'].get('success_rate', 0.0):.1f}%")
-            print(f"実行時間: {result['total_time']:.3f}秒")
+            print("実行テスト数: {result['tests_run']}")
+            print("成功テスト数: {result['tests_passed']}")
+            print("失敗テスト数: {result['tests_run'] - result['tests_passed']}")
+            print("成功率: {result['summary'].get('success_rate', 0.0):.1f}%")
+            print("実行時間: {result['total_time']:.3f}秒")
             print()
             
             # 個別テスト結果
             for test_result in result['individual_results']:
-                status = "✓" if test_result['success'] else "✗"
-                print(f"{status} {test_result['test_name']}")
+                "✓" if test_result['success'] else "✗"
+                print("{status} {test_result['test_name']}")
                 if not test_result['success'] and test_result.get('error_message'):
-                    print(f"  エラー: {test_result['error_message']}")
+                    print("  エラー: {test_result['error_message']}")
             
             # 結果ファイル出力
             self.headless_runner.export_test_results(output_file)
-            print(f"\n詳細結果を {output_file} に出力しました")
+            print("\n詳細結果を {output_file} に出力しました")
             
             # 終了コード決定
             return 0 if result['success'] else 1
             
-        except Exception as e:
-            print(f"テスト実行中にエラーが発生しました: {str(e)}")
+        except Exception:
+            print("テスト実行中にエラーが発生しました: {str(e)}")
             return 1
 
 

@@ -4,8 +4,8 @@
 qt-theme-managerライブラリとQtフレームワークとの統合レイヤーを提供します。
 """
 
-from .theme_adapter import ThemeAdapter
 from .qt_adapter import QtAdapter
+from .theme_adapter import ThemeAdapter
 
 __all__ = [
     "ThemeAdapter",

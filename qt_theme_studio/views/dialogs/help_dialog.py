@@ -5,37 +5,42 @@ Qt-Theme-Studioのアプリケーション内ヘルプシステムを提供し�
 日本語でのヘルプコンテンツ表示と機能説明を行います。
 """
 
-from typing import Dict, List, Optional
+from typing import Dict
+
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
 
 # Qt モジュールの動的インポート
 qt_modules = QtAdapter().get_qt_modules()
-QDialog = qt_modules['QtWidgets'].QDialog
-QVBoxLayout = qt_modules['QtWidgets'].QVBoxLayout
-QHBoxLayout = qt_modules['QtWidgets'].QHBoxLayout
-QTextBrowser = qt_modules['QtWidgets'].QTextBrowser
-QTreeWidget = qt_modules['QtWidgets'].QTreeWidget
-QTreeWidgetItem = qt_modules['QtWidgets'].QTreeWidgetItem
-QPushButton = qt_modules['QtWidgets'].QPushButton
-QSplitter = qt_modules['QtWidgets'].QSplitter
-QLabel = qt_modules['QtWidgets'].QLabel
-QFrame = qt_modules['QtWidgets'].QFrame
-Qt = qt_modules['QtCore'].Qt
-QSize = qt_modules['QtCore'].QSize
-pyqtSignal = qt_modules['QtCore'].pyqtSignal if 'pyqtSignal' in qt_modules['QtCore'].__dict__ else qt_modules['QtCore'].Signal
+QDialog = qt_modules["QtWidgets"].QDialog
+QVBoxLayout = qt_modules["QtWidgets"].QVBoxLayout
+QHBoxLayout = qt_modules["QtWidgets"].QHBoxLayout
+QTextBrowser = qt_modules["QtWidgets"].QTextBrowser
+QTreeWidget = qt_modules["QtWidgets"].QTreeWidget
+QTreeWidgetItem = qt_modules["QtWidgets"].QTreeWidgetItem
+QPushButton = qt_modules["QtWidgets"].QPushButton
+QSplitter = qt_modules["QtWidgets"].QSplitter
+QLabel = qt_modules["QtWidgets"].QLabel
+QFrame = qt_modules["QtWidgets"].QFrame
+Qt = qt_modules["QtCore"].Qt
+QSize = qt_modules["QtCore"].QSize
+pyqtSignal = (
+    qt_modules["QtCore"].pyqtSignal
+    if "pyqtSignal" in qt_modules["QtCore"].__dict__
+    else qt_modules["QtCore"].Signal
+)
 
 
 class HelpDialog(QDialog):
     """
     アプリケーション内ヘルプダイアログ
-    
+
     日本語でのヘルプコンテンツを提供し、機能説明とガイドを統合します。
     """
-    
+
     def __init__(self, parent=None):
         """
         ヘルプダイアログを初期化
-        
+
         Args:
             parent: 親ウィジェット
         """
@@ -44,61 +49,61 @@ class HelpDialog(QDialog):
         self._setup_ui()
         self._setup_connections()
         self._load_initial_content()
-    
+
     def _setup_ui(self) -> None:
         """UIコンポーネントを設定"""
         self.setWindowTitle("Qt-Theme-Studio ヘルプ")
         self.setMinimumSize(QSize(800, 600))
         self.resize(1000, 700)
-        
+
         # メインレイアウト
         main_layout = QVBoxLayout(self)
-        
+
         # ヘッダー
         header_frame = QFrame()
         header_frame.setFrameStyle(QFrame.StyledPanel)
         header_layout = QHBoxLayout(header_frame)
-        
+
         title_label = QLabel("Qt-Theme-Studio ヘルプシステム")
         title_label.setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;")
         header_layout.addWidget(title_label)
-        
+
         main_layout.addWidget(header_frame)
-        
+
         # スプリッター（左：目次、右：コンテンツ）
         splitter = QSplitter(Qt.Horizontal)
-        
+
         # 左側：目次ツリー
         self.toc_tree = QTreeWidget()
         self.toc_tree.setHeaderLabel("目次")
         self.toc_tree.setMaximumWidth(300)
         self._populate_toc()
-        
+
         # 右側：ヘルプコンテンツ
         self.content_browser = QTextBrowser()
         self.content_browser.setOpenExternalLinks(False)
-        
+
         splitter.addWidget(self.toc_tree)
         splitter.addWidget(self.content_browser)
         splitter.setSizes([250, 750])
-        
+
         main_layout.addWidget(splitter)
-        
+
         # ボタンレイアウト
         button_layout = QHBoxLayout()
         button_layout.addStretch()
-        
+
         self.close_button = QPushButton("閉じる")
         self.close_button.setMinimumWidth(100)
         button_layout.addWidget(self.close_button)
-        
+
         main_layout.addLayout(button_layout)
-    
+
     def _setup_connections(self) -> None:
         """シグナル・スロット接続を設定"""
         self.toc_tree.itemClicked.connect(self._on_toc_item_clicked)
         self.close_button.clicked.connect(self.accept)
-    
+
     def _populate_toc(self) -> None:
         """目次ツリーを構築"""
         # 基本操作
@@ -107,45 +112,45 @@ class HelpDialog(QDialog):
         QTreeWidgetItem(basic_item, ["メインウィンドウの概要"])
         QTreeWidgetItem(basic_item, ["新規テーマの作成"])
         QTreeWidgetItem(basic_item, ["テーマの保存と読み込み"])
-        
+
         # テーマエディター
         editor_item = QTreeWidgetItem(self.toc_tree, ["テーマエディター"])
         QTreeWidgetItem(editor_item, ["色の設定"])
         QTreeWidgetItem(editor_item, ["フォントの設定"])
         QTreeWidgetItem(editor_item, ["プロパティの編集"])
         QTreeWidgetItem(editor_item, ["リアルタイムプレビュー"])
-        
+
         # ゼブラパターンエディター
         zebra_item = QTreeWidgetItem(self.toc_tree, ["ゼブラパターンエディター"])
         QTreeWidgetItem(zebra_item, ["WCAG準拠について"])
         QTreeWidgetItem(zebra_item, ["コントラスト比の計算"])
         QTreeWidgetItem(zebra_item, ["色の改善提案"])
         QTreeWidgetItem(zebra_item, ["アクセシビリティレベル"])
-        
+
         # プレビューシステム
         preview_item = QTreeWidgetItem(self.toc_tree, ["プレビューシステム"])
         QTreeWidgetItem(preview_item, ["ライブプレビューの使用"])
         QTreeWidgetItem(preview_item, ["ウィジェット表示"])
         QTreeWidgetItem(preview_item, ["プレビュー画像のエクスポート"])
         QTreeWidgetItem(preview_item, ["レスポンシブテスト"])
-        
+
         # テーマ管理
         management_item = QTreeWidgetItem(self.toc_tree, ["テーマ管理"])
         QTreeWidgetItem(management_item, ["テーマギャラリー"])
         QTreeWidgetItem(management_item, ["インポート・エクスポート"])
         QTreeWidgetItem(management_item, ["テーマテンプレート"])
         QTreeWidgetItem(management_item, ["最近使用したテーマ"])
-        
+
         # 高度な機能
         advanced_item = QTreeWidgetItem(self.toc_tree, ["高度な機能"])
         QTreeWidgetItem(advanced_item, ["Undo/Redo操作"])
         QTreeWidgetItem(advanced_item, ["設定のカスタマイズ"])
         QTreeWidgetItem(advanced_item, ["キーボードショートカット"])
         QTreeWidgetItem(advanced_item, ["トラブルシューティング"])
-        
+
         # すべてのアイテムを展開
         self.toc_tree.expandAll()
-    
+
     def _load_help_content(self) -> Dict[str, str]:
         """ヘルプコンテンツを読み込み"""
         return {
@@ -175,15 +180,15 @@ class HelpDialog(QDialog):
             "キーボードショートカット": self._get_shortcuts_content(),
             "トラブルシューティング": self._get_troubleshooting_content(),
         }
-    
+
     def _load_initial_content(self) -> None:
         """初期コンテンツを読み込み"""
         self.content_browser.setHtml(self.help_content["welcome"])
-    
+
     def _on_toc_item_clicked(self, item: QTreeWidgetItem, column: int) -> None:
         """
         目次アイテムクリック時の処理
-        
+
         Args:
             item: クリックされたアイテム
             column: カラム番号
@@ -191,7 +196,7 @@ class HelpDialog(QDialog):
         item_text = item.text(0)
         if item_text in self.help_content:
             self.content_browser.setHtml(self.help_content[item_text])
-    
+
     def _get_welcome_content(self) -> str:
         """ウェルカムコンテンツを取得"""
         return """
@@ -247,7 +252,7 @@ class HelpDialog(QDialog):
         <p><strong>注意:</strong> Qtフレームワークが見つからない場合は、
         エラーメッセージが表示されます。インストール手順に従ってください。</p>
         """
-    
+
     def _get_main_window_content(self) -> str:
         """メインウィンドウのヘルプコンテンツ"""
         return """
@@ -286,7 +291,7 @@ class HelpDialog(QDialog):
         <h3>ステータスバー</h3>
         <p>現在の状態や操作結果を表示します。</p>
         """
-    
+
     def _get_new_theme_content(self) -> str:
         """新規テーマ作成のヘルプコンテンツ"""
         return """
@@ -325,7 +330,7 @@ class HelpDialog(QDialog):
             <li>定期的に保存することをお勧めします</li>
         </ul>
         """
-    
+
     def _get_save_load_content(self) -> str:
         """保存・読み込みのヘルプコンテンツ"""
         return """
@@ -374,7 +379,7 @@ class HelpDialog(QDialog):
         アプリケーションが予期せず終了した場合でも、
         次回起動時に復旧オプションが表示されます。</p>
         """
-    
+
     def _get_color_setting_content(self) -> str:
         """色設定のヘルプコンテンツ"""
         return """
@@ -418,7 +423,7 @@ class HelpDialog(QDialog):
         WCAG準拠のテーマを作成するには、
         ゼブラパターンエディターの使用をお勧めします。</p>
         """
-    
+
     def _get_font_setting_content(self) -> str:
         """フォント設定のヘルプコンテンツ"""
         return """
@@ -528,7 +533,7 @@ class HelpDialog(QDialog):
             <li><strong>カスタムプロパティ</strong>: 独自プロパティの追加</li>
         </ul>
         """
-    
+
     def _get_realtime_preview_content(self) -> str:
         """リアルタイムプレビューのヘルプコンテンツ"""
         return """
@@ -586,7 +591,7 @@ class HelpDialog(QDialog):
         <p>大きなテーマファイルでも快適に動作するよう、
         効率的な更新アルゴリズムを使用しています。</p>
         """
-    
+
     def _get_wcag_content(self) -> str:
         """WCAG準拠のヘルプコンテンツ"""
         return """
@@ -641,7 +646,7 @@ class HelpDialog(QDialog):
             <li>代替色の自動生成</li>
         </ul>
         """
-    
+
     def _get_contrast_content(self) -> str:
         """コントラスト比計算のヘルプコンテンツ"""
         return """
@@ -762,7 +767,7 @@ class HelpDialog(QDialog):
             <li>個人の好みを反映</li>
         </ul>
         """
-    
+
     def _get_accessibility_level_content(self) -> str:
         """アクセシビリティレベルのヘルプコンテンツ"""
         return """
@@ -831,7 +836,7 @@ class HelpDialog(QDialog):
             <li>改善優先度の表示</li>
         </ul>
         """
-    
+
     def _get_live_preview_content(self) -> str:
         """ライブプレビューのヘルプコンテンツ"""
         return """
@@ -989,7 +994,7 @@ class HelpDialog(QDialog):
             <li>異なるサイズでの表示を確認</li>
         </ul>
         """
-    
+
     def _get_preview_export_content(self) -> str:
         """プレビュー画像エクスポートのヘルプコンテンツ"""
         return """
@@ -1080,7 +1085,7 @@ class HelpDialog(QDialog):
             <li>複数の背景色での表示</li>
         </ul>
         """
-    
+
     def _get_responsive_test_content(self) -> str:
         """レスポンシブテストのヘルプコンテンツ"""
         return """
@@ -1269,7 +1274,7 @@ class HelpDialog(QDialog):
             <li>重複チェック機能</li>
         </ul>
         """
-    
+
     def _get_import_export_content(self) -> str:
         """インポート・エクスポートのヘルプコンテンツ"""
         return """
@@ -1474,7 +1479,7 @@ class HelpDialog(QDialog):
             <li>独自スタイルの追加</li>
         </ul>
         """
-    
+
     def _get_recent_themes_content(self) -> str:
         """最近使用したテーマのヘルプコンテンツ"""
         return """
@@ -1574,7 +1579,7 @@ class HelpDialog(QDialog):
             <li>アプリケーションの再起動</li>
         </ul>
         """
-    
+
     def _get_undo_redo_content(self) -> str:
         """Undo/Redo操作のヘルプコンテンツ"""
         return """
@@ -1816,7 +1821,7 @@ class HelpDialog(QDialog):
             <li><strong>リセット</strong>: デフォルト設定への復元</li>
         </ul>
         """
-    
+
     def _get_shortcuts_content(self) -> str:
         """キーボードショートカットのヘルプコンテンツ"""
         return """
@@ -1910,7 +1915,7 @@ class HelpDialog(QDialog):
             <li>デフォルト設定への復元機能</li>
         </ul>
         """
-    
+
     def _get_troubleshooting_content(self) -> str:
         """トラブルシューティングのヘルプコンテンツ"""
         return """
