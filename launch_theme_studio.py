@@ -91,6 +91,7 @@ def print_help() -> None:
     print("  --config-dir PATH    設定ディレクトリのパス")
     print("  --theme PATH         起動時に読み込むテーマファイル")
     print("  --debug             デバッグモードで起動")
+    print("  --headless          ヘッドレスモードで起動（GUI表示なし、テスト用）")
     print("  --version           バージョン情報を表示")
     print("  --help              このヘルプメッセージを表示")
     print()
@@ -99,6 +100,7 @@ def print_help() -> None:
     print("  python launch_theme_studio.py --debug")
     print("  python launch_theme_studio.py --theme my_theme.json")
     print("  python launch_theme_studio.py --config-dir ~/.qt-theme-studio")
+    print("  python launch_theme_studio.py --headless --debug  # SSH環境でのテスト用")
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -140,6 +142,12 @@ def parse_arguments() -> argparse.Namespace:
         '--help',
         action='store_true',
         help='このヘルプメッセージを表示'
+    )
+    
+    parser.add_argument(
+        '--headless',
+        action='store_true',
+        help='ヘッドレスモードで起動（GUI表示なし、テスト用）'
     )
     
     return parser.parse_args()

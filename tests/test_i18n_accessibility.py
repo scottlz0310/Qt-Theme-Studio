@@ -31,6 +31,8 @@ class TestI18nManager(unittest.TestCase):
         
         # QApplicationのモック
         mock_app = Mock()
+        # translateメソッドが適切な値を返すように設定
+        mock_app.translate.side_effect = lambda context, text: text  # 翻訳なしで元のテキストを返す
         self.qt_adapter.get_qt_modules.return_value['QtWidgets'].QApplication.instance.return_value = mock_app
         
         self.i18n_manager = I18nManager(self.qt_adapter)
@@ -218,9 +220,17 @@ class TestAccessibilityManager(unittest.TestCase):
     def setUp(self):
         """テストセットアップ"""
         self.qt_adapter = Mock()
+        
+        # QApplicationのモックを設定
+        mock_app = Mock()
+        mock_app.styleSheet.return_value = ""  # 空文字列を返す
+        
+        mock_qt_widgets = Mock()
+        mock_qt_widgets.QApplication.instance.return_value = mock_app
+        
         self.qt_adapter.get_qt_modules.return_value = {
             'QtCore': Mock(),
-            'QtWidgets': Mock(),
+            'QtWidgets': mock_qt_widgets,
             'QtGui': Mock()
         }
         

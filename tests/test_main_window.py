@@ -177,7 +177,7 @@ class TestMainWindow:
         main_window.create_window()
         
         # ウィンドウタイトルが設定されていることを確認
-        main_window.main_window.setWindowTitle.assert_called_with("Qt-Theme-Studio - テーマエディター")
+        main_window.main_window.setWindowTitle.assert_called_with("Qt-Theme-Studio - デフォルトテーマ *")
         
         # ウィンドウサイズが設定されていることを確認
         main_window.main_window.resize.assert_called()

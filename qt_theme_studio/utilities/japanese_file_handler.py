@@ -259,10 +259,15 @@ class JapaneseFileHandler:
             # Unicode正規化
             safe_name = unicodedata.normalize('NFC', filename)
             
-            # 無効な文字を置換
+            # 無効な文字を置換（プラットフォーム共通の基本的な文字）
+            invalid_chars = ['<', '>', ':', '"', '|', '?', '*']
+            for char in invalid_chars:
+                safe_name = safe_name.replace(char, '_')
+            
+            # Windows固有の追加文字
             if sys.platform.startswith('win'):
-                invalid_chars = ['<', '>', ':', '"', '|', '?', '*', '\\', '/']
-                for char in invalid_chars:
+                win_invalid_chars = ['\\', '/']
+                for char in win_invalid_chars:
                     safe_name = safe_name.replace(char, '_')
             
             # 制御文字を削除

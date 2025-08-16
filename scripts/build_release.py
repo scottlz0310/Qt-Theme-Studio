@@ -69,20 +69,35 @@ def check_dependencies():
 
 def run_tests():
     """テストを実行する"""
-    print("=== テストの実行 ===")
+    print("=== 包括的テストスイートの実行 ===")
+    
+    # 環境変数を設定
+    env = os.environ.copy()
+    env['QT_QPA_PLATFORM'] = 'offscreen'
+    env['PYTHONPATH'] = str(PROJECT_ROOT)
     
     try:
-        run_command([
+        # 全テストを実行（高速モード）
+        result = subprocess.run([
             sys.executable, '-m', 'pytest', 
             'tests/', '-v', '--tb=short',
-            '--maxfail=5'  # 5個のテストが失敗したら停止
-        ], check=False)  # テスト失敗でもビルドを継続
-        print("テスト完了")
+            '--maxfail=1',  # 1個でも失敗したら停止（品質保証）
+            '--durations=10',  # 遅いテストトップ10を表示
+            '-x'  # 最初の失敗で停止
+        ], env=env, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            print("✅ 全テストが成功しました！")
+            print(f"実行時間: {result.stdout.split()[-1] if result.stdout else '不明'}")
+        else:
+            print("❌ テストが失敗しました:")
+            print(result.stdout)
+            print(result.stderr)
+            raise RuntimeError("テストスイートが失敗しました。リリースを中止します。")
+            
     except subprocess.CalledProcessError as e:
-        print(f"警告: テストで失敗がありました (終了コード: {e.returncode})")
-        response = input("ビルドを継続しますか？ (y/N): ")
-        if response.lower() != 'y':
-            sys.exit(1)
+        print(f"❌ テスト実行エラー (終了コード: {e.returncode})")
+        raise RuntimeError("テストの実行に失敗しました。リリースを中止します。")
 
 def build_package():
     """Python パッケージをビルドする"""

@@ -35,6 +35,7 @@ class LogCategory(Enum):
     FILE_IO = "ファイル入出力"
     NETWORK = "ネットワーク"
     ERROR = "エラー"
+    TEST = "テスト"
 
 
 class JapaneseFormatter(logging.Formatter):
@@ -77,6 +78,7 @@ class JapaneseFormatter(logging.Formatter):
         japanese_level = self.LEVEL_MAPPING.get(record.levelno, "不明")
         
         # 日時を日本語形式でフォーマット
+        import datetime
         dt = datetime.datetime.fromtimestamp(record.created)
         timestamp = dt.strftime("%Y年%m月%d日 %H:%M:%S")
         

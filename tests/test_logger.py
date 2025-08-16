@@ -61,6 +61,7 @@ class TestJapaneseFormatter:
         try:
             raise ValueError("テスト例外")
         except ValueError:
+            import sys
             record = logging.LogRecord(
                 name="test",
                 level=logging.ERROR,
@@ -68,7 +69,7 @@ class TestJapaneseFormatter:
                 lineno=0,
                 msg="エラーが発生しました",
                 args=(),
-                exc_info=True
+                exc_info=sys.exc_info()  # 実際の例外情報を設定
             )
             record.category = LogCategory.ERROR.value
             

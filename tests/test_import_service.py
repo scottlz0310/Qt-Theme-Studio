@@ -42,8 +42,8 @@ class TestThemeImportService(unittest.TestCase):
         desc_css = self.import_service.get_format_description('.css')
         
         self.assertIn('JSON', desc_json)
-        self.assertIn('QSS', desc_qss)
-        self.assertIn('CSS', desc_css)
+        self.assertIn('Qt Style Sheet', desc_qss)
+        self.assertIn('Cascading Style Sheet', desc_css)
         
     def test_import_json_theme(self):
         """JSONテーマインポートテスト"""

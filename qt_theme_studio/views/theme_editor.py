@@ -361,6 +361,10 @@ class ThemeEditor:
                     preview = main_window.preview_window_instance
                     if hasattr(preview, 'update_preview'):
                         preview.update_preview(main_window.current_theme_data)
+                
+                # テーマが変更されたので未保存状態に設定
+                if hasattr(main_window, '_set_theme_saved_state'):
+                    main_window._set_theme_saved_state(False)
         
         self.logger.debug(f"色が変更されました: {color}, スタイル: {style}", LogCategory.UI)
     
@@ -382,13 +386,24 @@ class ThemeEditor:
         # UIコンポーネントを更新
         if self.color_picker and 'colors' in theme_data:
             colors = theme_data['colors']
-            # スタイルに基づいて色を設定
-            for style_name, color_value in colors.items():
-                if style_name in ['background', 'text', 'primary', 'secondary', 'border', 'accent', 'error', 'warning', 'success']:
-                    self.color_picker.set_color(self.QtGui.QColor(color_value))
-                    self.color_picker.set_style(style_name)  # スタイルも設定
+            
+            # 最初に見つかった有効な色を設定（優先順位付き）
+            priority_colors = ['primary', 'background', 'text', 'secondary', 'accent', 'border', 'error', 'warning', 'success']
+            
+            for style_name in priority_colors:
+                if style_name in colors:
+                    color_value = colors[style_name]
+                    try:
+                        # 色を設定
+                        self.color_picker.set_color(self.QtGui.QColor(color_value))
+                        self.color_picker.set_style(style_name)
+                        break  # 最初の有効な色で停止
+                    except Exception as e:
+                        self.logger.warning(f"色設定に失敗: {style_name}={color_value} - {str(e)}", LogCategory.UI)
+                        continue
         
-
+        # テーマ変更を通知
+        self._notify_theme_changed()
         
         self.logger.info(f"テーマを読み込みました: {theme_data.get('name', '無名')}", LogCategory.UI)
     
@@ -425,6 +440,32 @@ class ThemeEditor:
         self.load_theme(self.current_theme)
         
         self.logger.info("テーマをリセットしました", LogCategory.UI)
+    
+    def set_color_property(self, property_name: str, color_value: str) -> None:
+        """色プロパティを設定します
+        
+        Args:
+            property_name: 色プロパティ名（例: 'primary', 'background'）
+            color_value: 色の値（16進値、例: '#ff0000'）
+        """
+        if 'colors' not in self.current_theme:
+            self.current_theme['colors'] = {}
+        
+        # 色プロパティを更新
+        self.current_theme['colors'][property_name] = color_value
+        
+        # カラーピッカーのUIも更新
+        if self.color_picker:
+            try:
+                self.color_picker.set_color(self.QtGui.QColor(color_value))
+                self.color_picker.set_style(property_name)
+            except Exception as e:
+                self.logger.warning(f"カラーピッカーの更新に失敗: {str(e)}", LogCategory.UI)
+        
+        # テーマ変更を通知
+        self._notify_theme_changed()
+        
+        self.logger.debug(f"色プロパティを設定しました: {property_name}={color_value}", LogCategory.UI)
     
     def _setup_preview_update_timer(self) -> None:
         """プレビュー更新タイマーを設定します"""
