@@ -30,7 +30,7 @@ class WidgetShowcase:
         self.QtCore = qt_modules["QtCore"]
         self.QtGui = qt_modules["QtGui"]
         self.parent = parent
-        # self.logger = get_logger()  # 一時的にコメントアウト
+        self.logger = get_logger()
 
         # UI要素
         self.widget: Optional[Any] = None
@@ -74,7 +74,7 @@ class WidgetShowcase:
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
 
-        # self.logger.debug("ウィジェットショーケースを作成しました", LogCategory.UI)
+        self.logger.debug("ウィジェットショーケースを作成しました", LogCategory.UI)
         return self.widget
 
     def _create_button_widgets(self, layout: Any) -> None:
@@ -693,9 +693,9 @@ class PreviewWindow:
                     "プレビュー更新が500msを超えました: {elapsed_ms}ms", LogCategory.UI
                 )
 
-        except Exception:
+        except Exception as e:
             self.logger.error(
-                "プレビュー更新中にエラーが発生しました: {str()}", LogCategory.UI
+                f"プレビュー更新中にエラーが発生しました: {e}", LogCategory.UI
             )
         finally:
             self.pending_theme_data = None
@@ -733,16 +733,16 @@ class PreviewWindow:
                 else:
                     raise Exception("画像の保存に失敗しました")
 
-        except Exception:
+        except Exception as e:
             self.logger.error(
-                "プレビュー画像のエクスポートに失敗しました: {str()}", LogCategory.UI
+                f"プレビュー画像のエクスポートに失敗しました: {e}", LogCategory.UI
             )
 
             # エラーメッセージを表示
             self.QtWidgets.QMessageBox.critical(
                 self.widget,
                 "エクスポートエラー",
-                "プレビュー画像のエクスポートに失敗しました:\\n{str()}",
+                "プレビュー画像のエクスポートに失敗しました",
             )
 
     def get_widget_showcase(self) -> Optional[WidgetShowcase]:
@@ -823,10 +823,10 @@ class PreviewWindow:
                 LogCategory.UI,
             )
 
-        except Exception:
-            results["error"] = ""
+        except Exception as e:
+            results["error"] = str(e)
             self.logger.error(
-                "レスポンシブレイアウトテストでエラーが発生しました: {str()}",
+                f"レスポンシブレイアウトテストでエラーが発生しました: {e}",
                 LogCategory.UI,
             )
         finally:
