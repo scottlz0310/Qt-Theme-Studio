@@ -170,7 +170,7 @@ class QtThemeStudioMainWindow(QMainWindow):
                 f"padding: 5px;"
             )
             preset_btn.clicked.connect(
-                lambda checked, c=color: self.apply_preset_color(c)
+                lambda c=color: self.apply_preset_color(c)
             )
             preset_layout.addWidget(preset_btn)
 

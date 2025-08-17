@@ -126,10 +126,10 @@ class QtAdapter:
             QtFrameworkNotFoundError: Qtフレームワークが検出されていない場合
         """
         qt_modules = self.get_qt_modules()
-        QtWidgets = qt_modules["QtWidgets"]
+        qt_widgets = qt_modules["QtWidgets"]
 
         # 既存のQApplicationインスタンスをチェック
-        existing_app = QtWidgets.QApplication.instance()
+        existing_app = qt_widgets.QApplication.instance()
         if existing_app:
             self.logger.info("既存のQApplicationインスタンスを使用します")
             self._application = existing_app
@@ -137,7 +137,7 @@ class QtAdapter:
 
         # 新しいQApplicationインスタンスを作成
         try:
-            app = QtWidgets.QApplication(sys.argv)
+            app = qt_widgets.QApplication(sys.argv)
             app.setApplicationName(app_name)
             app.setApplicationDisplayName(app_name)
             app.setApplicationVersion("1.0.0")
@@ -160,18 +160,18 @@ class QtAdapter:
         """
         framework = self.detect_qt_framework()
         qt_modules = self.get_qt_modules()
-        QtCore = qt_modules["QtCore"]
+        qt_core = qt_modules["QtCore"]
 
         info = {"name": framework, "version": "unknown"}
 
         try:
             # フレームワークのバージョン情報を取得
-            if hasattr(QtCore, "qVersion"):
-                info["version"] = QtCore.qVersion()
-            elif hasattr(QtCore, "__version__"):
-                info["version"] = QtCore.__version__
+            if hasattr(qt_core, "qVersion"):
+                info["version"] = qt_core.qVersion()
+            elif hasattr(qt_core, "__version__"):
+                info["version"] = qt_core.__version__
         except Exception:
-            self.logger.debug("バージョン情報の取得に失敗しました: {e}")
+            self.logger.debug("バージョン情報の取得に失敗しました")
 
         return info
 

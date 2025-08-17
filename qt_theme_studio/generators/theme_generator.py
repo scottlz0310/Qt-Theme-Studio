@@ -120,22 +120,22 @@ class ThemeGenerator:
 
     def _generate_contrasting_color(self, base_color: QColor, contrast_ratio: float) -> QColor:
         """基準色から指定されたコントラスト比の色を生成"""
-        h, s, l, a = base_color.getHsl()
+        h, s, lightness, a = base_color.getHsl()
 
         # コントラスト比に基づいて明度を調整
         if contrast_ratio > 0.5:
             # 高いコントラスト(明るい色)
-            new_l = min(255, l + (255 - l) * contrast_ratio)
+            new_lightness = min(255, lightness + (255 - lightness) * contrast_ratio)
         else:
             # 低いコントラスト(暗い色)
-            new_l = max(0, l * contrast_ratio)
+            new_lightness = max(0, lightness * contrast_ratio)
 
         # 彩度も少し調整
         new_s = min(255, s * 1.2)
 
         # 新しい色を作成
         contrasting_color = QColor()
-        contrasting_color.setHsl(int(h), int(new_s), int(new_l), int(a))
+        contrasting_color.setHsl(int(h), int(new_s), int(new_lightness), int(a))
         return contrasting_color
 
     def _adjust_color(self, color: QColor, brightness: int, saturation: int) -> QColor:

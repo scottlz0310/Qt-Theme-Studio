@@ -66,15 +66,15 @@ class ThemeAdapter:
             self.logger.info("qt-theme-managerライブラリを正常に初期化しました")
             return True
 
-        except ImportError:
+        except ImportError as e:
             error_msg = (
                 "qt-theme-managerライブラリが見つかりません。"
                 "以下のコマンドでインストールしてください:\n"
                 "pip install git+https://github.com/scottlz0310/"
                 "Qt-Theme-Manager.git"
             )
-            self.logger.error("{error_msg}\n詳細: {str(e)}")
-            raise ThemeManagerError(error_msg)
+            self.logger.error(f"{error_msg}\n詳細: {e!s}")
+            raise ThemeManagerError(error_msg) from e
         except Exception as e:
             error_msg = "qt-theme-managerライブラリの初期化に失敗しました: " "{str(e)}"
             self.logger.error(error_msg)
@@ -196,7 +196,9 @@ class ThemeAdapter:
             self.logger.error(error_msg)
             raise ThemeExportError(error_msg) from e
 
-    def import_theme(self, file_path: str, _format_type: str = None) -> dict[str, Any]:
+    def import_theme(
+        self, file_path: str, _format_type: Optional[str] = None
+    ) -> dict[str, Any]:
         """テーマファイルをインポートする
 
         Args:
@@ -210,7 +212,7 @@ class ThemeAdapter:
         """
         try:
             # ImportServiceを使用してインポート
-            from ..services.import_service import ThemeImportService
+            from qt_theme_studio.services.import_service import ThemeImportService
 
             import_service = ThemeImportService()
             theme_data = import_service.import_theme(file_path)
@@ -267,11 +269,11 @@ class ThemeAdapter:
         except json.JSONDecodeError as e:
             error_msg = f"JSONファイルの解析に失敗しました: {e}"
             self.logger.error(error_msg)
-            raise ThemeLoadError(error_msg)
+            raise ThemeLoadError(error_msg) from e
         except Exception as e:
             error_msg = f"JSONファイルの読み込みに失敗しました: {e}"
             self.logger.error(error_msg)
-            raise ThemeLoadError(error_msg)
+            raise ThemeLoadError(error_msg) from e
 
     def _load_qss_theme(self, theme_path: Path) -> dict[str, Any]:
         """QSS形式のテーマファイルを読み込む"""
@@ -292,10 +294,10 @@ class ThemeAdapter:
             self.logger.info("QSSテーマファイルを読み込みました: {theme_path}")
             return theme_data
 
-        except Exception:
-            error_msg = "QSSファイルの読み込みに失敗しました: {e}"
+        except Exception as e:
+            error_msg = f"QSSファイルの読み込みに失敗しました: {e}"
             self.logger.error(error_msg)
-            raise ThemeLoadError(error_msg)
+            raise ThemeLoadError(error_msg) from e
 
     def _load_css_theme(self, theme_path: Path) -> dict[str, Any]:
         """CSS形式のテーマファイルを読み込む"""
@@ -316,19 +318,19 @@ class ThemeAdapter:
             self.logger.info("CSSテーマファイルを読み込みました: {theme_path}")
             return theme_data
 
-        except Exception:
-            error_msg = "CSSファイルの読み込みに失敗しました: {e}"
+        except Exception as e:
+            error_msg = f"CSSファイルの読み込みに失敗しました: {e}"
             self.logger.error(error_msg)
-            raise ThemeLoadError(error_msg)
+            raise ThemeLoadError(error_msg) from e
 
     def _export_to_json(self, theme_data: dict[str, Any]) -> str:
         """テーマデータをJSON形式でエクスポートする"""
         try:
             return json.dumps(theme_data, ensure_ascii=False, indent=2)
-        except Exception:
-            error_msg = "JSON形式でのエクスポートに失敗しました: {str(e)}"
+        except Exception as e:
+            error_msg = f"JSON形式でのエクスポートに失敗しました: {e!s}"
             self.logger.error(error_msg)
-            raise ThemeExportError(error_msg)
+            raise ThemeExportError(error_msg) from e
 
     def _export_to_qss(self, theme_data: dict[str, Any]) -> str:
         """テーマデータをQSS形式でエクスポートする"""
@@ -340,10 +342,10 @@ class ThemeAdapter:
             # テーマデータからQSSを生成
             return self._generate_qss_from_theme(theme_data)
 
-        except Exception:
-            error_msg = "QSS形式でのエクスポートに失敗しました: {str(e)}"
+        except Exception as e:
+            error_msg = f"QSS形式でのエクスポートに失敗しました: {e!s}"
             self.logger.error(error_msg)
-            raise ThemeExportError(error_msg)
+            raise ThemeExportError(error_msg) from e
 
     def _export_to_css(self, theme_data: dict[str, Any]) -> str:
         """テーマデータをCSS形式でエクスポートする"""
@@ -355,10 +357,10 @@ class ThemeAdapter:
             # テーマデータからCSSを生成
             return self._generate_css_from_theme(theme_data)
 
-        except Exception:
-            error_msg = "CSS形式でのエクスポートに失敗しました: {str(e)}"
+        except Exception as e:
+            error_msg = f"CSS形式でのエクスポートに失敗しました: {e!s}"
             self.logger.error(error_msg)
-            raise ThemeExportError(error_msg)
+            raise ThemeExportError(error_msg) from e
 
     def _validate_theme_data(self, theme_data: dict[str, Any]) -> None:
         """テーマデータの基本的な検証を行う"""

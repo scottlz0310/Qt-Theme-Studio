@@ -4,6 +4,7 @@
 このモジュールは、Qt-Theme-Studioアプリケーションのプレビュー機能を提供します。
 """
 
+from contextlib import suppress
 from typing import Any, Callable, Optional
 
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
@@ -364,10 +365,8 @@ class WidgetShowcase:
 
             # 子ウィジェットにもパレットを適用
             for child in self.widget.findChildren(self.QtWidgets.QWidget):
-                try:
+                with suppress(Exception):
                     child.setPalette(palette)
-                except:
-                    pass
 
             # 強制的に再描画を実行
             self.widget.update()
@@ -375,11 +374,9 @@ class WidgetShowcase:
 
             # 子ウィジェットも再描画
             for child in self.widget.findChildren(self.QtWidgets.QWidget):
-                try:
+                with suppress(Exception):
                     child.update()
                     child.repaint()
-                except:
-                    pass
 
             self.logger.info("パレットを直接操作してテーマを適用し、強制再描画を実行しました")
 
@@ -509,7 +506,7 @@ class WidgetShowcase:
 
             # 基本モードでスタイルシート生成(プレビュー用)
             generator = qt_theme_manager.StylesheetGenerator(
-                self._convert_to_qt_theme_manager_format(theme_data), 
+                self._convert_to_qt_theme_manager_format(theme_data),
                 advanced_mode=False
             )
             stylesheet = generator.generate_qss()
@@ -774,7 +771,7 @@ class PreviewWindow:
         """
         return self.widget
 
-    def test_responsive_layout(self, sizes: list[tuple] = None) -> dict[str, Any]:
+    def test_responsive_layout(self, sizes: Optional[list[tuple]] = None) -> dict[str, Any]:
         """レスポンシブレイアウトテストを実行します
 
         Args:

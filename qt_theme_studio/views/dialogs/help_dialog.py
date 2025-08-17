@@ -22,7 +22,7 @@ QLabel = qt_modules["QtWidgets"].QLabel
 QFrame = qt_modules["QtWidgets"].QFrame
 Qt = qt_modules["QtCore"].Qt
 QSize = qt_modules["QtCore"].QSize
-pyqtSignal = (
+pyqt_signal = (
     qt_modules["QtCore"].pyqtSignal
     if "pyqtSignal" in qt_modules["QtCore"].__dict__
     else qt_modules["QtCore"].Signal
