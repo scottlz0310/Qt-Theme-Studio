@@ -6,7 +6,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, 
+from typing import Any
 
 
 def create_sample_theme(name: str = "Test Theme") -> dict[str, Any]:
@@ -81,13 +81,13 @@ def create_minimal_theme(name: str = "Minimal Theme") -> dict[str, Any]:
 def save_theme_to_file(theme: dict[str, Any], file_path: Path) -> None:
     """テーマをファイルに保存"""
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(file_path, 'w', encoding='utf-8') as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         json.dump(theme, f, indent=2, ensure_ascii=False)
 
 
 def load_theme_from_file(file_path: Path) -> dict[str, Any]:
     """ファイルからテーマを読み込み"""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding="utf-8") as f:
         return json.load(f)
 
 

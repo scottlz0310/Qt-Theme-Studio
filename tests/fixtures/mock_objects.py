@@ -4,7 +4,7 @@
 テストで使用するモックオブジェクトとヘルパー関数
 """
 
-from typing import Any, 
+from typing import Any
 from unittest.mock import Mock
 
 

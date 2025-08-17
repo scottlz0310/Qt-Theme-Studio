@@ -6,10 +6,12 @@ pytest共通設定ファイル
 
 import os
 import sys
-import pytest
+from collections.abc import Generator
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
-from typing import Any, Generator
+
+import pytest
 
 # プロジェクトルートをPythonパスに追加
 project_root = Path(__file__).parent.parent

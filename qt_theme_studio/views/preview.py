@@ -716,7 +716,7 @@ class PreviewWindow:
                 self.QtWidgets.QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
                 self.QtWidgets.QFileDialog.Option.DontResolveSymlinks    # シンボリックリンクの解決を無効化
             )
-            
+
             if dialog.exec() == self.QtWidgets.QFileDialog.DialogCode.Accepted:
                 file_path = dialog.selectedFiles()[0]
             else:
