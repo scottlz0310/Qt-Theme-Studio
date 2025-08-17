@@ -13,14 +13,14 @@ def fix_imports(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # 未使用のインポートを削除（基本的なもののみ）
+    # 未使用のインポートを削除(基本的なもののみ)
     unused_imports = [
         r'from typing import Type\n',
         r'import typing\.Type\n',
         r'from typing import Union\n',
         r'from typing import Optional\n',
         r'from typing import Tuple\n',
-        r'from typing import List\n',
+        r'from typing import \n',
         r'from typing import Set\n',
         r'import logging\n',
         r'import os\n',
@@ -68,7 +68,7 @@ def fix_variable_names(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # 'l' を 'lightness' に変更（HSL色空間のコンテキストで）
+    # 'l' を 'lightness' に変更(HSL色空間のコンテキストで)
     content = re.sub(r'\bl\b(?=\s*[=,\)])', 'lightness', content)
     
     with open(file_path, 'w', encoding='utf-8') as f:
@@ -105,7 +105,7 @@ def fix_undefined_names(file_path):
 
 
 def fix_redefinitions(file_path):
-    """関数の再定義を修正（コメントアウト）"""
+    """関数の再定義を修正(コメントアウト)"""
     with open(file_path, 'r', encoding='utf-8') as f:
         lines = content.split('\n')
     
@@ -144,10 +144,10 @@ def main():
     python_files = glob.glob('qt_theme_studio/**/*.py', recursive=True)
     python_files.extend(glob.glob('tests/**/*.py', recursive=True))
     
-    print(f"修正対象ファイル数: {len(python_files)}")
+    self.logger.info(f"修正対象ファイル数: {len(python_files)}")
     
     for file_path in python_files:
-        print(f"修正中: {file_path}")
+        self.logger.info(f"修正中: {file_path}")
         
         try:
             # 各種修正を適用
@@ -159,9 +159,9 @@ def main():
             fix_undefined_names(file_path)
             # fix_redefinitions(file_path)  # 複雑なので一旦スキップ
         except Exception as e:
-            print(f"エラー: {file_path} - {e}")
+            self.logger.info(f"エラー: {file_path} - {e}")
     
-    print("修正完了!")
+    self.logger.info(f"修正完了!")
 
 
 if __name__ == '__main__':

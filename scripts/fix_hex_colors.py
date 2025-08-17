@@ -12,10 +12,10 @@ def fix_hex_colors(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # 7桁の16進数カラーコードを6桁に修正（#fffffff -> #ffffff）
+    # 7桁の16進数カラーコードを6桁に修正(#fffffff -> #ffffff)
     content = re.sub(r'#fffffff(?=\b|$)', '#ffffff', content, flags=re.IGNORECASE)
     
-    # 5桁の16進数カラーコードを6桁に修正（#fffff -> #ffffff）
+    # 5桁の16進数カラーコードを6桁に修正(#fffff -> #ffffff)
     content = re.sub(r'#fffff(?=\b|$)', '#ffffff', content, flags=re.IGNORECASE)
     
     # その他の5桁の16進数カラーコードも修正

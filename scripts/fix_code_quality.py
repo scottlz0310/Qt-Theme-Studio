@@ -34,7 +34,7 @@ def fix_whitespace_issues(file_path):
 
 
 def fix_long_lines(file_path):
-    """長い行を修正（基本的な修正のみ）"""
+    """長い行を修正(基本的な修正のみ)"""
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -75,7 +75,7 @@ def fix_long_lines(file_path):
                 fixed_lines.append(line)
                 continue
                 
-            # その他の長い行はそのまま（手動修正が必要）
+            # その他の長い行はそのまま(手動修正が必要)
             fixed_lines.append(line)
         else:
             fixed_lines.append(line)

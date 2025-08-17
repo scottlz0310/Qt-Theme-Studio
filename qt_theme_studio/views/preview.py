@@ -4,7 +4,7 @@
 このモジュールは、Qt-Theme-Studioアプリケーションのプレビュー機能を提供します。
 """
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
 from qt_theme_studio.adapters.theme_adapter import ThemeAdapter
@@ -14,10 +14,10 @@ from qt_theme_studio.logger import LogCategory, get_logger
 class WidgetShowcase:
     """ウィジェットショーケースコンポーネント
 
-    包括的なQtウィジェットセット（QPushButton、QLineEdit、QComboBox等）のプレビュー表示を提供します。
+    包括的なQtウィジェットセット(QPushButton、QLineEdit、QComboBox等)のプレビュー表示を提供します。
     """
 
-    def __init__(self, qt_modules: Dict[str, Any], parent=None):
+    def __init__(self, qt_modules: dict[str, Any], parent=None):
         """ウィジェットショーケースを初期化します
 
         Args:
@@ -29,11 +29,11 @@ class WidgetShowcase:
         self.QtCore = qt_modules["QtCore"]
         self.QtGui = qt_modules["QtGui"]
         self.parent = parent
-        self.logger = get_logger()
+        # self.logger = get_logger()  # 一時的にコメントアウト
 
         # UI要素
         self.widget: Optional[Any] = None
-        self.widgets: Dict[str, Any] = {}
+        self.widgets: dict[str, Any] = {}
 
     def create_widget(self) -> Any:
         """ウィジェットショーケースを作成します
@@ -73,7 +73,7 @@ class WidgetShowcase:
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
 
-        self.logger.debug("ウィジェットショーケースを作成しました", LogCategory.UI)
+        # self.logger.debug("ウィジェットショーケースを作成しました", LogCategory.UI)
         return self.widget
 
     def _create_button_widgets(self, layout: Any) -> None:
@@ -287,15 +287,14 @@ class WidgetShowcase:
 
         layout.addWidget(group)
 
-    def get_all_widgets(self) -> Dict[str, Any]:
+    def get_all_widgets(self) -> dict[str, Any]:
         """すべてのウィジェットを取得します
 
-        Returns:
-            Dict[str, Any]: ウィジェット辞書
+        Returns: dict[str, Any]: ウィジェット辞書
         """
         return self.widgets.copy()
 
-    def apply_theme_to_widgets(self, theme_data: Dict[str, Any]) -> None:
+    def apply_theme_to_widgets(self, theme_data: dict[str, Any]) -> None:
         """ウィジェットにテーマを適用します
 
         Args:
@@ -306,37 +305,37 @@ class WidgetShowcase:
 
         # 基本的なスタイルシートを生成
         stylesheet = self._generate_stylesheet_from_theme(theme_data)
-        
+
         # デバッグ情報を出力
-        print("生成されたスタイルシート:")
-        print(stylesheet)
-        print(f"ウィジェット: {self.widget}")
-        print(f"ウィジェットのクラス: {type(self.widget)}")
+        self.logger.info("生成されたスタイルシート:")
+        self.logger.info(stylesheet)
+        self.logger.info(f"ウィジェット: {self.widget}")
+        self.logger.info(f"ウィジェットのクラス: {type(self.widget)}")
 
         # ウィジェット全体にスタイルシートを適用
         self.widget.setStyleSheet(stylesheet)
-        
+
         # スタイルシートが効かない場合の代替手段: パレットを直接操作
         self._apply_theme_via_palette(theme_data)
 
         # デバッグ: 実際のウィジェットの色を確認
         self._debug_widget_colors()
-        
+
         self.logger.debug("ウィジェットにテーマを適用しました", LogCategory.UI)
-    
-    def _apply_theme_via_palette(self, theme_data: Dict[str, Any]) -> None:
-        """パレットを直接操作してテーマを適用（スタイルシートの代替手段）"""
+
+    def _apply_theme_via_palette(self, theme_data: dict[str, Any]) -> None:
+        """パレットを直接操作してテーマを適用(スタイルシートの代替手段)"""
         if not self.widget or not theme_data:
             return
-        
+
         try:
             colors = theme_data.get("colors", {})
             if not colors:
                 return
-            
+
             # 新しいパレットを作成
             palette = self.widget.palette()
-            
+
             # 背景色を設定
             if "background" in colors:
                 bg_color = self.QtGui.QColor(colors["background"])
@@ -346,34 +345,34 @@ class WidgetShowcase:
                 palette.setColor(palette.ColorRole.Light, bg_color)
                 palette.setColor(palette.ColorRole.Mid, bg_color)
                 palette.setColor(palette.ColorRole.Dark, bg_color)
-            
+
             # テキスト色を設定
             if "text" in colors:
                 text_color = self.QtGui.QColor(colors["text"])
                 palette.setColor(palette.ColorRole.WindowText, text_color)
                 palette.setColor(palette.ColorRole.Text, text_color)
                 palette.setColor(palette.ColorRole.ButtonText, text_color)
-            
+
             # プライマリ色を設定
             if "primary" in colors:
                 primary_color = self.QtGui.QColor(colors["primary"])
                 palette.setColor(palette.ColorRole.Highlight, primary_color)
                 palette.setColor(palette.ColorRole.Link, primary_color)
-            
+
             # パレットをウィジェットに適用
             self.widget.setPalette(palette)
-            
+
             # 子ウィジェットにもパレットを適用
             for child in self.widget.findChildren(self.QtWidgets.QWidget):
                 try:
                     child.setPalette(palette)
                 except:
                     pass
-            
+
             # 強制的に再描画を実行
             self.widget.update()
             self.widget.repaint()
-            
+
             # 子ウィジェットも再描画
             for child in self.widget.findChildren(self.QtWidgets.QWidget):
                 try:
@@ -381,122 +380,122 @@ class WidgetShowcase:
                     child.repaint()
                 except:
                     pass
-            
-            print("パレットを直接操作してテーマを適用し、強制再描画を実行しました")
-            
+
+            self.logger.info("パレットを直接操作してテーマを適用し、強制再描画を実行しました")
+
         except Exception as e:
-            print(f"パレット操作でエラー: {e}")
-    
+            self.logger.info(f"パレット操作でエラー: {e}")
+
     def _debug_widget_colors(self):
         """ウィジェットの実際の色をデバッグ出力"""
         if not self.widget:
             return
-        
+
         try:
             # ウィジェットのパレットを取得
             palette = self.widget.palette()
-            
-            print("\n=== ウィジェットの実際の色 ===")
-            print(f"ウィジェット: {self.widget}")
-            print(f"ウィジェットのクラス: {type(self.widget)}")
-            
+
+            self.logger.info("\n=== ウィジェットの実際の色 ===")
+            self.logger.info(f"ウィジェット: {self.widget}")
+            self.logger.info(f"ウィジェットのクラス: {type(self.widget)}")
+
             # 背景色
             bg_color = palette.color(palette.ColorRole.Window)
-            print(f"背景色 (Window): {bg_color.name()}")
-            
+            self.logger.info(f"背景色 (Window): {bg_color.name()}")
+
             # テキスト色
             text_color = palette.color(palette.ColorRole.WindowText)
-            print(f"テキスト色 (WindowText): {text_color.name()}")
-            
+            self.logger.info(f"テキスト色 (WindowText): {text_color.name()}")
+
             # ベース色
             base_color = palette.color(palette.ColorRole.Base)
-            print(f"ベース色 (Base): {base_color.name()}")
-            
+            self.logger.info(f"ベース色 (Base): {base_color.name()}")
+
             # ベーステキスト色
             base_text_color = palette.color(palette.ColorRole.Text)
-            print(f"ベーステキスト色 (Text): {base_text_color.name()}")
-            
+            self.logger.info(f"ベーステキスト色 (Text): {base_text_color.name()}")
+
             # ボタン色
             button_color = palette.color(palette.ColorRole.Button)
-            print(f"ボタン色 (Button): {button_color.name()}")
-            
+            self.logger.info(f"ボタン色 (Button): {button_color.name()}")
+
             # ボタンテキスト色
             button_text_color = palette.color(palette.ColorRole.ButtonText)
-            print(f"ボタンテキスト色 (ButtonText): {button_text_color.name()}")
-            
+            self.logger.info(f"ボタンテキスト色 (ButtonText): {button_text_color.name()}")
+
             # スタイルシートの状態
             stylesheet = self.widget.styleSheet()
-            print(f"現在のスタイルシート: {stylesheet[:200]}...")
-            
+            self.logger.info(f"現在のスタイルシート: {stylesheet[:200]}...")
+
             # スタイルシートの有効性をチェック
-            print("\n--- スタイルシートの有効性チェック ---")
-            print(f"スタイルシートが空: {not bool(stylesheet)}")
-            print(f"スタイルシートの長さ: {len(stylesheet)}")
-            
+            self.logger.info("\n--- スタイルシートの有効性チェック ---")
+            self.logger.info(f"スタイルシートが空: {not bool(stylesheet)}")
+            self.logger.info(f"スタイルシートの長さ: {len(stylesheet)}")
+
             # ウィジェットのスタイル状態
-            print(f"ウィジェットのスタイル: {self.widget.style()}")
-            print(f"ウィジェットのスタイルオブジェクト: {self.widget.style().objectName()}")
-            
+            self.logger.info(f"ウィジェットのスタイル: {self.widget.style()}")
+            self.logger.info(f"ウィジェットのスタイルオブジェクト: {self.widget.style().objectName()}")
+
             # スタイルシートが無効化されていないか
-            print(f"スタイルシートが無効: {self.widget.property('styleSheetDisabled')}")
-            
+            self.logger.info(f"スタイルシートが無効: {self.widget.property('styleSheetDisabled')}")
+
             # ウィジェットのプロパティ
-            print(f"ウィジェットのプロパティ: {self.widget.dynamicPropertyNames()}")
-            
+            self.logger.info(f"ウィジェットのプロパティ: {self.widget.dynamicPropertyNames()}")
+
             # Qtのスタイルエンジンの状態
-            print("\n--- Qtスタイルエンジンの状態 ---")
-            print(f"QApplicationのスタイル: {self.QtWidgets.QApplication.instance().style().objectName()}")
-            print(f"ウィジェットのスタイルシートプロパティ: "
+            self.logger.info("\n--- Qtスタイルエンジンの状態 ---")
+            self.logger.info(f"QApplicationのスタイル: {self.QtWidgets.QApplication.instance().style().objectName()}")
+            self.logger.info(f"ウィジェットのスタイルシートプロパティ: "
                   f"{self.widget.property('styleSheet')}")
-            print(f"ウィジェットのスタイルシートが空: {not bool(self.widget.styleSheet())}")
-            
+            self.logger.info(f"ウィジェットのスタイルシートが空: {not bool(self.widget.styleSheet())}")
+
             # 強制的にスタイルシートを再適用
-            print("\n--- スタイルシートの強制再適用 ---")
+            self.logger.info("\n--- スタイルシートの強制再適用 ---")
             self.widget.setStyleSheet("")  # 一旦クリア
             self.widget.setStyleSheet(stylesheet)  # 再適用
-            print("スタイルシートを強制再適用しました")
-            
+            self.logger.info("スタイルシートを強制再適用しました")
+
             # 再適用後の状態を確認
-            print(f"再適用後のスタイルシート: {self.widget.styleSheet()[:100]}...")
-            
+            self.logger.info(f"再適用後のスタイルシート: {self.widget.styleSheet()[:100]}...")
+
             # 子ウィジェットの色も確認
-            print("\n--- 子ウィジェットの色 ---")
+            self.logger.info("\n--- 子ウィジェットの色 ---")
             for child in self.widget.findChildren(self.QtWidgets.QWidget):
                 try:
                     child_palette = child.palette()
                     child_bg = child_palette.color(child_palette.ColorRole.Window)
                     child_text = child_palette.color(child_palette.ColorRole.WindowText)
-                    
+
                     # 子ウィジェットのスタイルシートもチェック
                     child_stylesheet = child.styleSheet()
                     has_custom_style = bool(child_stylesheet)
-                    
+
                     # ウィジェットの詳細情報
                     child_visible = child.isVisible()
                     child_enabled = child.isEnabled()
                     child_geometry = child.geometry()
-                    
-                    print(f"子ウィジェット {type(child).__name__}: "
+
+                    self.logger.info(f"子ウィジェット {type(child).__name__}: "
                           f"背景={child_bg.name()}, テキスト={child_text.name()}, "
                           f"カスタムスタイル={has_custom_style}, "
                           f"表示={child_visible}, 有効={child_enabled}, "
                           f"位置=({child_geometry.x()},{child_geometry.y()}) "
                           f"サイズ=({child_geometry.width()}x{child_geometry.height()})")
-                    
+
                     # カスタムスタイルがある場合は詳細を表示
                     if has_custom_style:
-                        print(f"  → カスタムスタイルシート: {child_stylesheet[:100]}...")
-                        
-                except Exception as e:
-                    print(f"子ウィジェット {type(child).__name__}: エラー - {e}")
-            
-            print("=" * 40)
-            
-        except Exception as e:
-            print(f"色のデバッグ中にエラー: {e}")
+                        self.logger.info(f"  → カスタムスタイルシート: {child_stylesheet[:100]}...")
 
-    def _generate_stylesheet_from_theme(self, theme_data: Dict[str, Any]) -> str:
-        """テーマデータからスタイルシートを生成します（qt-theme-manager使用）
+                except Exception as e:
+                    self.logger.info(f"子ウィジェット {type(child).__name__}: エラー - {e}")
+
+            self.logger.info("=" * 40)
+
+        except Exception as e:
+            self.logger.info(f"色のデバッグ中にエラー: {e}")
+
+    def _generate_stylesheet_from_theme(self, theme_data: dict[str, Any]) -> str:
+        """テーマデータからスタイルシートを生成します(qt-theme-manager使用)
 
         Args:
             theme_data: テーマデータ
@@ -507,32 +506,31 @@ class WidgetShowcase:
         try:
             # qt-theme-managerのStylesheetGeneratorを使用
             import qt_theme_manager
-            
-            # テーマ設定をqt-theme-manager形式に変換
-            theme_config = self._convert_to_qt_theme_manager_format(theme_data)
-            
-            # 基本モードでスタイルシート生成（プレビュー用）
-            generator = qt_theme_manager.StylesheetGenerator(theme_config, advanced_mode=False)
+
+            # 基本モードでスタイルシート生成(プレビュー用)
+            generator = qt_theme_manager.StylesheetGenerator(
+                self._convert_to_qt_theme_manager_format(theme_data), 
+                advanced_mode=False
+            )
             stylesheet = generator.generate_qss()
-            
+
             self.logger.debug("qt-theme-managerでスタイルシートを生成しました", LogCategory.UI)
             return stylesheet
-            
+
         except Exception as e:
             self.logger.error(
-                f"qt-theme-managerでのスタイルシート生成に失敗: {e}", 
+                f"qt-theme-managerでのスタイルシート生成に失敗: {e}",
                 LogCategory.UI
             )
             # エラーの場合は空のスタイルシートを返す
             return ""
-    
-    def _convert_to_qt_theme_manager_format(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _convert_to_qt_theme_manager_format(self, theme_data: dict[str, Any]) -> dict[str, Any]:
         """Qt-Theme-Studio形式をqt-theme-manager形式に変換"""
         try:
             colors = theme_data.get("colors", {})
-            
-            # qt-theme-managerの標準形式に変換
-            theme_config = {
+
+            return {
                 "name": theme_data.get("name", "Unknown"),
                 "display_name": theme_data.get("display_name", theme_data.get("name", "Unknown")),
                 "description": theme_data.get("description", ""),
@@ -543,59 +541,19 @@ class WidgetShowcase:
                 "button": {
                     "background": colors.get("button_background", colors.get("primary", "#007acc")),
                     "text": colors.get("button_text", colors.get("text", "#ffffff")),
-                    "hover": colors.get("button_hover", colors.get("accent", "#007acc")),
-                    "pressed": colors.get("button_pressed", colors.get("secondary", "#6c757d")),
-                    "border": colors.get("button_border", colors.get("border", "#dee2e6"))
-                },
-                "panel": {
-                    "background": colors.get("panel_background", colors.get("background", "#ffffff")),
-                    "border": colors.get("panel_border", colors.get("border", "#dee2e6")),
-                    "header": {
-                        "background": colors.get("header_background", colors.get("surface", "#f8f9fa")),
-                        "text": colors.get("header_text", colors.get("text", "#333333")),
-                        "border": colors.get("header_border", colors.get("border", "#dee2e6"))
-                    },
-                    "zebra": {
-                        "alternate": colors.get("zebra_alternate", colors.get("surface", "#f8f9fa"))
-                    }
-                },
-                "text": {
-                    "primary": colors.get("text_primary", colors.get("text", "#333333")),
-                    "secondary": colors.get("text_secondary", colors.get("text_muted", "#6c757d")),
-                    "muted": colors.get("text_muted", "#6c757d"),
-                    "heading": colors.get("text_heading", colors.get("text", "#333333")),
-                    "link": colors.get("text_link", colors.get("primary", "#007acc")),
-                    "success": colors.get("text_success", colors.get("success", "#28a745")),
-                    "warning": colors.get("text_warning", colors.get("warning", "#ffc107")),
-                    "error": colors.get("text_error", colors.get("error", "#dc3545"))
                 },
                 "input": {
                     "background": colors.get("input_background", colors.get("background", "#ffffff")),
                     "text": colors.get("input_text", colors.get("text", "#333333")),
-                    "border": colors.get("input_border", colors.get("border", "#dee2e6")),
-                    "focus": colors.get("input_focus", colors.get("primary", "#007acc")),
-                    "placeholder": colors.get("input_placeholder", colors.get("text_muted", "#6c757d"))
-                },
-                "toolbar": {
-                    "background": colors.get("toolbar_background", colors.get("surface", "#f8f9fa")),
-                    "text": colors.get("toolbar_text", colors.get("text", "#333333")),
-                    "border": colors.get("toolbar_border", colors.get("border", "#dee2e6")),
-                    "button": {
-                        "background": colors.get("toolbar_button_background", colors.get("background", "#ffffff")),
-                        "text": colors.get("toolbar_button_text", colors.get("text", "#333333")),
-                        "hover": colors.get("toolbar_button_hover", colors.get("primary", "#007acc")),
-                        "pressed": colors.get("toolbar_button_pressed", colors.get("surface", "#e9ecef"))
-                    }
+                    "border": colors.get("input_border", colors.get("primary", "#007acc")),
                 },
                 "status": {
-                    "background": colors.get("status_background", colors.get("surface", "#f8f9fa")),
-                    "text": colors.get("status_text", colors.get("text_secondary", "#6c757d")),
-                    "border": colors.get("status_border", colors.get("border", "#dee2e6"))
-                }
+                    "background": colors.get("status_background", colors.get("background", "#ffffff")),
+                    "text": colors.get("status_text", colors.get("text", "#333333")),
+                    "border": colors.get("status_border", "#dee2e6"),
+                },
             }
-            
-            return theme_config
-            
+
         except Exception as e:
             self.logger.error(f"テーマ形式変換に失敗: {e}", LogCategory.UI)
             # フォールバック: 基本的な色設定のみ
@@ -638,10 +596,10 @@ class PreviewWindow:
 
         # 更新管理
         self.update_timer: Optional[Any] = None
-        self.pending_theme_data: Optional[Dict[str, Any]] = None
+        self.pending_theme_data: Optional[dict[str, Any]] = None
 
         # コールバック
-        self.theme_applied_callback: Optional[Callable[[Dict[str, Any]], None]] = None
+        self.theme_applied_callback: Optional[Callable[[dict[str, Any]], None]] = None
 
         self.logger.info("プレビューウィンドウを初期化しました", LogCategory.UI)
 
@@ -690,8 +648,8 @@ class PreviewWindow:
 
         self.logger.debug("更新タイマーを設定しました", LogCategory.UI)
 
-    def update_preview(self, theme_data: Dict[str, Any]) -> None:
-        """プレビューを更新します（500ms以内の更新保証とデバウンス処理）
+    def update_preview(self, theme_data: dict[str, Any]) -> None:
+        """プレビューを更新します(500ms以内の更新保証とデバウンス処理)
 
         Args:
             theme_data: 適用するテーマデータ
@@ -702,7 +660,7 @@ class PreviewWindow:
         # 保留中のテーマデータを更新
         self.pending_theme_data = theme_data.copy()
 
-        # タイマーを再開（デバウンス処理）
+        # タイマーを再開(デバウンス処理)
         if self.update_timer:
             self.update_timer.stop()
             self.update_timer.start(100)  # 100msのデバウンス
@@ -729,7 +687,7 @@ class PreviewWindow:
             elapsed_ms = start_time.msecsTo(end_time)
 
             self.logger.debug(
-                "プレビューを更新しました（処理時間: {elapsed_ms}ms）", LogCategory.UI
+                "プレビューを更新しました(処理時間: {elapsed_ms}ms)", LogCategory.UI
             )
 
             # 500ms以内の更新保証をチェック
@@ -799,7 +757,7 @@ class PreviewWindow:
         return self.widget_showcase
 
     def set_theme_applied_callback(
-        self, callback: Callable[[Dict[str, Any]], None]
+        self, callback: Callable[[dict[str, Any]], None]
     ) -> None:
         """テーマ適用コールバックを設定します
 
@@ -816,14 +774,13 @@ class PreviewWindow:
         """
         return self.widget
 
-    def test_responsive_layout(self, sizes: List[tuple] = None) -> Dict[str, Any]:
+    def test_responsive_layout(self, sizes: list[tuple] = None) -> dict[str, Any]:
         """レスポンシブレイアウトテストを実行します
 
         Args:
             sizes: テストするウィンドウサイズのリスト [(width, height), ...]
 
-        Returns:
-            Dict[str, Any]: テスト結果
+        Returns: dict[str, Any]: テスト結果
         """
         if not self.widget:
             return {"error": "プレビューウィンドウが作成されていません"}
@@ -855,7 +812,7 @@ class PreviewWindow:
                     {"size": (width, height), "update_time_ms": elapsed_ms}
                 )
 
-                # レイアウトの問題をチェック（基本的な検証）
+                # レイアウトの問題をチェック(基本的な検証)
                 if elapsed_ms > 100:  # 100ms以上かかった場合は問題として記録
                     results["layout_issues"].append(
                         {
@@ -870,7 +827,7 @@ class PreviewWindow:
             )
 
         except Exception:
-            results["error"] = str()
+            results["error"] = ""
             self.logger.error(
                 "レスポンシブレイアウトテストでエラーが発生しました: {str()}",
                 LogCategory.UI,

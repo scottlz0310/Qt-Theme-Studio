@@ -1,0 +1,80 @@
+name: テスト実行
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Python ${{ matrix.python-version }} の設定
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: 依存関係のインストール
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+    
+    - name: コード品質チェック
+      run: |
+        black --check qt_theme_studio tests
+        isort --check-only qt_theme_studio tests
+        flake8 qt_theme_studio tests
+        mypy qt_theme_studio tests
+    
+    - name: セキュリティチェック
+      run: |
+        bandit -r qt_theme_studio
+        safety check
+    
+    - name: 単体テスト実行
+      run: |
+        python -m pytest tests/unit/ -v --cov=qt_theme_studio --cov-report=xml
+    
+    - name: 統合テスト実行
+      run: |
+        python -m pytest tests/integration/ -v --cov=qt_theme_studio --cov-report=xml
+    
+    - name: カバレッジレポート生成
+      run: |
+        python -m pytest tests/ --cov=qt_theme_studio --cov-report=html --cov-report=term-missing
+    
+    - name: カバレッジレポートのアップロード
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  performance:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Python 3.11 の設定
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: 依存関係のインストール
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+    
+    - name: パフォーマンステスト実行
+      run: |
+        python -m pytest tests/ --benchmark-only --benchmark-skip

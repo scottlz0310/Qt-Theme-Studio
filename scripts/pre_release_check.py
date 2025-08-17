@@ -2,7 +2,7 @@
 """
 Qt-Theme-Studio リリース前チェックスクリプト
 
-このスクリプトは以下の処理を実行します：
+このスクリプトは以下の処理を実行します:
 1. 全テストスイートの実行
 2. コード品質チェック
 3. セキュリティスキャン
@@ -56,7 +56,7 @@ class PreReleaseChecker:
         print("\n=== 📋 包括的テストスイート ===")
         
         try:
-            # logsディレクトリを作成（存在しない場合）
+            # logsディレクトリを作成(存在しない場合)
             logs_dir = Path('logs')
             logs_dir.mkdir(exist_ok=True)
             
@@ -68,7 +68,7 @@ class PreReleaseChecker:
                 '--junit-xml=' + str(logs_dir / 'test-results.xml')
             ], check=False)
             
-            # テストが実行されたかどうかを確認（returncodeは無視）
+            # テストが実行されたかどうかを確認(returncodeは無視)
             if "collected" in result.stdout and "test session starts" in result.stdout:
                 print("✅ テストスイートが実行されました")
                 self.results['checks']['test_suite'] = {
@@ -172,7 +172,7 @@ class PreReleaseChecker:
         
         # Bandit (セキュリティリンティング)
         try:
-            # logsディレクトリを作成（存在しない場合）
+            # logsディレクトリを作成(存在しない場合)
             logs_dir = Path('logs')
             logs_dir.mkdir(exist_ok=True)
             
@@ -232,7 +232,7 @@ class PreReleaseChecker:
                 else:
                     raise ValueError("pyproject.tomlでバージョンが見つかりません")
             
-            # __init__.pyからバージョンを取得（存在する場合）
+            # __init__.pyからバージョンを取得(存在する場合)
             init_file = Path('qt_theme_studio/__init__.py')
             if init_file.exists():
                 with open(init_file, 'r', encoding='utf-8') as f:
@@ -328,7 +328,7 @@ class PreReleaseChecker:
             print(f"\n❌ リリース前チェック失敗: {failed}個の重要な問題があります")
         elif warnings > 0:
             self.results['overall_status'] = 'PASS_WITH_WARNINGS'
-            print(f"\n⚠️ リリース前チェック通過（警告あり): {warnings}個の警告があります")
+            print(f"\n⚠️ リリース前チェック通過(警告あり): {warnings}個の警告があります")
         else:
             self.results['overall_status'] = 'PASS'
             print(f"\n✅ リリース前チェック完全通過: すべてのチェックが成功しました")
@@ -340,7 +340,7 @@ class PreReleaseChecker:
             'total': passed + failed + warnings
         }
         
-        # logsディレクトリを作成（存在しない場合）
+        # logsディレクトリを作成(存在しない場合)
         logs_dir = Path('logs')
         logs_dir.mkdir(exist_ok=True)
         

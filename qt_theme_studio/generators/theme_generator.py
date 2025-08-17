@@ -4,13 +4,14 @@
 背景色から自動的に調和の取れたテーマを生成
 """
 
-from typing import Dict, Any
+from typing import Any
+
 from PySide6.QtGui import QColor
 
 
 class ThemeGenerator:
     """テーマジェネレータクラス"""
-    
+
     def __init__(self):
         """初期化"""
         self.preset_themes = {
@@ -20,13 +21,13 @@ class ThemeGenerator:
                 "description": "暗い背景の低負荷テーマ"
             },
             "light": {
-                "name": "ライトモード", 
+                "name": "ライトモード",
                 "background": "#ffffff",
                 "description": "明るい背景の標準テーマ"
             },
             "blue": {
                 "name": "ブルーモード",
-                "background": "#1e3a5f", 
+                "background": "#1e3a5f",
                 "description": "プロフェッショナルなブルーベーステーマ"
             },
             "green": {
@@ -45,13 +46,13 @@ class ThemeGenerator:
                 "description": "温かみのあるオレンジベーステーマ"
             }
         }
-    
-    def generate_theme_from_background(self, bg_color: QColor) -> Dict[str, Any]:
+
+    def generate_theme_from_background(self, bg_color: QColor) -> dict[str, Any]:
         """背景色から自動的にテーマを生成"""
         # 背景色の明度を取得
         bg_lightness = bg_color.lightness()
         is_dark_bg = bg_lightness < 128
-        
+
         # 背景色から調和の取れた色を生成
         if is_dark_bg:
             # 暗い背景の場合
@@ -65,14 +66,14 @@ class ThemeGenerator:
             accent_color = self._generate_contrasting_color(bg_color, 0.4)
             text_color = QColor("#000000")  # 黒いテキスト
             surface_color = self._adjust_color(bg_color, -20, 0)
-        
+
         # ボタン色を生成
         button_bg = primary_color
         button_text = text_color
         button_hover = self._adjust_color(primary_color, 20, 10)
         button_pressed = self._adjust_color(primary_color, -20, -10)
         button_border = self._adjust_color(primary_color, -10, 0)
-        
+
         # パネル色を生成
         panel_bg = surface_color
         panel_border = self._adjust_color(surface_color, -30, 0)
@@ -80,7 +81,7 @@ class ThemeGenerator:
         header_text = text_color
         header_border = panel_border
         zebra_alternate = self._adjust_color(surface_color, 5, 0)
-        
+
         return {
             "name": "auto_generated",
             "display_name": "自動生成テーマ",
@@ -116,46 +117,46 @@ class ThemeGenerator:
                 }
             }
         }
-    
+
     def _generate_contrasting_color(self, base_color: QColor, contrast_ratio: float) -> QColor:
         """基準色から指定されたコントラスト比の色を生成"""
         h, s, l, a = base_color.getHsl()
-        
+
         # コントラスト比に基づいて明度を調整
         if contrast_ratio > 0.5:
-            # 高いコントラスト（明るい色）
+            # 高いコントラスト(明るい色)
             new_l = min(255, l + (255 - l) * contrast_ratio)
         else:
-            # 低いコントラスト（暗い色）
+            # 低いコントラスト(暗い色)
             new_l = max(0, l * contrast_ratio)
-        
+
         # 彩度も少し調整
         new_s = min(255, s * 1.2)
-        
+
         # 新しい色を作成
         contrasting_color = QColor()
         contrasting_color.setHsl(int(h), int(new_s), int(new_l), int(a))
         return contrasting_color
-    
+
     def _adjust_color(self, color: QColor, brightness: int, saturation: int) -> QColor:
         """色の明度・彩度を調整"""
         h, s, lightness, a = color.getHsl()
-        
-        # 明度調整（-50 to 50）
-        lightness = max(0, min(255, 
+
+        # 明度調整(-50 to 50)
+        lightness = max(0, min(255,
                                lightness + brightness * 2.55))
-        
-        # 彩度調整（-50 to 50）
+
+        # 彩度調整(-50 to 50)
         s = max(0, min(255, s + saturation * 2.55))
-        
+
         adjusted_color = QColor()
         adjusted_color.setHsl(int(h), int(s), int(lightness), int(a))
         return adjusted_color
-    
-    def get_preset_themes(self) -> Dict[str, Dict[str, str]]:
+
+    def get_preset_themes(self) -> dict[str, dict[str, str]]:
         """プリセットテーマを取得"""
         return self.preset_themes
-    
+
     def is_dark_color(self, hex_color: str) -> bool:
         """色が暗いかどうかを判定"""
         color = QColor(hex_color)

@@ -1,15 +1,6 @@
 {
-  "name": "テストテーマ",
-  "version": "1.0.0",
+  "name": "Test Theme",
   "colors": {
-    "background": "#ffffff",
-    "text": "#000000",
-    "primary": "#0066cc"
-  },
-  "fonts": {
-    "default": {
-      "family": "Arial",
-      "size": 12
-    }
+    "primary": "#007acc"
   }
 }

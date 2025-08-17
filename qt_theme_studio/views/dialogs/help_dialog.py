@@ -5,7 +5,6 @@ Qt-Theme-Studioのアプリケーション内ヘルプシステムを提供し�
 日本語でのヘルプコンテンツ表示と機能説明を行います。
 """
 
-from typing import Dict
 
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
 
@@ -70,16 +69,16 @@ class HelpDialog(QDialog):
 
         main_layout.addWidget(header_frame)
 
-        # スプリッター（左：目次、右：コンテンツ）
+        # スプリッター(左:目次、右:コンテンツ)
         splitter = QSplitter(Qt.Horizontal)
 
-        # 左側：目次ツリー
+        # 左側:目次ツリー
         self.toc_tree = QTreeWidget()
         self.toc_tree.setHeaderLabel("目次")
         self.toc_tree.setMaximumWidth(300)
         self._populate_toc()
 
-        # 右側：ヘルプコンテンツ
+        # 右側:ヘルプコンテンツ
         self.content_browser = QTextBrowser()
         self.content_browser.setOpenExternalLinks(False)
 
@@ -151,7 +150,7 @@ class HelpDialog(QDialog):
         # すべてのアイテムを展開
         self.toc_tree.expandAll()
 
-    def _load_help_content(self) -> Dict[str, str]:
+    def _load_help_content(self) -> dict[str, str]:
         """ヘルプコンテンツを読み込み"""
         return {
             "welcome": self._get_welcome_content(),
@@ -185,7 +184,7 @@ class HelpDialog(QDialog):
         """初期コンテンツを読み込み"""
         self.content_browser.setHtml(self.help_content["welcome"])
 
-    def _on_toc_item_clicked(self, item: QTreeWidgetItem, column: int) -> None:
+    def _on_toc_item_clicked(self, item: QTreeWidgetItem, _column: int) -> None:
         """
         目次アイテムクリック時の処理
 
@@ -226,7 +225,7 @@ class HelpDialog(QDialog):
         <h1>アプリケーションの起動</h1>
 
         <h2>起動方法</h2>
-        <p>Qt-Theme-Studioは以下の方法で起動できます：</p>
+        <p>Qt-Theme-Studioは以下の方法で起動できます:</p>
 
         <h3>1. 統合ランチャーを使用</h3>
         <pre>python launch_theme_studio.py</pre>
@@ -242,7 +241,7 @@ class HelpDialog(QDialog):
         </ul>
 
         <h2>初回起動時</h2>
-        <p>初回起動時には、アプリケーションが自動的に以下を行います：</p>
+        <p>初回起動時には、アプリケーションが自動的に以下を行います:</p>
         <ul>
             <li>利用可能なQtフレームワークの検出</li>
             <li>qt-theme-managerライブラリの初期化</li>
@@ -259,7 +258,7 @@ class HelpDialog(QDialog):
         <h1>メインウィンドウの概要</h1>
 
         <h2>ウィンドウ構成</h2>
-        <p>メインウィンドウは以下の要素で構成されています：</p>
+        <p>メインウィンドウは以下の要素で構成されています:</p>
 
         <h3>メニューバー</h3>
         <ul>
@@ -271,7 +270,7 @@ class HelpDialog(QDialog):
         </ul>
 
         <h3>ツールバー</h3>
-        <p>よく使用する機能へのクイックアクセスを提供します：</p>
+        <p>よく使用する機能へのクイックアクセスを提供します:</p>
         <ul>
             <li>新規テーマ作成</li>
             <li>テーマを開く</li>
@@ -281,9 +280,9 @@ class HelpDialog(QDialog):
         </ul>
 
         <h3>作業エリア</h3>
-        <p>中央の作業エリアには、選択したエディターが表示されます：</p>
+        <p>中央の作業エリアには、選択したエディターが表示されます:</p>
         <ul>
-            <li>テーマエディター（デフォルト）</li>
+            <li>テーマエディター(デフォルト)</li>
             <li>ゼブラパターンエディター</li>
             <li>テーマギャラリー</li>
         </ul>
@@ -311,7 +310,7 @@ class HelpDialog(QDialog):
         わかりやすい名前を入力してください。</p>
 
         <h3>3. ベーステンプレートの選択</h3>
-        <p>以下のオプションから選択できます：</p>
+        <p>以下のオプションから選択できます:</p>
         <ul>
             <li><strong>空のテーマ</strong>: ゼロから作成</li>
             <li><strong>ライトテーマ</strong>: 明るい色調のベース</li>
@@ -356,7 +355,7 @@ class HelpDialog(QDialog):
         <ul>
             <li><strong>.json</strong>: Qt-Theme-Studio標準形式</li>
             <li><strong>.qss</strong>: Qt Style Sheet形式</li>
-            <li><strong>.css</strong>: CSS形式（互換性用）</li>
+            <li><strong>.css</strong>: CSS形式(互換性用)</li>
         </ul>
 
         <h2>テーマの読み込み</h2>
@@ -396,7 +395,7 @@ class HelpDialog(QDialog):
         </ul>
 
         <h3>色の種類</h3>
-        <p>以下の色を設定できます：</p>
+        <p>以下の色を設定できます:</p>
         <ul>
             <li><strong>プライマリ色</strong>: メインの色調</li>
             <li><strong>セカンダリ色</strong>: アクセント色</li>
@@ -432,7 +431,7 @@ class HelpDialog(QDialog):
         <h2>フォント選択</h2>
 
         <h3>フォントファミリー</h3>
-        <p>システムにインストールされているフォントから選択できます：</p>
+        <p>システムにインストールされているフォントから選択できます:</p>
         <ul>
             <li>システムフォント一覧から選択</li>
             <li>フォント名の直接入力</li>
@@ -455,7 +454,7 @@ class HelpDialog(QDialog):
         </ul>
 
         <h2>フォントカテゴリ</h2>
-        <p>用途別にフォントを設定できます：</p>
+        <p>用途別にフォントを設定できます:</p>
 
         <h3>UI要素別設定</h3>
         <ul>
@@ -503,7 +502,7 @@ class HelpDialog(QDialog):
         </ul>
 
         <h2>ウィジェット別設定</h2>
-        <p>Qtウィジェットごとに個別の設定が可能です：</p>
+        <p>Qtウィジェットごとに個別の設定が可能です:</p>
 
         <h3>ボタン系</h3>
         <ul>
@@ -553,11 +552,11 @@ class HelpDialog(QDialog):
         <h2>プレビュー表示</h2>
 
         <h3>表示ウィジェット</h3>
-        <p>以下のウィジェットでテーマを確認できます：</p>
+        <p>以下のウィジェットでテーマを確認できます:</p>
         <ul>
-            <li>QPushButton（通常、無効状態）</li>
-            <li>QLineEdit（通常、フォーカス状態）</li>
-            <li>QComboBox（開閉状態）</li>
+            <li>QPushButton(通常、無効状態)</li>
+            <li>QLineEdit(通常、フォーカス状態)</li>
+            <li>QComboBox(開閉状態)</li>
             <li>QCheckBox、QRadioButton</li>
             <li>QSlider、QProgressBar</li>
             <li>QListWidget、QTreeWidget</li>
@@ -598,23 +597,23 @@ class HelpDialog(QDialog):
         <h1>WCAG準拠について</h1>
 
         <h2>WCAGとは</h2>
-        <p>WCAG（Web Content Accessibility Guidelines）は、
+        <p>WCAG(Web Content Accessibility Guidelines)は、
         Webコンテンツのアクセシビリティに関する国際的なガイドラインです。
         Qt-Theme-Studioでは、このガイドラインに準拠したテーマ作成を支援します。</p>
 
         <h2>アクセシビリティレベル</h2>
 
-        <h3>レベルAA（推奨）</h3>
+        <h3>レベルAA(推奨)</h3>
         <ul>
-            <li>コントラスト比: 4.5:1以上（通常テキスト）</li>
-            <li>コントラスト比: 3:1以上（大きなテキスト）</li>
+            <li>コントラスト比: 4.5:1以上(通常テキスト)</li>
+            <li>コントラスト比: 3:1以上(大きなテキスト)</li>
             <li>多くのアプリケーションで推奨される標準</li>
         </ul>
 
-        <h3>レベルAAA（最高レベル）</h3>
+        <h3>レベルAAA(最高レベル)</h3>
         <ul>
-            <li>コントラスト比: 7:1以上（通常テキスト）</li>
-            <li>コントラスト比: 4.5:1以上（大きなテキスト）</li>
+            <li>コントラスト比: 7:1以上(通常テキスト)</li>
+            <li>コントラスト比: 4.5:1以上(大きなテキスト)</li>
             <li>最高レベルのアクセシビリティ</li>
         </ul>
 
@@ -622,7 +621,7 @@ class HelpDialog(QDialog):
 
         <h3>避けるべき組み合わせ</h3>
         <ul>
-            <li>赤と緑の組み合わせ（色覚異常への配慮）</li>
+            <li>赤と緑の組み合わせ(色覚異常への配慮)</li>
             <li>低コントラストの色の組み合わせ</li>
             <li>色のみに依存した情報伝達</li>
         </ul>
@@ -661,8 +660,8 @@ class HelpDialog(QDialog):
 
         <h3>値の範囲</h3>
         <ul>
-            <li><strong>1:1</strong>: 同じ色（区別不可能）</li>
-            <li><strong>21:1</strong>: 最大コントラスト（白と黒）</li>
+            <li><strong>1:1</strong>: 同じ色(区別不可能)</li>
+            <li><strong>21:1</strong>: 最大コントラスト(白と黒)</li>
         </ul>
 
         <h2>自動計算機能</h2>
@@ -681,17 +680,17 @@ class HelpDialog(QDialog):
 
         <h3>色分け表示</h3>
         <ul>
-            <li><strong>緑色</strong>: WCAG AAA準拠（7:1以上）</li>
-            <li><strong>黄色</strong>: WCAG AA準拠（4.5:1以上）</li>
-            <li><strong>赤色</strong>: 基準未満（改善が必要）</li>
+            <li><strong>緑色</strong>: WCAG AAA準拠(7:1以上)</li>
+            <li><strong>黄色</strong>: WCAG AA準拠(4.5:1以上)</li>
+            <li><strong>赤色</strong>: 基準未満(改善が必要)</li>
         </ul>
 
         <h3>詳細情報</h3>
-        <p>各色の組み合わせについて、以下の情報が表示されます：</p>
+        <p>各色の組み合わせについて、以下の情報が表示されます:</p>
         <ul>
-            <li>正確なコントラスト比（例: 4.52:1）</li>
-            <li>WCAG適合レベル（AA、AAA、または未準拠）</li>
-            <li>推奨される用途（通常テキスト、大きなテキスト）</li>
+            <li>正確なコントラスト比(例: 4.52:1)</li>
+            <li>WCAG適合レベル(AA、AAA、または未準拠)</li>
+            <li>推奨される用途(通常テキスト、大きなテキスト)</li>
         </ul>
 
         <h2>実用的なヒント</h2>
@@ -699,7 +698,7 @@ class HelpDialog(QDialog):
             <li>4.5:1以上を目標にする</li>
             <li>重要な情報は7:1以上を推奨</li>
             <li>装飾的な要素は3:1でも可</li>
-            <li>大きなテキスト（18pt以上）は基準が緩和される</li>
+            <li>大きなテキスト(18pt以上)は基準が緩和される</li>
         </ul>
         """
 
@@ -776,26 +775,26 @@ class HelpDialog(QDialog):
         <h2>レベル選択</h2>
         <p>プロジェクトの要件に応じて、適切なアクセシビリティレベルを選択できます。</p>
 
-        <h3>レベルA（基本）</h3>
+        <h3>レベルA(基本)</h3>
         <ul>
             <li>最低限のアクセシビリティ要件</li>
             <li>コントラスト比: 3:1以上</li>
             <li>基本的な色覚対応</li>
         </ul>
 
-        <h3>レベルAA（標準）</h3>
+        <h3>レベルAA(標準)</h3>
         <ul>
             <li>一般的なアプリケーションの標準</li>
-            <li>コントラスト比: 4.5:1以上（通常テキスト）</li>
-            <li>コントラスト比: 3:1以上（大きなテキスト）</li>
+            <li>コントラスト比: 4.5:1以上(通常テキスト)</li>
+            <li>コントラスト比: 3:1以上(大きなテキスト)</li>
             <li>多くの法的要件を満たす</li>
         </ul>
 
-        <h3>レベルAAA（最高）</h3>
+        <h3>レベルAAA(最高)</h3>
         <ul>
             <li>最高レベルのアクセシビリティ</li>
-            <li>コントラスト比: 7:1以上（通常テキスト）</li>
-            <li>コントラスト比: 4.5:1以上（大きなテキスト）</li>
+            <li>コントラスト比: 7:1以上(通常テキスト)</li>
+            <li>コントラスト比: 4.5:1以上(大きなテキスト)</li>
             <li>特別な配慮が必要な環境向け</li>
         </ul>
 
@@ -812,7 +811,7 @@ class HelpDialog(QDialog):
         </ul>
 
         <h3>カスタマイズ</h3>
-        <p>プリセットをベースに、さらなるカスタマイズが可能です：</p>
+        <p>プリセットをベースに、さらなるカスタマイズが可能です:</p>
         <ul>
             <li>ブランドカラーの適用</li>
             <li>特定の色相への調整</li>
@@ -856,7 +855,7 @@ class HelpDialog(QDialog):
         <h2>プレビュー内容</h2>
 
         <h3>基本ウィジェット</h3>
-        <p>以下のウィジェットが表示されます：</p>
+        <p>以下のウィジェットが表示されます:</p>
         <ul>
             <li><strong>ボタン類</strong>: QPushButton、QToolButton</li>
             <li><strong>入力類</strong>: QLineEdit、QTextEdit、QSpinBox</li>
@@ -875,7 +874,7 @@ class HelpDialog(QDialog):
         <h2>インタラクティブ機能</h2>
 
         <h3>状態変更</h3>
-        <p>プレビュー内のウィジェットは実際に操作できます：</p>
+        <p>プレビュー内のウィジェットは実際に操作できます:</p>
         <ul>
             <li>ボタンのクリック</li>
             <li>チェックボックスの切り替え</li>
@@ -972,7 +971,7 @@ class HelpDialog(QDialog):
         <h2>カスタマイズ</h2>
 
         <h3>表示ウィジェットの追加</h3>
-        <p>プレビューに表示するウィジェットを追加できます：</p>
+        <p>プレビューに表示するウィジェットを追加できます:</p>
         <ul>
             <li>「プレビュー設定」から追加</li>
             <li>カスタムウィジェットの登録</li>
@@ -1015,7 +1014,7 @@ class HelpDialog(QDialog):
 
         <h3>画像形式</h3>
         <ul>
-            <li><strong>PNG</strong>: 高品質、透明度対応（推奨）</li>
+            <li><strong>PNG</strong>: 高品質、透明度対応(推奨)</li>
             <li><strong>JPEG</strong>: 小サイズ、写真向け</li>
             <li><strong>BMP</strong>: 無圧縮、高品質</li>
             <li><strong>SVG</strong>: ベクター形式、拡大縮小対応</li>
@@ -1107,10 +1106,10 @@ class HelpDialog(QDialog):
 
         <h3>デスクトップサイズ</h3>
         <ul>
-            <li><strong>小型</strong>: 1024x768（古いモニター）</li>
-            <li><strong>標準</strong>: 1920x1080（フルHD）</li>
-            <li><strong>大型</strong>: 2560x1440（WQHD）</li>
-            <li><strong>4K</strong>: 3840x2160（Ultra HD）</li>
+            <li><strong>小型</strong>: 1024x768(古いモニター)</li>
+            <li><strong>標準</strong>: 1920x1080(フルHD)</li>
+            <li><strong>大型</strong>: 2560x1440(WQHD)</li>
+            <li><strong>4K</strong>: 3840x2160(Ultra HD)</li>
         </ul>
 
         <h3>モバイルサイズ</h3>
@@ -1203,7 +1202,7 @@ class HelpDialog(QDialog):
         <h3>リスト表示</h3>
         <ul>
             <li>テーマ名、作成日、サイズを表示</li>
-            <li>ソート機能（名前、日付、サイズ順）</li>
+            <li>ソート機能(名前、日付、サイズ順)</li>
             <li>詳細情報の表示</li>
         </ul>
 
@@ -1517,7 +1516,7 @@ class HelpDialog(QDialog):
 
         <h3>履歴の管理</h3>
         <ul>
-            <li><strong>履歴数</strong>: 最大10個まで記録（設定で変更可能）</li>
+            <li><strong>履歴数</strong>: 最大10個まで記録(設定で変更可能)</li>
             <li><strong>自動更新</strong>: テーマを開くたびに自動更新</li>
             <li><strong>重複除去</strong>: 同じテーマは最新の日時で更新</li>
         </ul>
@@ -1534,7 +1533,7 @@ class HelpDialog(QDialog):
 
         <h3>クイックアクセス</h3>
         <ul>
-            <li>キーボードショートカット（Ctrl+1〜9）</li>
+            <li>キーボードショートカット(Ctrl+1〜9)</li>
             <li>番号キーでの直接アクセス</li>
             <li>マウスホバーでのプレビュー表示</li>
         </ul>
@@ -1591,8 +1590,8 @@ class HelpDialog(QDialog):
 
         <h3>基本操作</h3>
         <ul>
-            <li><strong>Undo（元に戻す）</strong>: Ctrl+Z</li>
-            <li><strong>Redo（やり直し）</strong>: Ctrl+Y または Ctrl+Shift+Z</li>
+            <li><strong>Undo(元に戻す)</strong>: Ctrl+Z</li>
+            <li><strong>Redo(やり直し)</strong>: Ctrl+Y または Ctrl+Shift+Z</li>
             <li>「編集」メニューからも実行可能</li>
             <li>ツールバーのUndo/Redoボタン</li>
         </ul>
@@ -1626,7 +1625,7 @@ class HelpDialog(QDialog):
 
         <h3>履歴の制限</h3>
         <ul>
-            <li><strong>最大履歴数</strong>: 50回（設定で変更可能）</li>
+            <li><strong>最大履歴数</strong>: 50回(設定で変更可能)</li>
             <li><strong>メモリ使用量</strong>: 自動的に最適化</li>
             <li><strong>セッション単位</strong>: アプリケーション終了時にクリア</li>
         </ul>
@@ -1748,7 +1747,7 @@ class HelpDialog(QDialog):
 
         <h3>ゼブラエディター</h3>
         <ul>
-            <li><strong>デフォルトレベル</strong>: WCAG準拠レベル（AA、AAA）</li>
+            <li><strong>デフォルトレベル</strong>: WCAG準拠レベル(AA、AAA)</li>
             <li><strong>コントラスト表示</strong>: 数値表示の精度</li>
             <li><strong>改善提案</strong>: 自動提案の有効/無効</li>
             <li><strong>色覚シミュレーション</strong>: 色覚異常のシミュレーション</li>
@@ -1840,9 +1839,9 @@ class HelpDialog(QDialog):
 
         <h2>編集操作</h2>
         <ul>
-            <li><strong>Ctrl+Z</strong>: 元に戻す（Undo）</li>
-            <li><strong>Ctrl+Y</strong>: やり直し（Redo）</li>
-            <li><strong>Ctrl+Shift+Z</strong>: やり直し（Redo）</li>
+            <li><strong>Ctrl+Z</strong>: 元に戻す(Undo)</li>
+            <li><strong>Ctrl+Y</strong>: やり直し(Redo)</li>
+            <li><strong>Ctrl+Shift+Z</strong>: やり直し(Redo)</li>
             <li><strong>Ctrl+C</strong>: コピー</li>
             <li><strong>Ctrl+V</strong>: 貼り付け</li>
             <li><strong>Ctrl+X</strong>: 切り取り</li>
@@ -1907,7 +1906,7 @@ class HelpDialog(QDialog):
         </ul>
 
         <h2>カスタマイズ</h2>
-        <p>キーボードショートカットは設定画面でカスタマイズできます：</p>
+        <p>キーボードショートカットは設定画面でカスタマイズできます:</p>
         <ul>
             <li>「編集」→「設定」→「キーボード」</li>
             <li>各機能に対してショートカットキーを設定</li>
@@ -1958,7 +1957,7 @@ class HelpDialog(QDialog):
 
         <h3>テーマファイルが開けない</h3>
         <ul>
-            <li><strong>ファイル形式</strong>: 対応形式（JSON、QSS、CSS）か確認</li>
+            <li><strong>ファイル形式</strong>: 対応形式(JSON、QSS、CSS)か確認</li>
             <li><strong>ファイル破損</strong>: バックアップファイルから復元</li>
             <li><strong>権限</strong>: ファイルの読み取り権限があるか確認</li>
             <li><strong>文字エンコーディング</strong>: UTF-8エンコーディングか確認</li>

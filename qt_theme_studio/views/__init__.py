@@ -1,5 +1,5 @@
 """
-ビューパッケージ（MVCパターン）
+ビューパッケージ(MVCパターン)
 
 UIコンポーネントとユーザーインターフェースを提供します。
 """
@@ -12,8 +12,8 @@ from .preview import PreviewWindow
 # from .zebra_editor import ZebraEditor
 
 __all__ = [
-    "QtThemeStudioMainWindow",
     "PreviewWindow",
+    "QtThemeStudioMainWindow",
     # "ThemeEditor",
     # "ZebraEditor",
 ]

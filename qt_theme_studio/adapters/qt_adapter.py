@@ -7,7 +7,7 @@ Qt フレームワーク自動検出・統合アダプター
 
 import logging
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 # カスタム例外クラス
@@ -26,7 +26,7 @@ class QtAdapter:
         """Qt Adapterを初期化する"""
         self.logger = logging.getLogger(__name__)
         self._detected_framework: Optional[str] = None
-        self._qt_modules: Optional[Dict[str, Any]] = None
+        self._qt_modules: Optional[dict[str, Any]] = None
         self._application: Optional[Any] = None
 
     def detect_qt_framework(self) -> str:
@@ -63,14 +63,13 @@ class QtAdapter:
         self.logger.error(error_msg)
         raise QtFrameworkNotFoundError(error_msg)
 
-    def get_qt_modules(self) -> Dict[str, Any]:
+    def get_qt_modules(self) -> dict[str, Any]:
         """検出されたQtモジュールを返す
 
-        検出されたフレームワークの主要なQtモジュール（QtWidgets、QtCore、QtGui等）を
+        検出されたフレームワークの主要なQtモジュール(QtWidgets、QtCore、QtGui等)を
         辞書形式で返します。
 
-        Returns:
-            Dict[str, Any]: Qtモジュールの辞書
+        Returns: dict[str, Any]: Qtモジュールの辞書
                 - 'QtWidgets': QtWidgetsモジュール
                 - 'QtCore': QtCoreモジュール
                 - 'QtGui': QtGuiモジュール
@@ -107,9 +106,9 @@ class QtAdapter:
             return self._qt_modules
 
         except ImportError as e:
-            error_msg = "{framework}のモジュール読み込みに失敗しました: {str()}"
+            error_msg = f"{framework}のモジュール読み込みに失敗しました: {e}"
             self.logger.error(error_msg)
-            raise QtFrameworkNotFoundError(error_msg)
+            raise QtFrameworkNotFoundError(error_msg) from e
 
     def create_application(self, app_name: str = "Qt-Theme-Studio") -> Any:
         """QApplicationインスタンスを作成する
@@ -118,7 +117,7 @@ class QtAdapter:
         既にQApplicationが存在する場合は、既存のインスタンスを返します。
 
         Args:
-            app_name (str): アプリケーション名（デフォルト: "Qt-Theme-Studio"）
+            app_name (str): アプリケーション名(デフォルト: "Qt-Theme-Studio")
 
         Returns:
             QApplication: QApplicationインスタンス
@@ -147,18 +146,17 @@ class QtAdapter:
             self.logger.info(f"QApplicationインスタンスを作成しました: {app_name}")
             return app
 
-        except Exception:
-            error_msg = "QApplicationの作成に失敗しました: {e}"
+        except Exception as e:
+            error_msg = f"QApplicationの作成に失敗しました: {e}"
             self.logger.error(error_msg)
-            raise QtFrameworkNotFoundError(error_msg)
+            raise QtFrameworkNotFoundError(error_msg) from e
 
-    def get_framework_info(self) -> Dict[str, str]:
+    def get_framework_info(self) -> dict[str, str]:
         """検出されたフレームワークの詳細情報を返す
 
-        Returns:
-            Dict[str, str]: フレームワーク情報
+        Returns: dict[str, str]: フレームワーク情報
                 - 'name': フレームワーク名
-                - 'version': フレームワークのバージョン（取得可能な場合）
+                - 'version': フレームワークのバージョン(取得可能な場合)
         """
         framework = self.detect_qt_framework()
         qt_modules = self.get_qt_modules()
@@ -191,6 +189,6 @@ class QtAdapter:
         """現在のQApplicationインスタンスを返す
 
         Returns:
-            Optional[QApplication]: QApplicationインスタンス（未作成の場合はNone）
+            Optional[QApplication]: QApplicationインスタンス(未作成の場合はNone)
         """
         return self._application

@@ -8,6 +8,6 @@ from .qt_adapter import QtAdapter
 from .theme_adapter import ThemeAdapter
 
 __all__ = [
-    "ThemeAdapter",
     "QtAdapter",
+    "ThemeAdapter",
 ]

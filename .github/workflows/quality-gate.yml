@@ -1,0 +1,248 @@
+name: Quality Gate
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 毎日午前3時に品質チェックを実行
+    - cron: '0 3 * * *'
+
+jobs:
+  quality-check:
+    name: Quality Check
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.11, 3.12, 3.13]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        
+    - name: Run tests with coverage
+      run: |
+        python -m pytest tests/ --cov=qt_theme_studio --cov-report=xml --cov-report=html --cov-report=term-missing
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Generate coverage report
+      run: |
+        python -m pytest tests/ --cov=qt_theme_studio --cov-report=html
+        echo "Coverage report generated in htmlcov/"
+        
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report-${{ matrix.python-version }}
+        path: htmlcov/
+        
+    - name: Check coverage threshold
+      run: |
+        python -m pytest tests/ --cov=qt_theme_studio --cov-report=term-missing --cov-fail-under=35
+        
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+        
+    - name: Run linting
+      run: |
+        # Black - コードフォーマット
+        black --check --diff qt_theme_studio/ tests/
+        
+        # isort - インポート順序
+        isort --check-only --diff qt_theme_studio/ tests/
+        
+        # flake8 - コード品質
+        flake8 qt_theme_studio/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+        
+        # mypy - 型チェック
+        mypy qt_theme_studio/ --ignore-missing-imports
+        
+    - name: Run security checks
+      run: |
+        # Bandit - セキュリティチェック
+        bandit -r qt_theme_studio/ -f json -o bandit-report.json || true
+        
+        # Safety - 依存関係の脆弱性チェック
+        safety check --json --output safety-report.json || true
+        
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+          
+  performance-test:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        
+    - name: Run performance tests
+      run: |
+        # パフォーマンステストの実行
+        python -m pytest tests/integration/test_comprehensive_integration.py::TestComprehensiveIntegration::test_performance_under_load -v --benchmark-only
+        
+        # メモリ効率テスト
+        python -m pytest tests/integration/test_comprehensive_integration.py::TestComprehensiveIntegration::test_memory_efficiency_workflow -v
+        
+        # 並行処理テスト
+        python -m pytest tests/integration/test_comprehensive_integration.py::TestComprehensiveIntegration::test_concurrent_theme_processing -v
+        
+    - name: Generate performance report
+      run: |
+        echo "Performance test results:" > performance-report.txt
+        echo "=========================" >> performance-report.txt
+        echo "" >> performance-report.txt
+        echo "All performance tests completed successfully." >> performance-report.txt
+        
+    - name: Upload performance report
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-report
+        path: performance-report.txt
+        
+  quality-metrics:
+    name: Quality Metrics
+    runs-on: ubuntu-latest
+    needs: [quality-check, code-quality, performance-test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+        
+    - name: Generate quality metrics
+      run: |
+        # テスト統計の生成
+        echo "Quality Metrics Report" > quality-metrics.md
+        echo "======================" >> quality-metrics.md
+        echo "" >> quality-metrics.md
+        echo "## Test Statistics" >> quality-metrics.md
+        echo "" >> quality-metrics.md
+        
+        # テスト数のカウント
+        TEST_COUNT=$(python -m pytest tests/ --collect-only -q | grep "collected" | awk '{print $2}')
+        echo "- Total Tests: $TEST_COUNT" >> quality-metrics.md
+        
+        # カバレッジの取得
+        COVERAGE=$(python -m pytest tests/ --cov=qt_theme_studio --cov-report=term-missing | grep "TOTAL" | awk '{print $4}' | sed 's/%//')
+        echo "- Coverage: ${COVERAGE}%" >> quality-metrics.md
+        
+        # 品質スコアの計算
+        if [ "$COVERAGE" -ge 80 ]; then
+          QUALITY_SCORE="A"
+        elif [ "$COVERAGE" -ge 60 ]; then
+          QUALITY_SCORE="B"
+        elif [ "$COVERAGE" -ge 40 ]; then
+          QUALITY_SCORE="C"
+        else
+          QUALITY_SCORE="D"
+        fi
+        echo "- Quality Score: $QUALITY_SCORE" >> quality-metrics.md
+        
+        echo "" >> quality-metrics.md
+        echo "## Recommendations" >> quality-metrics.md
+        echo "" >> quality-metrics.md
+        
+        if [ "$COVERAGE" -lt 50 ]; then
+          echo "- 🚨 **Critical**: Coverage is below 50%. Focus on adding more tests." >> quality-metrics.md
+        elif [ "$COVERAGE" -lt 70 ]; then
+          echo "- ⚠️ **Warning**: Coverage is below 70%. Consider adding more tests." >> quality-metrics.md
+        else
+          echo "- ✅ **Good**: Coverage is above 70%. Maintain current level." >> quality-metrics.md
+        fi
+        
+        if [ "$TEST_COUNT" -lt 100 ]; then
+          echo "- 📈 **Improvement**: Add more test cases to increase coverage." >> quality-metrics.md
+        else
+          echo "- 🎯 **Excellent**: Good number of test cases." >> quality-metrics.md
+        fi
+        
+    - name: Upload quality metrics
+      uses: actions/upload-artifact@v3
+      with:
+        name: quality-metrics
+        path: quality-metrics.md
+        
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const metrics = fs.readFileSync('quality-metrics.md', 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## 📊 Quality Gate Results\n\n${metrics}\n\n---\n*This comment was automatically generated by the Quality Gate workflow.*`
+          });
+

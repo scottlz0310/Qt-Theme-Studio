@@ -2,7 +2,7 @@
 """
 Qt-Theme-Studio リリースビルドスクリプト
 
-このスクリプトは以下の処理を実行します：
+このスクリプトは以下の処理を実行します:
 1. 依存関係の確認
 2. テストの実行
 3. パッケージのビルド
@@ -77,11 +77,11 @@ def run_tests():
     env['PYTHONPATH'] = str(PROJECT_ROOT)
     
     try:
-        # 全テストを実行（高速モード）
+        # 全テストを実行(高速モード)
         result = subprocess.run([
             sys.executable, '-m', 'pytest', 
             'tests/', '-v', '--tb=short',
-            '--maxfail=1',  # 1個でも失敗したら停止（品質保証）
+            '--maxfail=1',  # 1個でも失敗したら停止(品質保証)
             '--durations=10',  # 遅いテストトップ10を表示
             '-x'  # 最初の失敗で停止
         ], env=env, capture_output=True, text=True)
@@ -140,7 +140,7 @@ def create_distribution():
     try:
         with open('pyproject.toml', 'r', encoding='utf-8') as f:
             content = f.read()
-            # 簡単なバージョン抽出（本来はtomlライブラリを使用すべき）
+            # 簡単なバージョン抽出(本来はtomlライブラリを使用すべき)
             for line in content.split('\n'):
                 if line.strip().startswith('version'):
                     version = line.split('=')[1].strip().strip('"\'')
