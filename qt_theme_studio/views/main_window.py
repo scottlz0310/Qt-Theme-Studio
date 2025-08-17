@@ -274,62 +274,74 @@ class QtThemeStudioMainWindow(QMainWindow):
     def load_custom_theme_file(self):
         """カスタムテーマファイルを読み込み"""
         try:
-            file_path, _ = QFileDialog.getOpenFileName(
-                self, "テーマファイルを選択",
-                "",
-                "JSON Files (*.json)"
+            # ファイルダイアログのパフォーマンス向上オプションを設定
+            dialog = QFileDialog(self, "テーマファイルを選択")
+            dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+            dialog.setNameFilter("JSON Files (*.json)")
+            dialog.setViewMode(QFileDialog.ViewMode.List)
+            dialog.setOptions(
+                QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
+                QFileDialog.Option.DontResolveSymlinks |  # シンボリックリンクの解決を無効化
+                QFileDialog.Option.DontConfirmOverwrite | # 上書き確認を無効化
+                QFileDialog.Option.DontUseCustomDirectoryIcons |  # カスタムディレクトリアイコンを無効化
+                QFileDialog.Option.ReadOnly  # 読み取り専用モード
+            )
+            
+            # 非同期でファイルダイアログを表示
+            dialog.finished.connect(lambda result: self._on_file_dialog_finished(result, dialog))
+            dialog.open()
+            
+            return  # 非同期処理のため、ここで処理を終了
+
+    def _on_file_dialog_finished(self, result, dialog):
+        """ファイルダイアログ完了時のコールバック"""
+        if result == QFileDialog.DialogCode.Accepted:
+            file_path = dialog.selectedFiles()[0]
+            self._load_theme_from_file(file_path)
+        dialog.deleteLater()
+
+    def _load_theme_from_file(self, file_path):
+        """ファイルからテーマを読み込み"""
+        try:
+            with Path(file_path).open(encoding="utf-8") as f:
+                import json
+                theme_data = json.load(f)
+
+            # 単一テーマか複数テーマかを判定
+            if "available_themes" in theme_data:
+                # 複数テーマファイル
+                available_themes = theme_data.get("available_themes", {})
+                for theme_name, theme_config in available_themes.items():
+                    if theme_name not in self.themes:
+                        self.themes[theme_name] = theme_config
+                        self.theme_combo.addItem(theme_config.get("display_name", theme_name))
+            else:
+                # 単一テーマファイル
+                theme_name = theme_data.get("name", f"custom_{len(self.themes)}")
+                if theme_name not in self.themes:
+                    self.themes[theme_name] = theme_data
+                    self.theme_combo.addItem(theme_data.get("display_name", theme_name))
+
+            self.logger.info(f"カスタムテーマを読み込みました: {file_path}")
+
+            # 成功メッセージを表示
+            QMessageBox.information(
+                self, "読み込み完了",
+                f"カスタムテーマを読み込みました:\n{file_path}"
             )
 
-            if file_path:
-                try:
-                    with Path(file_path).open(encoding="utf-8") as f:
-                        import json
-                        theme_data = json.load(f)
-
-                    # 単一テーマか複数テーマかを判定
-                    if "available_themes" in theme_data:
-                        # 複数テーマファイル
-                        available_themes = theme_data.get("available_themes", {})
-                        for theme_name, theme_config in available_themes.items():
-                            if theme_name not in self.themes:
-                                self.themes[theme_name] = theme_config
-                                self.theme_combo.addItem(theme_config.get("display_name", theme_name))
-                    else:
-                        # 単一テーマファイル
-                        theme_name = theme_data.get("name", f"custom_{len(self.themes)}")
-                        if theme_name not in self.themes:
-                            self.themes[theme_name] = theme_data
-                            self.theme_combo.addItem(theme_data.get("display_name", theme_name))
-
-                    self.logger.info(f"カスタムテーマを読み込みました: {file_path}")
-
-                    # 成功メッセージを表示
-                    QMessageBox.information(
-                        self, "読み込み完了",
-                        f"カスタムテーマを読み込みました:\n{file_path}"
-                    )
-
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"JSON形式エラー: {e}")
-                    QMessageBox.critical(
-                        self, "ファイル形式エラー",
-                        f"JSONファイルの形式が正しくありません:\n{e!s}"
-                    )
-                except Exception as e:
-                    self.logger.error(f"ファイル読み込みエラー: {e}")
-                    QMessageBox.critical(
-                        self, "読み込みエラー",
-                        f"ファイルの読み込みに失敗しました:\n{e!s}"
-                    )
-
-        except Exception as e:
-            self.logger.error(f"ファイル選択エラー: {e}")
+        except json.JSONDecodeError as e:
+            self.logger.error(f"JSON形式エラー: {e}")
             QMessageBox.critical(
-                self, "エラー",
-                f"ファイル選択でエラーが発生しました:\n{e!s}"
+                self, "ファイル形式エラー",
+                f"JSONファイルの形式が正しくありません:\n{e!s}"
             )
-            import traceback
-            traceback.print_exc()
+        except Exception as e:
+            self.logger.error(f"ファイル読み込みエラー: {e}")
+            QMessageBox.critical(
+                self, "読み込みエラー",
+                f"ファイルの読み込みに失敗しました:\n{e!s}"
+            )
 
     def on_theme_changed(self, display_name):
         """テーマ選択が変更された時の処理"""
@@ -338,6 +350,11 @@ class QtThemeStudioMainWindow(QMainWindow):
             if theme_config.get("display_name", theme_name) == display_name:
                 self.current_theme_name = theme_name
                 break
+        
+        # テーマ選択時に自動的にプレビューに適用
+        if self.current_theme_name:
+            self.logger.info(f"テーマ選択変更: {display_name} -> {self.current_theme_name}")
+            self.apply_current_theme()
 
     def apply_current_theme(self):
         """現在選択されているテーマを適用"""
@@ -384,12 +401,21 @@ class QtThemeStudioMainWindow(QMainWindow):
         """現在選択されているテーマを保存"""
         if self.current_theme_name and self.current_theme_name in self.themes:
             try:
-                # ファイル保存ダイアログを表示
-                file_path, _ = QFileDialog.getSaveFileName(
-                    self, "テーマを保存",
-                    f"{self.current_theme_name}.json",
-                    "JSON Files (*.json)"
+                # ファイル保存ダイアログのパフォーマンス向上オプションを設定
+                dialog = QFileDialog(self, "テーマを保存")
+                dialog.setFileMode(QFileDialog.FileMode.AnyFile)
+                dialog.setNameFilter("JSON Files (*.json)")
+                dialog.setViewMode(QFileDialog.ViewMode.List)
+                dialog.setDefaultSuffix("json")
+                dialog.setOptions(
+                    QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
+                    QFileDialog.Option.DontResolveSymlinks    # シンボリックリンクの解決を無効化
                 )
+                
+                if dialog.exec() == QFileDialog.DialogCode.Accepted:
+                    file_path = dialog.selectedFiles()[0]
+                else:
+                    return
 
                 if file_path:
                     theme_data = self.themes[self.current_theme_name]
@@ -430,10 +456,20 @@ class QtThemeStudioMainWindow(QMainWindow):
             return
 
         try:
-            # フォルダ選択ダイアログを表示
-            folder_path = QFileDialog.getExistingDirectory(
-                self, "エクスポート先フォルダを選択"
+            # フォルダ選択ダイアログのパフォーマンス向上オプションを設定
+            dialog = QFileDialog(self, "エクスポート先フォルダを選択")
+            dialog.setFileMode(QFileDialog.FileMode.Directory)
+            dialog.setViewMode(QFileDialog.ViewMode.List)
+            dialog.setOptions(
+                QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
+                QFileDialog.Option.DontResolveSymlinks |  # シンボリックリンクの解決を無効化
+                QFileDialog.Option.ShowDirsOnly           # ディレクトリのみ表示
             )
+            
+            if dialog.exec() == QFileDialog.DialogCode.Accepted:
+                folder_path = dialog.selectedFiles()[0]
+            else:
+                return
 
             if folder_path:
                 exported_count = 0

@@ -706,13 +706,21 @@ class PreviewWindow:
             return
 
         try:
-            # ファイル保存ダイアログを表示
-            file_path, _ = self.QtWidgets.QFileDialog.getSaveFileName(
-                self.widget,
-                "プレビュー画像を保存",
-                "preview.png",
-                "PNG画像 (*.png);;すべてのファイル (*)",
+            # ファイル保存ダイアログのパフォーマンス向上オプションを設定
+            dialog = self.QtWidgets.QFileDialog(self.widget, "プレビュー画像を保存")
+            dialog.setFileMode(self.QtWidgets.QFileDialog.FileMode.AnyFile)
+            dialog.setNameFilter("PNG画像 (*.png);;すべてのファイル (*)")
+            dialog.setViewMode(self.QtWidgets.QFileDialog.ViewMode.List)
+            dialog.setDefaultSuffix("png")
+            dialog.setOptions(
+                self.QtWidgets.QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
+                self.QtWidgets.QFileDialog.Option.DontResolveSymlinks    # シンボリックリンクの解決を無効化
             )
+            
+            if dialog.exec() == self.QtWidgets.QFileDialog.DialogCode.Accepted:
+                file_path = dialog.selectedFiles()[0]
+            else:
+                return
 
             if file_path:
                 # ウィジェットのスクリーンショットを取得
