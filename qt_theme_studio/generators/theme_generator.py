@@ -91,7 +91,36 @@ class ThemeGenerator:
                 "accent": accent_color.name(),
                 "background": bg_color.name(),
                 "text": text_color.name(),
-                "surface": surface_color.name()
+                "surface": surface_color.name(),
+                # ボタン関連の色
+                "button_background": button_bg.name(),
+                "button_text": button_text.name(),
+                "button_hover": button_hover.name(),
+                "button_pressed": button_pressed.name(),
+                "button_border": button_border.name(),
+                # 入力ウィジェット関連の色
+                "input_background": surface_color.name(),
+                "input_text": text_color.name(),
+                "input_border": primary_color.name(),
+                "focus_border": accent_color.name(),
+                "selection_background": primary_color.name(),
+                "selection_text": button_text.name(),
+                # スクロールバー関連の色
+                "scrollbar_background": self._adjust_color(surface_color, -10, 0).name(),
+                "scrollbar_handle": primary_color.name(),
+                "scrollbar_handle_hover": accent_color.name(),
+                # プログレス関連の色
+                "progress_background": self._adjust_color(surface_color, -10, 0).name(),
+                "progress_fill": primary_color.name(),
+                "slider_groove": self._adjust_color(surface_color, -10, 0).name(),
+                "slider_handle": primary_color.name(),
+                "slider_handle_border": primary_color.name(),
+                # 境界線関連の色
+                "border": self._adjust_color(surface_color, -30, 0).name(),
+                # 無効状態の色
+                "disabled_background": self._adjust_color(surface_color, -20, -20).name(),
+                "disabled_text": self._adjust_color(text_color, -30, -30).name(),
+                "disabled_border": self._adjust_color(surface_color, -40, -40).name()
             },
             "primaryColor": primary_color.name(),
             "accentColor": accent_color.name(),

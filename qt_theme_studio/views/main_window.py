@@ -4,8 +4,11 @@ Qt-Theme-Studio メインウィンドウ
 クリーンなアーキテクチャによる高度なテーマ管理・生成・編集
 """
 
+from typing import Union, Any
+
 from pathlib import Path
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QColorDialog,
@@ -32,7 +35,7 @@ from qt_theme_studio.views.preview import PreviewWindow
 class QtThemeStudioMainWindow(QMainWindow):
     """Qt-Theme-Studio メインウィンドウ"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         # ロガーを初期化
@@ -41,6 +44,12 @@ class QtThemeStudioMainWindow(QMainWindow):
 
         self.setWindowTitle("Qt-Theme-Studio - 高度なテーマ管理・生成・編集")
         self.setGeometry(100, 100, 1800, 1200)
+        
+        # WSL2環境でのフォーカス問題を解決するための設定
+        self.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setWindowModality(Qt.WindowModality.NonModal)
+        
         self.logger.debug("ウィンドウ基本設定完了")
 
         try:
@@ -63,8 +72,8 @@ class QtThemeStudioMainWindow(QMainWindow):
 
             self.logger.debug("テーマ管理初期化中...")
             # テーマ管理
-            self.themes = {}  # テーマ辞書
-            self.current_theme_name = None
+            self.themes: dict[str, dict] = {}  # テーマ辞書
+            self.current_theme_name: Union[str, None] = None
             self.logger.debug("テーマ管理初期化完了")
 
             self.logger.debug("UIセットアップ中...")
@@ -192,10 +201,33 @@ class QtThemeStudioMainWindow(QMainWindow):
     def choose_color(self, color_type):
         """色選択ダイアログを表示"""
         current_color = self.get_current_color(color_type)
-        color = QColorDialog.getColor(current_color, self)
-
-        if color.isValid():
-            self.set_color_button(color_type, color)
+        
+        # 色選択ダイアログをインスタンス化して適切な親子関係を設定
+        color_dialog = QColorDialog(current_color, self)
+        
+        # WSL2環境でのフォーカス問題を解決するための設定
+        color_dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+        color_dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
+        color_dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
+        color_dialog.setAttribute(Qt.WidgetAttribute.WA_AlwaysStackOnTop, True)
+        
+        # フォーカス設定を最適化
+        color_dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        
+        # ダイアログを表示
+        color_dialog.show()
+        
+        # フォーカスを強制的に取得
+        color_dialog.raise_()
+        color_dialog.activateWindow()
+        color_dialog.setFocus()
+        
+        # ダイアログを表示してフォーカスを確実に取得
+        # exec()の代わりにshow()とevent loopを使用
+        if color_dialog.exec() == QColorDialog.DialogCode.Accepted:
+            color = color_dialog.currentColor()
+            if color.isValid():
+                self.set_color_button(color_type, color)
 
     def get_current_color(self, color_type):
         """現在の色を取得"""
@@ -274,32 +306,49 @@ class QtThemeStudioMainWindow(QMainWindow):
     def load_custom_theme_file(self):
         """カスタムテーマファイルを読み込み"""
         try:
-            # ファイルダイアログのパフォーマンス向上オプションを設定
+            # ファイルダイアログを設定
             dialog = QFileDialog(self, "テーマファイルを選択")
             dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
             dialog.setNameFilter("JSON Files (*.json)")
             dialog.setViewMode(QFileDialog.ViewMode.List)
+            
+            # WSL2環境でのフォーカス問題を解決するための設定
+            dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+            dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
+            dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
+            dialog.setAttribute(Qt.WidgetAttribute.WA_AlwaysStackOnTop, True)
+            
+            # フォーカス設定を最適化
+            dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+            
+            # ダイアログを表示
+            dialog.show()
+            
+            # フォーカスを強制的に取得
+            dialog.raise_()
+            dialog.activateWindow()
+            dialog.setFocus()
+            
+            # ネイティブダイアログを使用してフォーカス問題を解決
             dialog.setOptions(
-                QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
                 QFileDialog.Option.DontResolveSymlinks |  # シンボリックリンクの解決を無効化
                 QFileDialog.Option.DontConfirmOverwrite | # 上書き確認を無効化
                 QFileDialog.Option.DontUseCustomDirectoryIcons |  # カスタムディレクトリアイコンを無効化
                 QFileDialog.Option.ReadOnly  # 読み取り専用モード
             )
             
-            # 非同期でファイルダイアログを表示
-            dialog.finished.connect(lambda result: self._on_file_dialog_finished(result, dialog))
-            dialog.open()
+            # 同期的にファイルダイアログを表示（フォーカス問題を解決）
+            if dialog.exec() == QFileDialog.DialogCode.Accepted:
+                file_path = dialog.selectedFiles()[0]
+                self._load_theme_from_file(file_path)
             
-            return  # 非同期処理のため、ここで処理を終了
-
-    def _on_file_dialog_finished(self, result, dialog):
-        """ファイルダイアログ完了時のコールバック"""
-        if result == QFileDialog.DialogCode.Accepted:
-            file_path = dialog.selectedFiles()[0]
-            self._load_theme_from_file(file_path)
-        dialog.deleteLater()
-
+        except Exception as e:
+            self.logger.error(f"ファイルダイアログ作成エラー: {e}")
+            QMessageBox.critical(
+                self, "エラー",
+                f"ファイルダイアログの作成に失敗しました:\n{e!s}"
+            )
+            
     def _load_theme_from_file(self, file_path):
         """ファイルからテーマを読み込み"""
         try:
@@ -368,12 +417,120 @@ class QtThemeStudioMainWindow(QMainWindow):
             converted_theme = self.convert_theme_for_preview(theme_config)
             self.logger.info(f"変換後のテーマ: {converted_theme}")
 
-            # プレビューにテーマを適用
-            self.preview_window.update_preview(converted_theme)
+            # メインウィンドウにもテーマを適用
+            self._apply_theme_to_main_window(converted_theme)
 
-            self.logger.info("テーマをプレビューに適用しました")
-        else:
-            self.logger.warning("適用するテーマが選択されていません")
+            # プレビューウィンドウにテーマを適用
+            self.preview_window.apply_theme(converted_theme)
+
+            self.logger.info(f"テーマ「{theme_config.get('display_name', self.current_theme_name)}」を適用完了")
+
+    def _apply_theme_to_main_window(self, theme_data: dict[str, Any]) -> None:
+        """メインウィンドウにテーマを適用"""
+        try:
+            colors = theme_data.get("colors", {})
+            if not colors:
+                return
+
+            # メインウィンドウ用のスタイルシートを生成
+            main_window_stylesheet = self._generate_main_window_stylesheet(colors)
+            
+            # メインウィンドウ全体にスタイルシートを適用
+            self.setStyleSheet(main_window_stylesheet)
+            
+            # 中央ウィジェットにもスタイルシートを適用
+            central_widget = self.centralWidget()
+            if central_widget:
+                central_widget.setStyleSheet(main_window_stylesheet)
+            
+            self.logger.info("メインウィンドウにテーマを適用しました")
+            
+        except Exception as e:
+            self.logger.error(f"メインウィンドウへのテーマ適用エラー: {e}")
+
+    def _generate_main_window_stylesheet(self, colors: dict[str, str]) -> str:
+        """メインウィンドウ用のスタイルシートを生成"""
+        return f"""
+        QMainWindow {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+        }}
+        QWidget {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+        }}
+        QGroupBox {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+            border: 2px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            border-radius: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-weight: bold;
+        }}
+        QGroupBox::title {{
+            subcontrol-origin: margin;
+            left: 10px;
+            padding: 0 5px 0 5px;
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+        }}
+        QPushButton {{
+            background-color: {colors.get("button_background", colors.get("primary", "#007acc"))};
+            color: {colors.get("button_text", "#ffffff")};
+            border: 2px solid {colors.get("button_background", colors.get("primary", "#007acc"))};
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: bold;
+            min-height: 20px;
+        }}
+        QPushButton:hover {{
+            background-color: {colors.get("button_hover", colors.get("accent", colors.get("primary", "#007acc")))};
+            border-color: {colors.get("button_hover", colors.get("accent", colors.get("primary", "#007acc")))};
+        }}
+        QPushButton:pressed {{
+            background-color: {colors.get("button_pressed", colors.get("primary", "#007acc"))};
+        }}
+        QPushButton:disabled {{
+            background-color: {colors.get("disabled_background", "#cccccc")};
+            color: {colors.get("disabled_text", "#666666")};
+            border-color: {colors.get("disabled_border", "#cccccc")};
+        }}
+        QComboBox {{
+            background-color: {colors.get("input_background", colors.get("background", "#ffffff"))};
+            color: {colors.get("input_text", colors.get("text", "#333333"))};
+            border: 2px solid {colors.get("input_border", colors.get("primary", "#007acc"))};
+            border-radius: 4px;
+            padding: 4px;
+        }}
+        QComboBox::drop-down {{
+            border: none;
+            width: 20px;
+        }}
+        QComboBox::down-arrow {{
+            image: none;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid {colors.get("text", "#333333")};
+        }}
+        QComboBox QAbstractItemView {{
+            background-color: {colors.get("input_background", colors.get("background", "#ffffff"))};
+            color: {colors.get("input_text", colors.get("text", "#333333"))};
+            selection-background-color: {colors.get("selection_background", colors.get("primary", "#007acc"))};
+            selection-color: {colors.get("selection_text", "#ffffff")};
+        }}
+        QLabel {{
+            background-color: transparent;
+            color: {colors.get("text", "#333333")};
+        }}
+        QTextEdit {{
+            background-color: {colors.get("input_background", colors.get("background", "#ffffff"))};
+            color: {colors.get("input_text", colors.get("text", "#333333"))};
+            border: 2px solid {colors.get("input_border", colors.get("primary", "#007acc"))};
+            border-radius: 4px;
+            padding: 6px;
+        }}
+        """
 
     def convert_theme_for_preview(self, theme_config):
         """qt-theme-manager形式のテーマをプレビュー用形式に変換"""
@@ -401,14 +558,23 @@ class QtThemeStudioMainWindow(QMainWindow):
         """現在選択されているテーマを保存"""
         if self.current_theme_name and self.current_theme_name in self.themes:
             try:
-                # ファイル保存ダイアログのパフォーマンス向上オプションを設定
+                # ファイル保存ダイアログを設定
                 dialog = QFileDialog(self, "テーマを保存")
                 dialog.setFileMode(QFileDialog.FileMode.AnyFile)
                 dialog.setNameFilter("JSON Files (*.json)")
                 dialog.setViewMode(QFileDialog.ViewMode.List)
                 dialog.setDefaultSuffix("json")
+                
+                # WSL2環境でのフォーカス問題を解決するための設定
+                dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+                dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
+                dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
+                
+                # フォーカス設定を最適化
+                dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+                
+                # ネイティブダイアログを使用してフォーカス問題を解決
                 dialog.setOptions(
-                    QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
                     QFileDialog.Option.DontResolveSymlinks    # シンボリックリンクの解決を無効化
                 )
                 
@@ -456,12 +622,21 @@ class QtThemeStudioMainWindow(QMainWindow):
             return
 
         try:
-            # フォルダ選択ダイアログのパフォーマンス向上オプションを設定
+            # フォルダ選択ダイアログを設定
             dialog = QFileDialog(self, "エクスポート先フォルダを選択")
             dialog.setFileMode(QFileDialog.FileMode.Directory)
             dialog.setViewMode(QFileDialog.ViewMode.List)
+            
+            # WSL2環境でのフォーカス問題を解決するための設定
+            dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+            dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
+            dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
+            
+            # フォーカス設定を最適化
+            dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+            
+            # ネイティブダイアログを使用してフォーカス問題を解決
             dialog.setOptions(
-                QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
                 QFileDialog.Option.DontResolveSymlinks |  # シンボリックリンクの解決を無効化
                 QFileDialog.Option.ShowDirsOnly           # ディレクトリのみ表示
             )

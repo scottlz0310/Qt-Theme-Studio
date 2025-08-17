@@ -316,6 +316,9 @@ class WidgetShowcase:
         # ウィジェット全体にスタイルシートを適用
         self.widget.setStyleSheet(stylesheet)
 
+        # 個別のウィジェットにテーマを適用
+        self._apply_theme_to_individual_widgets(theme_data)
+
         # スタイルシートが効かない場合の代替手段: パレットを直接操作
         self._apply_theme_via_palette(theme_data)
 
@@ -323,6 +326,301 @@ class WidgetShowcase:
         self._debug_widget_colors()
 
         self.logger.debug("ウィジェットにテーマを適用しました", LogCategory.UI)
+
+    def _apply_theme_to_individual_widgets(self, theme_data: dict[str, Any]) -> None:
+        """個別のウィジェットにテーマを適用"""
+        if not self.widget or not theme_data:
+            return
+
+        try:
+            colors = theme_data.get("colors", {})
+            if not colors:
+                return
+
+            # 各ウィジェットタイプ別のスタイルシートを生成
+            button_stylesheet = self._generate_button_stylesheet(colors)
+            input_stylesheet = self._generate_input_stylesheet(colors)
+            selection_stylesheet = self._generate_selection_stylesheet(colors)
+            display_stylesheet = self._generate_display_stylesheet(colors)
+            container_stylesheet = self._generate_container_stylesheet(colors)
+            progress_stylesheet = self._generate_progress_stylesheet(colors)
+
+            # 各ウィジェットに個別のスタイルシートを適用
+            for widget_name, widget in self.widgets.items():
+                try:
+                    if "button" in widget_name.lower():
+                        widget.setStyleSheet(button_stylesheet)
+                    elif any(keyword in widget_name.lower() for keyword in ["input", "edit", "line"]):
+                        widget.setStyleSheet(input_stylesheet)
+                    elif any(keyword in widget_name.lower() for keyword in ["combo", "list", "table"]):
+                        widget.setStyleSheet(selection_stylesheet)
+                    elif any(keyword in widget_name.lower() for keyword in ["label", "text", "group"]):
+                        widget.setStyleSheet(display_stylesheet)
+                    elif any(keyword in widget_name.lower() for keyword in ["frame", "widget", "area"]):
+                        widget.setStyleSheet(container_stylesheet)
+                    elif any(keyword in widget_name.lower() for keyword in ["progress", "bar", "slider"]):
+                        widget.setStyleSheet(progress_stylesheet)
+                    else:
+                        # デフォルトスタイル
+                        widget.setStyleSheet(self._generate_default_stylesheet(colors))
+                except Exception as e:
+                    self.logger.debug(f"ウィジェット {widget_name} へのスタイル適用エラー: {e}")
+
+            self.logger.info("個別ウィジェットにテーマを適用しました")
+
+        except Exception as e:
+            self.logger.error(f"個別ウィジェットへのテーマ適用エラー: {e}")
+
+    def _generate_button_stylesheet(self, colors: dict[str, str]) -> str:
+        """ボタン用のスタイルシートを生成"""
+        primary = colors.get("primary", "#007acc")
+        button_bg = colors.get("button_background", primary)
+        button_text = colors.get("button_text", "#ffffff")
+        button_hover = colors.get("button_hover", colors.get("accent", primary))
+        
+        return f"""
+        QPushButton {{
+            background-color: {button_bg};
+            color: {button_text};
+            border: 2px solid {button_bg};
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: bold;
+            min-height: 20px;
+        }}
+        QPushButton:hover {{
+            background-color: {button_hover};
+            border-color: {button_hover};
+        }}
+        QPushButton:pressed {{
+            background-color: {colors.get("button_pressed", button_hover)};
+        }}
+        QPushButton:disabled {{
+            background-color: {colors.get("disabled_background", "#cccccc")};
+            color: {colors.get("disabled_text", "#666666")};
+            border-color: {colors.get("disabled_border", "#cccccc")};
+        }}
+        """
+
+    def _generate_input_stylesheet(self, colors: dict[str, str]) -> str:
+        """入力ウィジェット用のスタイルシートを生成"""
+        input_bg = colors.get("input_background", colors.get("background", "#ffffff"))
+        input_text = colors.get("input_text", colors.get("text", "#333333"))
+        input_border = colors.get("input_border", colors.get("primary", "#007acc"))
+        
+        return f"""
+        QLineEdit, QTextEdit, QPlainTextEdit {{
+            background-color: {input_bg};
+            color: {input_text};
+            border: 2px solid {input_border};
+            border-radius: 4px;
+            padding: 6px;
+            selection-background-color: {colors.get("selection_background", colors.get("primary", "#007acc"))};
+        }}
+        QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
+            border-color: {colors.get("focus_border", colors.get("accent", input_border))};
+            border-width: 3px;
+        }}
+        """
+
+    def _generate_selection_stylesheet(self, colors: dict[str, str]) -> str:
+        """選択ウィジェット用のスタイルシートを生成"""
+        selection_bg = colors.get("selection_background", colors.get("primary", "#007acc"))
+        selection_text = colors.get("selection_text", "#ffffff")
+        
+        return f"""
+        QComboBox, QListWidget, QTableWidget {{
+            background-color: {colors.get("input_background", colors.get("background", "#ffffff"))};
+            color: {colors.get("input_text", colors.get("text", "#333333"))};
+            border: 2px solid {colors.get("input_border", colors.get("primary", "#007acc"))};
+            border-radius: 4px;
+            padding: 4px;
+        }}
+        QComboBox::drop-down {{
+            border: none;
+            width: 20px;
+        }}
+        QComboBox::down-arrow {{
+            image: none;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid {colors.get("text", "#333333")};
+        }}
+        QComboBox QAbstractItemView {{
+            background-color: {colors.get("input_background", colors.get("background", "#ffffff"))};
+            color: {colors.get("input_text", colors.get("text", "#333333"))};
+            selection-background-color: {selection_bg};
+            selection-color: {selection_text};
+        }}
+        """
+
+    def _generate_display_stylesheet(self, colors: dict[str, str]) -> str:
+        """表示ウィジェット用のスタイルシートを生成"""
+        return f"""
+        QLabel, QGroupBox {{
+            color: {colors.get("text", "#333333")};
+            background-color: transparent;
+        }}
+        QGroupBox {{
+            font-weight: bold;
+            border: 2px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            border-radius: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+        }}
+        QGroupBox::title {{
+            subcontrol-origin: margin;
+            left: 10px;
+            padding: 0 5px 0 5px;
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+        }}
+        """
+
+    def _generate_container_stylesheet(self, colors: dict[str, str]) -> str:
+        """コンテナウィジェット用のスタイルシートを生成"""
+        return f"""
+        QFrame, QWidget {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+        }}
+        QScrollArea {{
+            background-color: {colors.get("background", "#ffffff")};
+            border: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            border-radius: 4px;
+        }}
+        QTabWidget::pane {{
+            border: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            background-color: {colors.get("background", "#ffffff")};
+        }}
+        QTabBar::tab {{
+            background-color: {colors.get("input_background", colors.get("background", "#f0f0f0"))};
+            color: {colors.get("text", "#333333")};
+            border: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            border-bottom: none;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            padding: 8px 16px;
+            margin-right: 2px;
+        }}
+        QTabBar::tab:selected {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+            border-bottom: 1px solid {colors.get("background", "#ffffff")};
+        }}
+        QTabBar::tab:hover {{
+            background-color: {colors.get("input_background", colors.get("background", "#f0f0f0"))};
+        }}
+        QScrollBar:vertical {{
+            background-color: {colors.get("scrollbar_background", colors.get("background", "#f0f0f0"))};
+            width: 12px;
+            border-radius: 6px;
+        }}
+        QScrollBar::handle:vertical {{
+            background-color: {colors.get("scrollbar_handle", colors.get("primary", "#007acc"))};
+            border-radius: 6px;
+            min-height: 20px;
+        }}
+        QScrollBar::handle:vertical:hover {{
+            background-color: {colors.get("scrollbar_handle_hover", colors.get("accent", colors.get("primary", "#007acc")))};
+        }}
+        """
+
+    def _generate_progress_stylesheet(self, colors: dict[str, str]) -> str:
+        """プログレスウィジェット用のスタイルシートを生成"""
+        return f"""
+        QProgressBar, QSlider {{
+            background-color: {colors.get("progress_background", colors.get("background", "#f0f0f0"))};
+            border: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            border-radius: 4px;
+        }}
+        QProgressBar::chunk {{
+            background-color: {colors.get("progress_fill", colors.get("primary", "#007acc"))};
+            border-radius: 3px;
+        }}
+        QSlider::groove:horizontal {{
+            background-color: {colors.get("slider_groove", colors.get("background", "#f0f0f0"))};
+            border: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            border-radius: 2px;
+            height: 8px;
+        }}
+        QSlider::handle:horizontal {{
+            background-color: {colors.get("slider_handle", colors.get("primary", "#007acc"))};
+            border: 2px solid {colors.get("slider_handle_border", colors.get("primary", "#007acc"))};
+            border-radius: 8px;
+            width: 16px;
+            margin: -4px 0;
+        }}
+        """
+
+    def _generate_default_stylesheet(self, colors: dict[str, str]) -> str:
+        """デフォルトのスタイルシートを生成"""
+        return f"""
+        QWidget {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+        }}
+        QMainWindow {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+        }}
+        QMenuBar {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+            border-bottom: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+        }}
+        QMenuBar::item {{
+            background-color: transparent;
+            color: {colors.get("text", "#333333")};
+            padding: 4px 8px;
+        }}
+        QMenuBar::item:selected {{
+            background-color: {colors.get("selection_background", colors.get("primary", "#007acc"))};
+            color: {colors.get("selection_text", "#ffffff")};
+        }}
+        QMenu {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+            border: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            border-radius: 4px;
+        }}
+        QMenu::item {{
+            background-color: transparent;
+            color: {colors.get("text", "#333333")};
+            padding: 6px 20px;
+        }}
+        QMenu::item:selected {{
+            background-color: {colors.get("selection_background", colors.get("primary", "#007acc"))};
+            color: {colors.get("selection_text", "#ffffff")};
+        }}
+        QToolBar {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+            border: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+            border-radius: 4px;
+            spacing: 2px;
+        }}
+        QToolButton {{
+            background-color: {colors.get("button_background", colors.get("primary", "#007acc"))};
+            color: {colors.get("button_text", "#ffffff")};
+            border: 1px solid {colors.get("button_border", colors.get("primary", "#007acc"))};
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 1px;
+        }}
+        QToolButton:hover {{
+            background-color: {colors.get("button_hover", colors.get("accent", colors.get("primary", "#007acc")))};
+            border-color: {colors.get("button_hover", colors.get("accent", colors.get("primary", "#007acc")))};
+        }}
+        QToolButton:pressed {{
+            background-color: {colors.get("button_pressed", colors.get("primary", "#007acc"))};
+        }}
+        QStatusBar {{
+            background-color: {colors.get("background", "#ffffff")};
+            color: {colors.get("text", "#333333")};
+            border-top: 1px solid {colors.get("border", colors.get("primary", "#007acc"))};
+        }}
+        """
 
     def _apply_theme_via_palette(self, theme_data: dict[str, Any]) -> None:
         """パレットを直接操作してテーマを適用(スタイルシートの代替手段)"""
@@ -712,6 +1010,15 @@ class PreviewWindow:
             dialog.setNameFilter("PNG画像 (*.png);;すべてのファイル (*)")
             dialog.setViewMode(self.QtWidgets.QFileDialog.ViewMode.List)
             dialog.setDefaultSuffix("png")
+            
+            # WSL2環境でのフォーカス問題を解決するための設定
+            dialog.setWindowModality(self.QtCore.Qt.WindowModality.ApplicationModal)
+            dialog.setAttribute(self.QtCore.Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
+            dialog.setAttribute(self.QtCore.Qt.WidgetAttribute.WA_NativeWindow, True)
+            
+            # フォーカス設定を最適化
+            dialog.setFocusPolicy(self.QtCore.Qt.FocusPolicy.StrongFocus)
+            
             dialog.setOptions(
                 self.QtWidgets.QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
                 self.QtWidgets.QFileDialog.Option.DontResolveSymlinks    # シンボリックリンクの解決を無効化
