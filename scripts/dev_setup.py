@@ -94,7 +94,9 @@ class EnvironmentDetector:
 
                 for python_path in python_paths:
                     if python_path.exists():
-                        logger.info(f"仮想環境ディレクトリが検出されました: {venv_path}")
+                        logger.info(
+                            f"仮想環境ディレクトリが検出されました: {venv_path}"
+                        )
                         return True, str(venv_path), "venv"
 
         logger.warning("仮想環境が検出されませんでした")
@@ -104,7 +106,9 @@ class EnvironmentDetector:
     def check_python_version() -> bool:
         """Pythonバージョンをチェック"""
         version = sys.version_info
-        logger.info(f"Pythonバージョン: {version.major}.{version.minor}.{version.micro}")
+        logger.info(
+            f"Pythonバージョン: {version.major}.{version.minor}.{version.micro}"
+        )
 
         if version.major != 3 or version.minor < 9:
             logger.error("❌ Python 3.9以上が必要です")
@@ -124,10 +128,10 @@ class CommandRunner:
 
     @staticmethod
     def run_command(
-        command: List[str], 
-        description: str, 
+        command: List[str],
+        description: str,
         cwd: Optional[Path] = None,
-        timeout: int = 300
+        timeout: int = 300,
     ) -> bool:
         """コマンドを実行"""
         logger.info(f"{description}を実行中...")
@@ -137,12 +141,12 @@ class CommandRunner:
 
         try:
             result = subprocess.run(
-                command, 
-                capture_output=True, 
-                text=True, 
+                command,
+                capture_output=True,
+                text=True,
                 check=True,
                 cwd=cwd,
-                timeout=timeout
+                timeout=timeout,
             )
 
             if result.stdout:
@@ -189,7 +193,7 @@ class VirtualEnvironmentManager:
                 system_site_packages=False,
                 clear=False,
                 symlinks=not platform.system() == "Windows",
-                with_pip=True
+                with_pip=True,
             )
 
             logger.info("✅ 仮想環境の作成が完了しました")
@@ -220,10 +224,9 @@ class VirtualEnvironmentManager:
             return [
                 f"{self.venv_path}\\Scripts\\activate",
                 "# または PowerShell の場合:",
-                f"{self.venv_path}\\Scripts\\Activate.ps1"
+                f"{self.venv_path}\\Scripts\\Activate.ps1",
             ]
-        else:
-            return [f"source {self.venv_path}/bin/activate"]
+        return [f"source {self.venv_path}/bin/activate"]
 
 
 class DependencyManager:
@@ -236,38 +239,40 @@ class DependencyManager:
     def upgrade_pip(self) -> bool:
         """pipをアップグレード"""
         command = [
-            str(self.python_executable), 
-            "-m", "pip", "install", "--upgrade", "pip"
+            str(self.python_executable),
+            "-m",
+            "pip",
+            "install",
+            "--upgrade",
+            "pip",
         ]
         return CommandRunner.run_command(command, "pipのアップグレード")
 
     def install_project_dependencies(self) -> bool:
         """プロジェクト依存関係をインストール"""
         # 開発依存関係を含めてインストール
-        command = [
-            str(self.python_executable), 
-            "-m", "pip", "install", "-e", ".[dev]"
-        ]
+        command = [str(self.python_executable), "-m", "pip", "install", "-e", ".[dev]"]
         return CommandRunner.run_command(
-            command, 
+            command,
             "プロジェクト依存関係のインストール",
             cwd=self.project_root,
-            timeout=600  # 10分のタイムアウト
+            timeout=600,  # 10分のタイムアウト
         )
 
     def install_qt_framework(self) -> bool:
         """Qt フレームワークのインストール確認"""
         # qt_detector.pyを使用してQt フレームワークを検出・インストール
         qt_detector_path = self.project_root / "scripts" / "qt_detector.py"
-        
+
         if not qt_detector_path.exists():
-            logger.warning("qt_detector.pyが見つかりません。Qt フレームワークの自動検出をスキップします")
+            logger.warning(
+                "qt_detector.pyが見つかりません。Qt フレームワークの自動検出をスキップします"
+            )
             return True
 
         command = [str(self.python_executable), str(qt_detector_path), "--install"]
         return CommandRunner.run_command(
-            command, 
-            "Qt フレームワークの検出・インストール"
+            command, "Qt フレームワークの検出・インストール"
         )
 
 
@@ -282,16 +287,14 @@ class PreCommitManager:
         """pre-commitをセットアップ"""
         # pre_commit_setup.pyを使用
         setup_script = self.project_root / "scripts" / "pre_commit_setup.py"
-        
+
         if not setup_script.exists():
             logger.error("❌ pre_commit_setup.pyが見つかりません")
             return False
 
         command = [str(self.python_executable), str(setup_script)]
         return CommandRunner.run_command(
-            command, 
-            "pre-commitのセットアップ",
-            cwd=self.project_root
+            command, "pre-commitのセットアップ", cwd=self.project_root
         )
 
 
@@ -347,7 +350,9 @@ class EnvironmentValidator:
 
         # Qt フレームワークのテスト
         if not self._test_qt_framework():
-            logger.warning("⚠️  Qt フレームワークの検証で問題が発生しましたが、セットアップは継続します")
+            logger.warning(
+                "⚠️  Qt フレームワークの検証で問題が発生しましたが、セットアップは継続します"
+            )
 
         logger.info("✅ インストールの検証が完了しました")
         return True
@@ -355,24 +360,21 @@ class EnvironmentValidator:
     def _test_import(self, module_name: str) -> bool:
         """モジュールのインポートテスト"""
         command = [
-            str(self.python_executable), 
-            "-c", f"import {module_name}; print(f'{module_name} インポート成功')"
+            str(self.python_executable),
+            "-c",
+            f"import {module_name}; print(f'{module_name} インポート成功')",
         ]
 
         try:
             result = subprocess.run(
-                command, 
-                capture_output=True, 
-                text=True, 
-                check=True,
-                timeout=30
+                command, capture_output=True, text=True, check=True, timeout=30
             )
             logger.debug(f"✅ {module_name}: {result.stdout.strip()}")
             return True
 
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             logger.error(f"❌ {module_name}のインポートに失敗しました")
-            if hasattr(e, 'stderr') and e.stderr:
+            if hasattr(e, "stderr") and e.stderr:
                 logger.error(f"エラー: {e.stderr}")
             return False
 
@@ -412,11 +414,7 @@ sys.exit(1)
 
         try:
             result = subprocess.run(
-                command, 
-                capture_output=True, 
-                text=True, 
-                check=True,
-                timeout=30
+                command, capture_output=True, text=True, check=True, timeout=30
             )
             logger.info(f"✅ Qt フレームワーク: {result.stdout.strip()}")
             return True
@@ -468,7 +466,7 @@ def main():
     else:
         # 仮想環境を作成
         logger.info("新しい仮想環境を作成します")
-        
+
         response = input("仮想環境を作成しますか？ (Y/n): ")
         if response.lower() in ["n", "no"]:
             logger.info("仮想環境なしで続行します")
@@ -529,7 +527,7 @@ def main():
     logger.info("🎉 開発環境のセットアップが完了しました！")
     logger.info("")
     logger.info("📋 次のステップ:")
-    
+
     if not in_venv and python_executable != Path(sys.executable):
         logger.info("  1. 仮想環境をアクティベートしてください:")
         venv_manager = VirtualEnvironmentManager(project_root)

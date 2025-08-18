@@ -10,7 +10,7 @@ import re
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 from urllib.error import HTTPError, URLError
 
 from qt_theme_studio.logger import LogCategory, LogContext, get_logger
@@ -34,7 +34,7 @@ class MarkdownSyntaxValidator:
             検証結果
         """
         issues = []
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         # ヘッダー構文チェック
         header_issues = self._check_headers(lines)
@@ -60,7 +60,7 @@ class MarkdownSyntaxValidator:
             "file_path": file_path,
             "total_issues": len(issues),
             "issues": issues,
-            "is_valid": len(issues) == 0
+            "is_valid": len(issues) == 0,
         }
 
     def _check_headers(self, lines: List[str]) -> List[Dict[str, Any]]:
@@ -77,41 +77,47 @@ class MarkdownSyntaxValidator:
 
         for line_num, line in enumerate(lines, 1):
             # ATXスタイルヘッダー（# ## ###）
-            atx_match = re.match(r'^(#{1,6})\s*(.+)', line)
+            atx_match = re.match(r"^(#{1,6})\s*(.+)", line)
             if atx_match:
                 level = len(atx_match.group(1))
                 header_levels.append(level)
-                
+
                 # ヘッダー後にスペースがない
-                if not re.match(r'^#{1,6}\s+.+', line):
-                    issues.append({
-                        "line": line_num,
-                        "type": "header_no_space",
-                        "message": "ヘッダーマーク（#）の後にスペースが必要です",
-                        "severity": "warning"
-                    })
+                if not re.match(r"^#{1,6}\s+.+", line):
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "header_no_space",
+                            "message": "ヘッダーマーク（#）の後にスペースが必要です",
+                            "severity": "warning",
+                        }
+                    )
 
                 # ヘッダーレベルの飛び越し
                 if len(header_levels) > 1:
                     prev_level = header_levels[-2]
                     if level > prev_level + 1:
-                        issues.append({
-                            "line": line_num,
-                            "type": "header_level_skip",
-                            "message": f"ヘッダーレベルが飛び越されています（{prev_level} → {level}）",
-                            "severity": "info"
-                        })
+                        issues.append(
+                            {
+                                "line": line_num,
+                                "type": "header_level_skip",
+                                "message": f"ヘッダーレベルが飛び越されています（{prev_level} → {level}）",
+                                "severity": "info",
+                            }
+                        )
 
             # Setextスタイルヘッダー（下線）
-            elif line_num > 1 and re.match(r'^[=-]+$', line):
+            elif line_num > 1 and re.match(r"^[=-]+$", line):
                 prev_line = lines[line_num - 2]
                 if not prev_line.strip():
-                    issues.append({
-                        "line": line_num,
-                        "type": "setext_header_empty_line",
-                        "message": "Setextスタイルヘッダーの上の行が空です",
-                        "severity": "warning"
-                    })
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "setext_header_empty_line",
+                            "message": "Setextスタイルヘッダーの上の行が空です",
+                            "severity": "warning",
+                        }
+                    )
 
         return issues
 
@@ -128,44 +134,50 @@ class MarkdownSyntaxValidator:
 
         for line_num, line in enumerate(lines, 1):
             # 順序なしリスト
-            unordered_match = re.match(r'^(\s*)[-*+]\s*(.+)', line)
+            unordered_match = re.match(r"^(\s*)[-*+]\s*(.+)", line)
             if unordered_match:
                 indent = unordered_match.group(1)
                 content = unordered_match.group(2)
 
                 # インデントが4の倍数でない
                 if len(indent) % 2 != 0:
-                    issues.append({
-                        "line": line_num,
-                        "type": "list_indent_inconsistent",
-                        "message": "リストのインデントが不正です（2の倍数である必要があります）",
-                        "severity": "warning"
-                    })
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "list_indent_inconsistent",
+                            "message": "リストのインデントが不正です（2の倍数である必要があります）",
+                            "severity": "warning",
+                        }
+                    )
 
                 # リストマーカー後にスペースがない
-                if not re.match(r'^(\s*)[-*+]\s+.+', line):
-                    issues.append({
-                        "line": line_num,
-                        "type": "list_no_space",
-                        "message": "リストマーカーの後にスペースが必要です",
-                        "severity": "warning"
-                    })
+                if not re.match(r"^(\s*)[-*+]\s+.+", line):
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "list_no_space",
+                            "message": "リストマーカーの後にスペースが必要です",
+                            "severity": "warning",
+                        }
+                    )
 
             # 順序ありリスト
-            ordered_match = re.match(r'^(\s*)(\d+)\.\s*(.+)', line)
+            ordered_match = re.match(r"^(\s*)(\d+)\.\s*(.+)", line)
             if ordered_match:
                 indent = ordered_match.group(1)
                 number = int(ordered_match.group(2))
                 content = ordered_match.group(3)
 
                 # リストマーカー後にスペースがない
-                if not re.match(r'^(\s*)\d+\.\s+.+', line):
-                    issues.append({
-                        "line": line_num,
-                        "type": "ordered_list_no_space",
-                        "message": "順序ありリストマーカーの後にスペースが必要です",
-                        "severity": "warning"
-                    })
+                if not re.match(r"^(\s*)\d+\.\s+.+", line):
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "ordered_list_no_space",
+                            "message": "順序ありリストマーカーの後にスペースが必要です",
+                            "severity": "warning",
+                        }
+                    )
 
         return issues
 
@@ -184,7 +196,7 @@ class MarkdownSyntaxValidator:
 
         for line_num, line in enumerate(lines, 1):
             # フェンスコードブロック
-            if re.match(r'^```', line):
+            if re.match(r"^```", line):
                 if not in_fenced_block:
                     in_fenced_block = True
                     fenced_start_line = line_num
@@ -192,24 +204,28 @@ class MarkdownSyntaxValidator:
                     in_fenced_block = False
 
             # インラインコード
-            inline_code_matches = re.findall(r'`([^`]+)`', line)
+            inline_code_matches = re.findall(r"`([^`]+)`", line)
             for match in inline_code_matches:
-                if '`' in match:
-                    issues.append({
-                        "line": line_num,
-                        "type": "inline_code_backtick",
-                        "message": "インラインコード内にバッククォートが含まれています",
-                        "severity": "error"
-                    })
+                if "`" in match:
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "inline_code_backtick",
+                            "message": "インラインコード内にバッククォートが含まれています",
+                            "severity": "error",
+                        }
+                    )
 
         # 閉じられていないフェンスコードブロック
         if in_fenced_block:
-            issues.append({
-                "line": fenced_start_line,
-                "type": "unclosed_fenced_block",
-                "message": "フェンスコードブロックが閉じられていません",
-                "severity": "error"
-            })
+            issues.append(
+                {
+                    "line": fenced_start_line,
+                    "type": "unclosed_fenced_block",
+                    "message": "フェンスコードブロックが閉じられていません",
+                    "severity": "error",
+                }
+            )
 
         return issues
 
@@ -226,35 +242,43 @@ class MarkdownSyntaxValidator:
 
         for line_num, line in enumerate(lines, 1):
             # テーブル行の検出
-            if '|' in line and line.strip().startswith('|') and line.strip().endswith('|'):
+            if (
+                "|" in line
+                and line.strip().startswith("|")
+                and line.strip().endswith("|")
+            ):
                 # セパレーター行のチェック
-                if re.match(r'^\|[\s\-:|]+\|$', line):
+                if re.match(r"^\|[\s\-:|]+\|$", line):
                     # セパレーター行の形式チェック
-                    separators = line.strip('|').split('|')
+                    separators = line.strip("|").split("|")
                     for sep in separators:
-                        if not re.match(r'^[\s\-:]+$', sep.strip()):
-                            issues.append({
-                                "line": line_num,
-                                "type": "table_separator_invalid",
-                                "message": "テーブルセパレーターの形式が不正です",
-                                "severity": "error"
-                            })
+                        if not re.match(r"^[\s\-:]+$", sep.strip()):
+                            issues.append(
+                                {
+                                    "line": line_num,
+                                    "type": "table_separator_invalid",
+                                    "message": "テーブルセパレーターの形式が不正です",
+                                    "severity": "error",
+                                }
+                            )
                             break
 
                 # 前後の行もテーブル行かチェック
                 if line_num > 1:
                     prev_line = lines[line_num - 2]
-                    if '|' in prev_line:
+                    if "|" in prev_line:
                         # カラム数の一致チェック
-                        current_cols = len(line.split('|')) - 2  # 先頭と末尾の|を除く
-                        prev_cols = len(prev_line.split('|')) - 2
+                        current_cols = len(line.split("|")) - 2  # 先頭と末尾の|を除く
+                        prev_cols = len(prev_line.split("|")) - 2
                         if current_cols != prev_cols:
-                            issues.append({
-                                "line": line_num,
-                                "type": "table_column_mismatch",
-                                "message": f"テーブルのカラム数が一致しません（{prev_cols} vs {current_cols}）",
-                                "severity": "warning"
-                            })
+                            issues.append(
+                                {
+                                    "line": line_num,
+                                    "type": "table_column_mismatch",
+                                    "message": f"テーブルのカラム数が一致しません（{prev_cols} vs {current_cols}）",
+                                    "severity": "warning",
+                                }
+                            )
 
         return issues
 
@@ -271,45 +295,53 @@ class MarkdownSyntaxValidator:
 
         for line_num, line in enumerate(lines, 1):
             # インラインリンク [text](url)
-            inline_links = re.findall(r'\[([^\]]*)\]\(([^)]+)\)', line)
+            inline_links = re.findall(r"\[([^\]]*)\]\(([^)]+)\)", line)
             for text, url in inline_links:
                 if not text.strip():
-                    issues.append({
-                        "line": line_num,
-                        "type": "link_empty_text",
-                        "message": "リンクテキストが空です",
-                        "severity": "warning"
-                    })
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "link_empty_text",
+                            "message": "リンクテキストが空です",
+                            "severity": "warning",
+                        }
+                    )
 
                 if not url.strip():
-                    issues.append({
-                        "line": line_num,
-                        "type": "link_empty_url",
-                        "message": "リンクURLが空です",
-                        "severity": "error"
-                    })
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "link_empty_url",
+                            "message": "リンクURLが空です",
+                            "severity": "error",
+                        }
+                    )
 
             # 参照リンク [text][ref]
-            ref_links = re.findall(r'\[([^\]]*)\]\[([^\]]*)\]', line)
+            ref_links = re.findall(r"\[([^\]]*)\]\[([^\]]*)\]", line)
             for text, ref in ref_links:
                 if not text.strip():
-                    issues.append({
-                        "line": line_num,
-                        "type": "ref_link_empty_text",
-                        "message": "参照リンクテキストが空です",
-                        "severity": "warning"
-                    })
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "ref_link_empty_text",
+                            "message": "参照リンクテキストが空です",
+                            "severity": "warning",
+                        }
+                    )
 
             # 画像リンク ![alt](url)
-            image_links = re.findall(r'!\[([^\]]*)\]\(([^)]+)\)', line)
+            image_links = re.findall(r"!\[([^\]]*)\]\(([^)]+)\)", line)
             for alt, url in image_links:
                 if not alt.strip():
-                    issues.append({
-                        "line": line_num,
-                        "type": "image_empty_alt",
-                        "message": "画像のalt属性が空です",
-                        "severity": "info"
-                    })
+                    issues.append(
+                        {
+                            "line": line_num,
+                            "type": "image_empty_alt",
+                            "message": "画像のalt属性が空です",
+                            "severity": "info",
+                        }
+                    )
 
         return issues
 
@@ -337,7 +369,7 @@ class LinkValidator:
             リンク検証結果
         """
         issues = []
-        
+
         # 内部リンクの検証
         internal_issues = self._validate_internal_links(content, file_path)
         issues.extend(internal_issues)
@@ -350,10 +382,12 @@ class LinkValidator:
             "file_path": file_path,
             "total_issues": len(issues),
             "issues": issues,
-            "is_valid": len(issues) == 0
+            "is_valid": len(issues) == 0,
         }
 
-    def _validate_internal_links(self, content: str, file_path: str) -> List[Dict[str, Any]]:
+    def _validate_internal_links(
+        self, content: str, file_path: str
+    ) -> List[Dict[str, Any]]:
         """内部リンクを検証
 
         Args:
@@ -364,52 +398,58 @@ class LinkValidator:
             内部リンク関連の問題リスト
         """
         issues = []
-        lines = content.split('\n')
+        lines = content.split("\n")
         current_file = Path(file_path)
 
         for line_num, line in enumerate(lines, 1):
             # 相対パスリンクを抽出
-            links = re.findall(r'\[([^\]]*)\]\(([^)]+)\)', line)
-            
+            links = re.findall(r"\[([^\]]*)\]\(([^)]+)\)", line)
+
             for text, url in links:
                 # 外部URLをスキップ
-                if url.startswith(('http://', 'https://', 'ftp://', 'mailto:')):
+                if url.startswith(("http://", "https://", "ftp://", "mailto:")):
                     continue
 
                 # アンカーリンクをスキップ
-                if url.startswith('#'):
+                if url.startswith("#"):
                     continue
 
                 # 相対パスの解決
-                if url.startswith('./') or not url.startswith('/'):
+                if url.startswith("./") or not url.startswith("/"):
                     target_path = current_file.parent / url
                 else:
-                    target_path = self.project_root / url.lstrip('/')
+                    target_path = self.project_root / url.lstrip("/")
 
                 # ファイルの存在チェック
                 try:
                     resolved_path = target_path.resolve()
                     if not resolved_path.exists():
-                        issues.append({
+                        issues.append(
+                            {
+                                "line": line_num,
+                                "type": "broken_internal_link",
+                                "message": f"リンク先ファイルが存在しません: {url}",
+                                "severity": "error",
+                                "url": url,
+                                "resolved_path": str(resolved_path),
+                            }
+                        )
+                except Exception as e:
+                    issues.append(
+                        {
                             "line": line_num,
-                            "type": "broken_internal_link",
-                            "message": f"リンク先ファイルが存在しません: {url}",
+                            "type": "invalid_path",
+                            "message": f"無効なパス: {url} ({e})",
                             "severity": "error",
                             "url": url,
-                            "resolved_path": str(resolved_path)
-                        })
-                except Exception as e:
-                    issues.append({
-                        "line": line_num,
-                        "type": "invalid_path",
-                        "message": f"無効なパス: {url} ({e})",
-                        "severity": "error",
-                        "url": url
-                    })
+                        }
+                    )
 
         return issues
 
-    def _validate_external_links(self, content: str, file_path: str, check_external: bool = False) -> List[Dict[str, Any]]:
+    def _validate_external_links(
+        self, content: str, file_path: str, check_external: bool = False
+    ) -> List[Dict[str, Any]]:
         """外部リンクを検証
 
         Args:
@@ -424,46 +464,54 @@ class LinkValidator:
             return []
 
         issues = []
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         for line_num, line in enumerate(lines, 1):
             # 外部URLを抽出
-            links = re.findall(r'\[([^\]]*)\]\(([^)]+)\)', line)
-            
+            links = re.findall(r"\[([^\]]*)\]\(([^)]+)\)", line)
+
             for text, url in links:
-                if url.startswith(('http://', 'https://')):
+                if url.startswith(("http://", "https://")):
                     try:
                         # HTTPリクエストでリンクをチェック
-                        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                        req = urllib.request.Request(
+                            url, headers={"User-Agent": "Mozilla/5.0"}
+                        )
                         with urllib.request.urlopen(req, timeout=10) as response:
                             if response.status >= 400:
-                                issues.append({
-                                    "line": line_num,
-                                    "type": "broken_external_link",
-                                    "message": f"外部リンクエラー: {url} (HTTP {response.status})",
-                                    "severity": "warning",
-                                    "url": url,
-                                    "status_code": response.status
-                                })
+                                issues.append(
+                                    {
+                                        "line": line_num,
+                                        "type": "broken_external_link",
+                                        "message": f"外部リンクエラー: {url} (HTTP {response.status})",
+                                        "severity": "warning",
+                                        "url": url,
+                                        "status_code": response.status,
+                                    }
+                                )
                     except (HTTPError, URLError) as e:
-                        issues.append({
-                            "line": line_num,
-                            "type": "broken_external_link",
-                            "message": f"外部リンクアクセスエラー: {url} ({e})",
-                            "severity": "warning",
-                            "url": url,
-                            "error": str(e)
-                        })
+                        issues.append(
+                            {
+                                "line": line_num,
+                                "type": "broken_external_link",
+                                "message": f"外部リンクアクセスエラー: {url} ({e})",
+                                "severity": "warning",
+                                "url": url,
+                                "error": str(e),
+                            }
+                        )
                     except Exception as e:
                         # タイムアウトなどの一般的なエラーは情報レベル
-                        issues.append({
-                            "line": line_num,
-                            "type": "external_link_check_failed",
-                            "message": f"外部リンクチェック失敗: {url} ({e})",
-                            "severity": "info",
-                            "url": url,
-                            "error": str(e)
-                        })
+                        issues.append(
+                            {
+                                "line": line_num,
+                                "type": "external_link_check_failed",
+                                "message": f"外部リンクチェック失敗: {url} ({e})",
+                                "severity": "info",
+                                "url": url,
+                                "error": str(e),
+                            }
+                        )
 
         return issues
 
@@ -488,16 +536,18 @@ class EncodingValidator:
 
         try:
             # UTF-8として読み込み試行
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # BOMの存在チェック
-            if content.startswith('\ufeff'):
-                issues.append({
-                    "type": "utf8_bom_detected",
-                    "message": "UTF-8 BOMが検出されました（推奨されません）",
-                    "severity": "warning"
-                })
+            if content.startswith("\ufeff"):
+                issues.append(
+                    {
+                        "type": "utf8_bom_detected",
+                        "message": "UTF-8 BOMが検出されました（推奨されません）",
+                        "severity": "warning",
+                    }
+                )
 
             # 日本語文字の検証
             japanese_issues = self._validate_japanese_characters(content)
@@ -508,18 +558,20 @@ class EncodingValidator:
             issues.extend(control_char_issues)
 
         except UnicodeDecodeError as e:
-            issues.append({
-                "type": "encoding_error",
-                "message": f"UTF-8デコードエラー: {e}",
-                "severity": "error"
-            })
+            issues.append(
+                {
+                    "type": "encoding_error",
+                    "message": f"UTF-8デコードエラー: {e}",
+                    "severity": "error",
+                }
+            )
 
         return {
             "file_path": str(file_path),
             "encoding": "utf-8",
             "total_issues": len(issues),
             "issues": issues,
-            "is_valid": len(issues) == 0
+            "is_valid": len(issues) == 0,
         }
 
     def _validate_japanese_characters(self, content: str) -> List[Dict[str, Any]]:
@@ -532,37 +584,45 @@ class EncodingValidator:
             日本語文字関連の問題リスト
         """
         issues = []
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         for line_num, line in enumerate(lines, 1):
             # 全角スペースのチェック
-            if '　' in line:  # 全角スペース
-                issues.append({
-                    "line": line_num,
-                    "type": "fullwidth_space",
-                    "message": "全角スペースが含まれています",
-                    "severity": "info"
-                })
+            if "　" in line:  # 全角スペース
+                issues.append(
+                    {
+                        "line": line_num,
+                        "type": "fullwidth_space",
+                        "message": "全角スペースが含まれています",
+                        "severity": "info",
+                    }
+                )
 
             # 半角カタカナのチェック
-            halfwidth_katakana = re.search(r'[ｦ-ﾟ]', line)
+            halfwidth_katakana = re.search(r"[ｦ-ﾟ]", line)
             if halfwidth_katakana:
-                issues.append({
-                    "line": line_num,
-                    "type": "halfwidth_katakana",
-                    "message": "半角カタカナが含まれています（全角推奨）",
-                    "severity": "info"
-                })
+                issues.append(
+                    {
+                        "line": line_num,
+                        "type": "halfwidth_katakana",
+                        "message": "半角カタカナが含まれています（全角推奨）",
+                        "severity": "info",
+                    }
+                )
 
             # 機種依存文字のチェック
-            platform_dependent = re.search(r'[①-⑳㍉㌔㌢㍍㌘㌧㌃㌶㍑㍗㌍㌦㌣㌫㍊㌻㎜㎝㎞㎎㎏㏄㎡]', line)
+            platform_dependent = re.search(
+                r"[①-⑳㍉㌔㌢㍍㌘㌧㌃㌶㍑㍗㌍㌦㌣㌫㍊㌻㎜㎝㎞㎎㎏㏄㎡]", line
+            )
             if platform_dependent:
-                issues.append({
-                    "line": line_num,
-                    "type": "platform_dependent_char",
-                    "message": "機種依存文字が含まれています",
-                    "severity": "warning"
-                })
+                issues.append(
+                    {
+                        "line": line_num,
+                        "type": "platform_dependent_char",
+                        "message": "機種依存文字が含まれています",
+                        "severity": "warning",
+                    }
+                )
 
         return issues
 
@@ -576,36 +636,42 @@ class EncodingValidator:
             制御文字関連の問題リスト
         """
         issues = []
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         for line_num, line in enumerate(lines, 1):
             # タブ文字のチェック
-            if '\t' in line:
-                issues.append({
-                    "line": line_num,
-                    "type": "tab_character",
-                    "message": "タブ文字が含まれています（スペース推奨）",
-                    "severity": "info"
-                })
+            if "\t" in line:
+                issues.append(
+                    {
+                        "line": line_num,
+                        "type": "tab_character",
+                        "message": "タブ文字が含まれています（スペース推奨）",
+                        "severity": "info",
+                    }
+                )
 
             # 行末の空白文字
-            if line.endswith(' ') or line.endswith('\t'):
-                issues.append({
-                    "line": line_num,
-                    "type": "trailing_whitespace",
-                    "message": "行末に空白文字があります",
-                    "severity": "info"
-                })
+            if line.endswith(" ") or line.endswith("\t"):
+                issues.append(
+                    {
+                        "line": line_num,
+                        "type": "trailing_whitespace",
+                        "message": "行末に空白文字があります",
+                        "severity": "info",
+                    }
+                )
 
             # 制御文字（印刷不可能文字）
-            control_chars = re.findall(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', line)
+            control_chars = re.findall(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", line)
             if control_chars:
-                issues.append({
-                    "line": line_num,
-                    "type": "control_character",
-                    "message": f"制御文字が含まれています: {[hex(ord(c)) for c in control_chars]}",
-                    "severity": "warning"
-                })
+                issues.append(
+                    {
+                        "line": line_num,
+                        "type": "control_character",
+                        "message": f"制御文字が含まれています: {[hex(ord(c)) for c in control_chars]}",
+                        "severity": "warning",
+                    }
+                )
 
         return issues
 
@@ -625,7 +691,9 @@ class MarkdownValidator:
         self.link_validator = LinkValidator(self.project_root)
         self.encoding_validator = EncodingValidator()
 
-    def validate_file(self, file_path: Path, check_external_links: bool = False) -> Dict[str, Any]:
+    def validate_file(
+        self, file_path: Path, check_external_links: bool = False
+    ) -> Dict[str, Any]:
         """Markdownファイルを検証
 
         Args:
@@ -638,7 +706,7 @@ class MarkdownValidator:
         self.logger.info(
             f"Markdownファイル検証開始: {file_path}",
             LogCategory.GENERAL,
-            LogContext(file_path=str(file_path))
+            LogContext(file_path=str(file_path)),
         )
 
         try:
@@ -647,26 +715,28 @@ class MarkdownValidator:
                 return {
                     "file_path": str(file_path),
                     "error": "ファイルが存在しません",
-                    "is_valid": False
+                    "is_valid": False,
                 }
 
             # エンコーディング検証
             encoding_result = self.encoding_validator.validate_encoding(file_path)
-            
+
             if not encoding_result["is_valid"]:
                 return {
                     "file_path": str(file_path),
                     "encoding_result": encoding_result,
                     "error": "エンコーディングエラー",
-                    "is_valid": False
+                    "is_valid": False,
                 }
 
             # ファイル内容読み込み
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # 構文検証
-            syntax_result = self.syntax_validator.validate_syntax(content, str(file_path))
+            syntax_result = self.syntax_validator.validate_syntax(
+                content, str(file_path)
+            )
 
             # リンク検証
             link_result = self.link_validator.validate_links(content, str(file_path))
@@ -684,7 +754,7 @@ class MarkdownValidator:
                 "link_result": link_result,
                 "total_issues": len(all_issues),
                 "all_issues": all_issues,
-                "is_valid": len(all_issues) == 0
+                "is_valid": len(all_issues) == 0,
             }
 
             self.logger.info(
@@ -693,8 +763,8 @@ class MarkdownValidator:
                 LogContext(
                     file_path=str(file_path),
                     total_issues=len(all_issues),
-                    is_valid=result["is_valid"]
-                )
+                    is_valid=result["is_valid"],
+                ),
             )
 
             return result
@@ -703,13 +773,9 @@ class MarkdownValidator:
             self.logger.error(
                 f"Markdownファイル検証エラー: {file_path} - {e}",
                 LogCategory.ERROR,
-                LogContext(file_path=str(file_path), error=str(e))
+                LogContext(file_path=str(file_path), error=str(e)),
             )
-            return {
-                "file_path": str(file_path),
-                "error": str(e),
-                "is_valid": False
-            }
+            return {"file_path": str(file_path), "error": str(e), "is_valid": False}
 
     def validate_project(self, check_external_links: bool = False) -> Dict[str, Any]:
         """プロジェクト全体のMarkdownファイルを検証
@@ -723,12 +789,12 @@ class MarkdownValidator:
         self.logger.info(
             "プロジェクトMarkdown検証開始",
             LogCategory.GENERAL,
-            LogContext(project_root=str(self.project_root))
+            LogContext(project_root=str(self.project_root)),
         )
 
         # Markdownファイルを検索
         markdown_files = list(self.project_root.rglob("*.md"))
-        
+
         # 除外パターン
         exclude_patterns = [
             "__pycache__",
@@ -736,7 +802,7 @@ class MarkdownValidator:
             "node_modules",
             ".pytest_cache",
             "_build",
-            "site"
+            "site",
         ]
 
         filtered_files = []
@@ -764,7 +830,7 @@ class MarkdownValidator:
             "invalid_files": invalid_files,
             "total_issues": total_issues,
             "file_results": file_results,
-            "is_valid": invalid_files == 0
+            "is_valid": invalid_files == 0,
         }
 
         self.logger.info(
@@ -774,8 +840,8 @@ class MarkdownValidator:
                 total_files=len(file_results),
                 valid_files=valid_files,
                 invalid_files=invalid_files,
-                total_issues=total_issues
-            )
+                total_issues=total_issues,
+            ),
         )
 
         return project_result
@@ -803,42 +869,46 @@ class MarkdownValidator:
             f"- 総問題数: {validation_result['total_issues']}",
             "",
             "## ファイル別結果",
-            ""
+            "",
         ]
 
-        for file_result in validation_result['file_results']:
-            file_path = file_result['file_path']
-            is_valid = file_result.get('is_valid', False)
-            total_issues = file_result.get('total_issues', 0)
+        for file_result in validation_result["file_results"]:
+            file_path = file_result["file_path"]
+            is_valid = file_result.get("is_valid", False)
+            total_issues = file_result.get("total_issues", 0)
 
             status_icon = "✅" if is_valid else "❌"
             report_lines.append(f"### {status_icon} {file_path}")
-            
+
             if total_issues > 0:
                 report_lines.append(f"問題数: {total_issues}")
                 report_lines.append("")
 
                 # 各カテゴリの問題を表示
-                for category in ['encoding_result', 'syntax_result', 'link_result']:
-                    if category in file_result and file_result[category]['issues']:
+                for category in ["encoding_result", "syntax_result", "link_result"]:
+                    if category in file_result and file_result[category]["issues"]:
                         category_name = {
-                            'encoding_result': 'エンコーディング',
-                            'syntax_result': '構文',
-                            'link_result': 'リンク'
+                            "encoding_result": "エンコーディング",
+                            "syntax_result": "構文",
+                            "link_result": "リンク",
                         }[category]
-                        
+
                         report_lines.append(f"#### {category_name}問題")
-                        
-                        for issue in file_result[category]['issues']:
+
+                        for issue in file_result[category]["issues"]:
                             severity_icon = {
                                 "error": "❌",
-                                "warning": "⚠️", 
-                                "info": "ℹ️"
-                            }.get(issue.get('severity', 'info'), "•")
-                            
-                            line_info = f" (行 {issue['line']})" if 'line' in issue else ""
-                            report_lines.append(f"- {severity_icon} {issue['message']}{line_info}")
-                        
+                                "warning": "⚠️",
+                                "info": "ℹ️",
+                            }.get(issue.get("severity", "info"), "•")
+
+                            line_info = (
+                                f" (行 {issue['line']})" if "line" in issue else ""
+                            )
+                            report_lines.append(
+                                f"- {severity_icon} {issue['message']}{line_info}"
+                            )
+
                         report_lines.append("")
             else:
                 report_lines.append("問題なし")
@@ -853,32 +923,24 @@ def main():
 
     parser = argparse.ArgumentParser(description="Markdown検証システム")
     parser.add_argument(
-        "files",
-        nargs="*",
-        help="検証対象ファイル（指定しない場合はプロジェクト全体）"
+        "files", nargs="*", help="検証対象ファイル（指定しない場合はプロジェクト全体）"
     )
     parser.add_argument(
-        "--check-external-links",
-        action="store_true",
-        help="外部リンクもチェックする"
+        "--check-external-links", action="store_true", help="外部リンクもチェックする"
     )
     parser.add_argument(
         "--project-root",
         type=Path,
         default=Path.cwd(),
-        help="プロジェクトルートディレクトリ"
+        help="プロジェクトルートディレクトリ",
     )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        help="レポート出力ファイル"
-    )
+    parser.add_argument("--output", type=Path, help="レポート出力ファイル")
 
     args = parser.parse_args()
 
     # ロガー設定
     logger = get_logger()
-    
+
     try:
         validator = MarkdownValidator(args.project_root)
 
@@ -887,27 +949,31 @@ def main():
             for file_path in args.files:
                 file_path = Path(file_path)
                 result = validator.validate_file(file_path, args.check_external_links)
-                
+
                 if result["is_valid"]:
                     logger.info(f"✅ {file_path}: 問題なし")
                 else:
-                    logger.warning(f"❌ {file_path}: {result.get('total_issues', 0)}個の問題")
+                    logger.warning(
+                        f"❌ {file_path}: {result.get('total_issues', 0)}個の問題"
+                    )
         else:
             # プロジェクト全体の検証
             result = validator.validate_project(args.check_external_links)
-            
+
             # レポート生成
             report = validator.generate_validation_report(result)
-            
+
             if args.output:
                 args.output.parent.mkdir(parents=True, exist_ok=True)
-                args.output.write_text(report, encoding='utf-8')
+                args.output.write_text(report, encoding="utf-8")
                 logger.info(f"検証レポート出力: {args.output}")
             else:
                 # デフォルトの出力先
-                report_path = args.project_root / "docs" / "markdown_validation_report.md"
+                report_path = (
+                    args.project_root / "docs" / "markdown_validation_report.md"
+                )
                 report_path.parent.mkdir(parents=True, exist_ok=True)
-                report_path.write_text(report, encoding='utf-8')
+                report_path.write_text(report, encoding="utf-8")
                 logger.info(f"検証レポート出力: {report_path}")
 
             # サマリー表示

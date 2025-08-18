@@ -18,7 +18,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 
 def get_logger():
@@ -41,6 +41,7 @@ logger = get_logger()
 @dataclass
 class QtFramework:
     """Qt フレームワーク情報"""
+
     name: str
     module_name: str
     version: Optional[str] = None
@@ -75,6 +76,7 @@ class QtDetector:
         try:
             # モジュールのインポートを試行
             import importlib
+
             module = importlib.import_module(framework.module_name)
 
             # バージョン情報を取得
@@ -123,11 +125,7 @@ class QtInstaller:
 
         # インストールコマンドを構築
         package_name = self._get_package_name(framework)
-        command = [
-            self.python_executable,
-            "-m", "pip", "install",
-            package_name
-        ]
+        command = [self.python_executable, "-m", "pip", "install", package_name]
 
         try:
             result = subprocess.run(
@@ -135,7 +133,7 @@ class QtInstaller:
                 capture_output=True,
                 text=True,
                 check=True,
-                timeout=300  # 5分のタイムアウト
+                timeout=300,  # 5分のタイムアウト
             )
 
             logger.info(f"✅ {framework.name}のインストールが完了しました")
@@ -180,15 +178,19 @@ class QtConfigurationManager:
         # 基本的なQt設定
         if framework.name in ["PySide6", "PyQt6"]:
             # Qt6系の設定
-            config.update({
-                "QT_API": framework.module_name.lower(),
-                "QT_QPA_PLATFORM_PLUGIN_PATH": "",  # 自動検出に任せる
-            })
+            config.update(
+                {
+                    "QT_API": framework.module_name.lower(),
+                    "QT_QPA_PLATFORM_PLUGIN_PATH": "",  # 自動検出に任せる
+                }
+            )
         elif framework.name == "PyQt5":
             # Qt5系の設定
-            config.update({
-                "QT_API": "pyqt5",
-            })
+            config.update(
+                {
+                    "QT_API": "pyqt5",
+                }
+            )
 
         # WSL環境の検出と設定
         if self._is_wsl_environment():
@@ -199,7 +201,7 @@ class QtConfigurationManager:
     def _is_wsl_environment(self) -> bool:
         """WSL環境かどうかを判定"""
         try:
-            with open("/proc/version", "r") as f:
+            with open("/proc/version") as f:
                 version_info = f.read().lower()
                 return "microsoft" in version_info
         except (FileNotFoundError, PermissionError):
@@ -220,11 +222,13 @@ class QtConfigurationManager:
         # WSLgの検出
         if os.environ.get("WAYLAND_DISPLAY"):
             logger.info("WSLg環境が検出されました")
-            wsl_config.update({
-                "QT_QPA_PLATFORM": "wayland",
-                "WAYLAND_DISPLAY": "wayland-0",
-                "XDG_SESSION_TYPE": "wayland",
-            })
+            wsl_config.update(
+                {
+                    "QT_QPA_PLATFORM": "wayland",
+                    "WAYLAND_DISPLAY": "wayland-0",
+                    "XDG_SESSION_TYPE": "wayland",
+                }
+            )
 
         return wsl_config
 
@@ -234,7 +238,7 @@ class QtConfigurationManager:
         config_dir.mkdir(exist_ok=True)
 
         config_file = config_dir / "qt_framework.py"
-        
+
         config_content = f'''"""
 Qt フレームワーク設定ファイル
 自動生成されました - 手動編集は推奨されません
@@ -321,7 +325,9 @@ class QtValidator:
 
         # GUI機能のテスト（ヘッドレス環境対応）
         if not self._test_gui_functionality():
-            logger.warning("GUI機能のテストで問題が発生しましたが、基本機能は利用可能です")
+            logger.warning(
+                "GUI機能のテストで問題が発生しましたが、基本機能は利用可能です"
+            )
 
         logger.info(f"✅ {self.framework.name}の検証が完了しました")
         return True
@@ -347,7 +353,7 @@ except ImportError as e:
                 capture_output=True,
                 text=True,
                 check=True,
-                timeout=30
+                timeout=30,
             )
 
             logger.debug(f"インポートテスト結果: {result.stdout.strip()}")
@@ -368,18 +374,18 @@ os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
 try:
     from {self.framework.module_name}.QtWidgets import QApplication, QWidget
-    
+
     # QApplicationの作成テスト
     app = QApplication(sys.argv)
-    
+
     # 基本的なウィジェットの作成テスト
     widget = QWidget()
     widget.setWindowTitle("テストウィジェット")
-    
+
     print("GUI機能のテストが成功しました")
     app.quit()
     sys.exit(0)
-    
+
 except Exception as e:
     print(f"GUI機能テストエラー: {{e}}")
     sys.exit(1)
@@ -391,7 +397,7 @@ except Exception as e:
                 capture_output=True,
                 text=True,
                 check=True,
-                timeout=30
+                timeout=30,
             )
 
             logger.debug(f"GUI機能テスト結果: {result.stdout.strip()}")
@@ -452,28 +458,18 @@ def main():
     parser.add_argument(
         "--install",
         action="store_true",
-        help="不足しているQt フレームワークを自動インストール"
+        help="不足しているQt フレームワークを自動インストール",
     )
     parser.add_argument(
         "--framework",
         choices=["PySide6", "PyQt6", "PyQt5"],
-        help="特定のフレームワークを指定してインストール"
+        help="特定のフレームワークを指定してインストール",
     )
     parser.add_argument(
-        "--validate",
-        action="store_true",
-        help="検出されたフレームワークの動作を検証"
+        "--validate", action="store_true", help="検出されたフレームワークの動作を検証"
     )
-    parser.add_argument(
-        "--config",
-        action="store_true",
-        help="Qt設定ファイルを生成"
-    )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="詳細なログを表示"
-    )
+    parser.add_argument("--config", action="store_true", help="Qt設定ファイルを生成")
+    parser.add_argument("--verbose", action="store_true", help="詳細なログを表示")
 
     args = parser.parse_args()
 
@@ -498,19 +494,21 @@ def main():
 
     if not available_frameworks:
         logger.warning("⚠️  Qt フレームワークが見つかりません")
-        
+
         if args.install:
             # 自動インストールを実行
             installer = QtInstaller()
             installation_candidates = detector.get_installation_candidates()
-            
+
             for framework in installation_candidates:
                 logger.info(f"📦 {framework.name}のインストールを試行します...")
                 if installer.install_framework(framework):
                     # インストール後に再検出
                     detector._detect_framework(framework)
                     if framework.is_available:
-                        logger.info(f"✅ {framework.name}のインストールと検出が完了しました")
+                        logger.info(
+                            f"✅ {framework.name}のインストールと検出が完了しました"
+                        )
                         recommended_framework = framework
                         break
                 else:
@@ -518,29 +516,36 @@ def main():
         else:
             print_installation_guide(detector.get_installation_candidates())
             logger.info("")
-            logger.info("自動インストールを実行するには --install オプションを使用してください")
+            logger.info(
+                "自動インストールを実行するには --install オプションを使用してください"
+            )
             sys.exit(1)
 
     elif args.framework:
         # 特定のフレームワークが指定された場合
         target_framework = next(
-            (fw for fw in frameworks if fw.name == args.framework), 
-            None
+            (fw for fw in frameworks if fw.name == args.framework), None
         )
-        
+
         if not target_framework:
-            logger.error(f"❌ 指定されたフレームワークが見つかりません: {args.framework}")
+            logger.error(
+                f"❌ 指定されたフレームワークが見つかりません: {args.framework}"
+            )
             sys.exit(1)
-            
+
         if not target_framework.is_available and args.install:
             installer = QtInstaller()
             if installer.install_framework(target_framework):
                 detector._detect_framework(target_framework)
-                
-        recommended_framework = target_framework if target_framework.is_available else None
+
+        recommended_framework = (
+            target_framework if target_framework.is_available else None
+        )
 
     if recommended_framework:
-        logger.info(f"🎯 推奨フレームワーク: {recommended_framework.name} {recommended_framework.version}")
+        logger.info(
+            f"🎯 推奨フレームワーク: {recommended_framework.name} {recommended_framework.version}"
+        )
 
         # 動作検証
         if args.validate:
@@ -559,7 +564,7 @@ def main():
         # 環境変数の提案
         config_manager = QtConfigurationManager(project_root)
         env_config = config_manager.generate_environment_config(recommended_framework)
-        
+
         if env_config:
             logger.info("🔧 推奨環境変数設定:")
             for key, value in env_config.items():

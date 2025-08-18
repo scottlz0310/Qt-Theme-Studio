@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-08-18T23:16:17.925464",
+  "generated_at": "2025-08-18T23:46:33.916710",
   "dashboard_version": "2.0.0",
   "project_root": "/home/hiro/Projects/Qt-Theme-Studio",
   "workflow_engine_available": true,
@@ -73,11 +73,11 @@
       "enabled_workflows": 5
     },
     "system_metrics": {
-      "cpu_percent": 1.0,
-      "memory_percent": 17.2,
-      "disk_percent": 4.473209035042517,
-      "process_memory_mb": 54.58984375,
-      "timestamp": "2025-08-18T23:16:17.913867"
+      "cpu_percent": 0.1,
+      "memory_percent": 8.6,
+      "disk_percent": 4.470652400326699,
+      "process_memory_mb": 54.28125,
+      "timestamp": "2025-08-18T23:46:33.915491"
     },
     "security_metrics": {
       "total_issues": 0,
@@ -88,12 +88,12 @@
       },
       "files_scanned": 4166,
       "security_score": 10.0,
-      "last_scan": "2025-08-18T23:16:17.925077"
+      "last_scan": "2025-08-18T23:46:33.916315"
     },
     "performance_metrics": {
       "error": "ベンチマーク結果が見つかりません"
     },
     "quality_score": "D"
   },
-  "metrics_history_count": 0
+  "metrics_history_count": 3
 }

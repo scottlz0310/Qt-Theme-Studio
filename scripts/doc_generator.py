@@ -7,12 +7,11 @@ docstringからAPIドキュメントを自動生成し、品質チェック機�
 """
 
 import ast
-import json
 import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
 from qt_theme_studio.logger import LogCategory, LogContext, get_logger
 
@@ -25,7 +24,9 @@ class DocstringQualityChecker:
         self.logger = get_logger()
         self.issues: List[Dict[str, Any]] = []
 
-    def check_docstring_quality(self, docstring: str, function_name: str, file_path: str, line_number: int) -> Dict[str, Any]:
+    def check_docstring_quality(
+        self, docstring: str, function_name: str, file_path: str, line_number: int
+    ) -> Dict[str, Any]:
         """docstringの品質をチェック
 
         Args:
@@ -38,54 +39,68 @@ class DocstringQualityChecker:
             品質チェック結果
         """
         issues = []
-        
+
         # 基本的な存在チェック
         if not docstring or not docstring.strip():
-            issues.append({
-                "type": "missing_docstring",
-                "message": "docstringが存在しません",
-                "severity": "error"
-            })
+            issues.append(
+                {
+                    "type": "missing_docstring",
+                    "message": "docstringが存在しません",
+                    "severity": "error",
+                }
+            )
             return {
                 "function_name": function_name,
                 "file_path": file_path,
                 "line_number": line_number,
                 "issues": issues,
-                "score": 0
+                "score": 0,
             }
 
         # 長さチェック
         if len(docstring.strip()) < 10:
-            issues.append({
-                "type": "too_short",
-                "message": "docstringが短すぎます（10文字未満）",
-                "severity": "warning"
-            })
+            issues.append(
+                {
+                    "type": "too_short",
+                    "message": "docstringが短すぎます（10文字未満）",
+                    "severity": "warning",
+                }
+            )
 
         # 日本語文字の存在チェック
-        japanese_pattern = re.compile(r'[ひらがなカタカナ漢字]')
+        japanese_pattern = re.compile(r"[ひらがなカタカナ漢字]")
         if not japanese_pattern.search(docstring):
-            issues.append({
-                "type": "no_japanese",
-                "message": "日本語の説明が含まれていません",
-                "severity": "warning"
-            })
+            issues.append(
+                {
+                    "type": "no_japanese",
+                    "message": "日本語の説明が含まれていません",
+                    "severity": "warning",
+                }
+            )
 
         # Args/Returns セクションのチェック
         if "Args:" not in docstring and "引数:" not in docstring:
             if "(" in function_name or "def " in function_name:
-                issues.append({
-                    "type": "missing_args_section",
-                    "message": "引数の説明セクションが不足しています",
-                    "severity": "info"
-                })
+                issues.append(
+                    {
+                        "type": "missing_args_section",
+                        "message": "引数の説明セクションが不足しています",
+                        "severity": "info",
+                    }
+                )
 
-        if "Returns:" not in docstring and "戻り値:" not in docstring and "return" in docstring.lower():
-            issues.append({
-                "type": "missing_returns_section",
-                "message": "戻り値の説明セクションが不足しています",
-                "severity": "info"
-            })
+        if (
+            "Returns:" not in docstring
+            and "戻り値:" not in docstring
+            and "return" in docstring.lower()
+        ):
+            issues.append(
+                {
+                    "type": "missing_returns_section",
+                    "message": "戻り値の説明セクションが不足しています",
+                    "severity": "info",
+                }
+            )
 
         # スコア計算
         score = 100
@@ -102,7 +117,7 @@ class DocstringQualityChecker:
             "file_path": file_path,
             "line_number": line_number,
             "issues": issues,
-            "score": max(0, score)
+            "score": max(0, score),
         }
 
 
@@ -123,34 +138,40 @@ class PythonDocstringExtractor:
             抽出されたdocstring情報のリスト
         """
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             tree = ast.parse(content)
             docstrings = []
 
             for node in ast.walk(tree):
-                if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
+                if isinstance(
+                    node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
+                ):
                     docstring = ast.get_docstring(node)
                     if docstring:
-                        docstrings.append({
-                            "name": node.name,
-                            "type": type(node).__name__,
-                            "docstring": docstring,
-                            "line_number": node.lineno,
-                            "file_path": str(file_path)
-                        })
+                        docstrings.append(
+                            {
+                                "name": node.name,
+                                "type": type(node).__name__,
+                                "docstring": docstring,
+                                "line_number": node.lineno,
+                                "file_path": str(file_path),
+                            }
+                        )
 
             # モジュールレベルのdocstring
             module_docstring = ast.get_docstring(tree)
             if module_docstring:
-                docstrings.append({
-                    "name": "__module__",
-                    "type": "Module",
-                    "docstring": module_docstring,
-                    "line_number": 1,
-                    "file_path": str(file_path)
-                })
+                docstrings.append(
+                    {
+                        "name": "__module__",
+                        "type": "Module",
+                        "docstring": module_docstring,
+                        "line_number": 1,
+                        "file_path": str(file_path),
+                    }
+                )
 
             return docstrings
 
@@ -158,7 +179,7 @@ class PythonDocstringExtractor:
             self.logger.error(
                 f"docstring抽出エラー: {file_path}",
                 LogCategory.ERROR,
-                LogContext(file_path=str(file_path), error=str(e))
+                LogContext(file_path=str(file_path), error=str(e)),
             )
             return []
 
@@ -188,16 +209,16 @@ class SphinxDocGenerator:
 
             # conf.pyを生成
             conf_content = self._generate_sphinx_config()
-            (self.docs_dir / "conf.py").write_text(conf_content, encoding='utf-8')
+            (self.docs_dir / "conf.py").write_text(conf_content, encoding="utf-8")
 
             # index.rstを生成
             index_content = self._generate_index_rst()
-            (self.docs_dir / "index.rst").write_text(index_content, encoding='utf-8')
+            (self.docs_dir / "index.rst").write_text(index_content, encoding="utf-8")
 
             self.logger.info(
                 "Sphinxプロジェクトセットアップ完了",
                 LogCategory.GENERAL,
-                LogContext(docs_dir=str(self.docs_dir))
+                LogContext(docs_dir=str(self.docs_dir)),
             )
             return True
 
@@ -205,7 +226,7 @@ class SphinxDocGenerator:
             self.logger.error(
                 f"Sphinxセットアップエラー: {e}",
                 LogCategory.ERROR,
-                LogContext(error=str(e))
+                LogContext(error=str(e)),
             )
             return False
 
@@ -279,7 +300,7 @@ intersphinx_mapping = {
         Returns:
             index.rstの内容
         """
-        return '''Qt-Theme-Studio API ドキュメント
+        return """Qt-Theme-Studio API ドキュメント
 =====================================
 
 Qt-Theme-Studio の API ドキュメントへようこそ。
@@ -332,7 +353,7 @@ Qt-Theme-Studio の API ドキュメントへようこそ。
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-'''
+"""
 
     def generate_module_docs(self) -> bool:
         """モジュール別ドキュメントを生成
@@ -343,34 +364,39 @@ Qt-Theme-Studio の API ドキュメントへようこそ。
         try:
             # apidocを使用してモジュールドキュメントを自動生成
             cmd = [
-                sys.executable, "-m", "sphinx.ext.apidoc",
-                "-f", "-o", str(self.docs_dir),
+                sys.executable,
+                "-m",
+                "sphinx.ext.apidoc",
+                "-f",
+                "-o",
+                str(self.docs_dir),
                 str(self.project_root / "qt_theme_studio"),
-                "--separate"
+                "--separate",
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
-            
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=self.project_root
+            )
+
             if result.returncode == 0:
                 self.logger.info(
                     "モジュールドキュメント生成完了",
                     LogCategory.GENERAL,
-                    LogContext(command=" ".join(cmd))
+                    LogContext(command=" ".join(cmd)),
                 )
                 return True
-            else:
-                self.logger.error(
-                    f"apidoc実行エラー: {result.stderr}",
-                    LogCategory.ERROR,
-                    LogContext(command=" ".join(cmd), stderr=result.stderr)
-                )
-                return False
+            self.logger.error(
+                f"apidoc実行エラー: {result.stderr}",
+                LogCategory.ERROR,
+                LogContext(command=" ".join(cmd), stderr=result.stderr),
+            )
+            return False
 
         except Exception as e:
             self.logger.error(
                 f"モジュールドキュメント生成エラー: {e}",
                 LogCategory.ERROR,
-                LogContext(error=str(e))
+                LogContext(error=str(e)),
             )
             return False
 
@@ -382,36 +408,40 @@ Qt-Theme-Studio の API ドキュメントへようこそ。
         """
         try:
             build_dir = self.docs_dir / "_build" / "html"
-            
+
             cmd = [
-                sys.executable, "-m", "sphinx",
-                "-b", "html",
+                sys.executable,
+                "-m",
+                "sphinx",
+                "-b",
+                "html",
                 str(self.docs_dir),
-                str(build_dir)
+                str(build_dir),
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
-            
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=self.project_root
+            )
+
             if result.returncode == 0:
                 self.logger.info(
                     f"HTMLドキュメントビルド完了: {build_dir}",
                     LogCategory.GENERAL,
-                    LogContext(build_dir=str(build_dir))
+                    LogContext(build_dir=str(build_dir)),
                 )
                 return True
-            else:
-                self.logger.error(
-                    f"Sphinxビルドエラー: {result.stderr}",
-                    LogCategory.ERROR,
-                    LogContext(command=" ".join(cmd), stderr=result.stderr)
-                )
-                return False
+            self.logger.error(
+                f"Sphinxビルドエラー: {result.stderr}",
+                LogCategory.ERROR,
+                LogContext(command=" ".join(cmd), stderr=result.stderr),
+            )
+            return False
 
         except Exception as e:
             self.logger.error(
                 f"HTMLドキュメントビルドエラー: {e}",
                 LogCategory.ERROR,
-                LogContext(error=str(e))
+                LogContext(error=str(e)),
             )
             return False
 
@@ -438,19 +468,21 @@ class MkDocsGenerator:
         try:
             # mkdocs.ymlを生成
             config_content = self._generate_mkdocs_config()
-            (self.project_root / "mkdocs.yml").write_text(config_content, encoding='utf-8')
+            (self.project_root / "mkdocs.yml").write_text(
+                config_content, encoding="utf-8"
+            )
 
             # docsディレクトリを作成
             self.docs_dir.mkdir(exist_ok=True)
 
             # index.mdを生成
             index_content = self._generate_index_md()
-            (self.docs_dir / "index.md").write_text(index_content, encoding='utf-8')
+            (self.docs_dir / "index.md").write_text(index_content, encoding="utf-8")
 
             self.logger.info(
                 "MkDocsプロジェクトセットアップ完了",
                 LogCategory.GENERAL,
-                LogContext(docs_dir=str(self.docs_dir))
+                LogContext(docs_dir=str(self.docs_dir)),
             )
             return True
 
@@ -458,7 +490,7 @@ class MkDocsGenerator:
             self.logger.error(
                 f"MkDocsセットアップエラー: {e}",
                 LogCategory.ERROR,
-                LogContext(error=str(e))
+                LogContext(error=str(e)),
             )
             return False
 
@@ -468,7 +500,7 @@ class MkDocsGenerator:
         Returns:
             mkdocs.ymlの内容
         """
-        return '''site_name: Qt-Theme-Studio API ドキュメント
+        return """site_name: Qt-Theme-Studio API ドキュメント
 site_description: Qt-Theme-Studio の API ドキュメント
 site_author: Qt-Theme-Studio Team
 
@@ -528,7 +560,7 @@ markdown_extensions:
   - pymdownx.tabbed
   - toc:
       permalink: true
-'''
+"""
 
     def _generate_index_md(self) -> str:
         """メインインデックスファイルを生成
@@ -536,7 +568,7 @@ markdown_extensions:
         Returns:
             index.mdの内容
         """
-        return '''# Qt-Theme-Studio API ドキュメント
+        return """# Qt-Theme-Studio API ドキュメント
 
 Qt-Theme-Studio の API ドキュメントへようこそ。
 
@@ -580,7 +612,7 @@ app.exec()
 ## API リファレンス
 
 詳細なAPI情報については、左側のナビゲーションメニューから各モジュールのドキュメントをご覧ください。
-'''
+"""
 
     def generate_api_docs(self) -> bool:
         """API ドキュメントページを生成
@@ -598,19 +630,31 @@ app.exec()
             # アダプター
             adapters_dir = api_dir / "adapters"
             adapters_dir.mkdir(exist_ok=True)
-            self._generate_module_doc("qt_theme_studio.adapters.qt_adapter", adapters_dir / "qt_adapter.md")
-            self._generate_module_doc("qt_theme_studio.adapters.theme_adapter", adapters_dir / "theme_adapter.md")
+            self._generate_module_doc(
+                "qt_theme_studio.adapters.qt_adapter", adapters_dir / "qt_adapter.md"
+            )
+            self._generate_module_doc(
+                "qt_theme_studio.adapters.theme_adapter",
+                adapters_dir / "theme_adapter.md",
+            )
 
             # ジェネレーター
             generators_dir = api_dir / "generators"
             generators_dir.mkdir(exist_ok=True)
-            self._generate_module_doc("qt_theme_studio.generators.theme_generator", generators_dir / "theme_generator.md")
+            self._generate_module_doc(
+                "qt_theme_studio.generators.theme_generator",
+                generators_dir / "theme_generator.md",
+            )
 
             # ビュー
             views_dir = api_dir / "views"
             views_dir.mkdir(exist_ok=True)
-            self._generate_module_doc("qt_theme_studio.views.main_window", views_dir / "main_window.md")
-            self._generate_module_doc("qt_theme_studio.views.preview", views_dir / "preview.md")
+            self._generate_module_doc(
+                "qt_theme_studio.views.main_window", views_dir / "main_window.md"
+            )
+            self._generate_module_doc(
+                "qt_theme_studio.views.preview", views_dir / "preview.md"
+            )
 
             # ログシステム
             self._generate_module_doc("qt_theme_studio.logger", api_dir / "logger.md")
@@ -618,7 +662,7 @@ app.exec()
             self.logger.info(
                 "API ドキュメント生成完了",
                 LogCategory.GENERAL,
-                LogContext(api_dir=str(api_dir))
+                LogContext(api_dir=str(api_dir)),
             )
             return True
 
@@ -626,7 +670,7 @@ app.exec()
             self.logger.error(
                 f"API ドキュメント生成エラー: {e}",
                 LogCategory.ERROR,
-                LogContext(error=str(e))
+                LogContext(error=str(e)),
             )
             return False
 
@@ -637,11 +681,11 @@ app.exec()
             module_name: モジュール名
             output_path: 出力ファイルパス
         """
-        content = f'''# {module_name}
+        content = f"""# {module_name}
 
 ::: {module_name}
-'''
-        output_path.write_text(content, encoding='utf-8')
+"""
+        output_path.write_text(content, encoding="utf-8")
 
     def build_site(self) -> bool:
         """MkDocsサイトをビルド
@@ -651,28 +695,29 @@ app.exec()
         """
         try:
             cmd = [sys.executable, "-m", "mkdocs", "build"]
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
-            
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=self.project_root
+            )
+
             if result.returncode == 0:
                 self.logger.info(
                     "MkDocsサイトビルド完了",
                     LogCategory.GENERAL,
-                    LogContext(command=" ".join(cmd))
+                    LogContext(command=" ".join(cmd)),
                 )
                 return True
-            else:
-                self.logger.error(
-                    f"MkDocsビルドエラー: {result.stderr}",
-                    LogCategory.ERROR,
-                    LogContext(command=" ".join(cmd), stderr=result.stderr)
-                )
-                return False
+            self.logger.error(
+                f"MkDocsビルドエラー: {result.stderr}",
+                LogCategory.ERROR,
+                LogContext(command=" ".join(cmd), stderr=result.stderr),
+            )
+            return False
 
         except Exception as e:
             self.logger.error(
                 f"MkDocsサイトビルドエラー: {e}",
                 LogCategory.ERROR,
-                LogContext(error=str(e))
+                LogContext(error=str(e)),
             )
             return False
 
@@ -700,7 +745,7 @@ class DocumentationGenerator:
         self.logger.info(
             "プロジェクトdocstring分析開始",
             LogCategory.GENERAL,
-            LogContext(project_root=str(self.project_root))
+            LogContext(project_root=str(self.project_root)),
         )
 
         python_files = list(self.project_root.rglob("*.py"))
@@ -709,7 +754,10 @@ class DocumentationGenerator:
 
         for py_file in python_files:
             # テストファイルやキャッシュファイルをスキップ
-            if any(skip in str(py_file) for skip in ["__pycache__", ".pytest_cache", "test_", "_test.py"]):
+            if any(
+                skip in str(py_file)
+                for skip in ["__pycache__", ".pytest_cache", "test_", "_test.py"]
+            ):
                 continue
 
             docstrings = self.docstring_extractor.extract_docstrings(py_file)
@@ -721,16 +769,26 @@ class DocumentationGenerator:
                     doc_info["docstring"],
                     doc_info["name"],
                     doc_info["file_path"],
-                    doc_info["line_number"]
+                    doc_info["line_number"],
                 )
                 quality_results.append(quality_result)
 
         # 統計情報を計算
-        total_functions = len([d for d in all_docstrings if d["type"] in ["FunctionDef", "AsyncFunctionDef"]])
+        total_functions = len(
+            [
+                d
+                for d in all_docstrings
+                if d["type"] in ["FunctionDef", "AsyncFunctionDef"]
+            ]
+        )
         total_classes = len([d for d in all_docstrings if d["type"] == "ClassDef"])
         total_modules = len([d for d in all_docstrings if d["type"] == "Module"])
 
-        average_score = sum(r["score"] for r in quality_results) / len(quality_results) if quality_results else 0
+        average_score = (
+            sum(r["score"] for r in quality_results) / len(quality_results)
+            if quality_results
+            else 0
+        )
 
         analysis_result = {
             "total_docstrings": len(all_docstrings),
@@ -739,16 +797,15 @@ class DocumentationGenerator:
             "total_modules": total_modules,
             "average_quality_score": average_score,
             "quality_results": quality_results,
-            "docstrings": all_docstrings
+            "docstrings": all_docstrings,
         }
 
         self.logger.info(
             f"docstring分析完了: {len(all_docstrings)}個のdocstring、平均品質スコア: {average_score:.1f}",
             LogCategory.GENERAL,
             LogContext(
-                total_docstrings=len(all_docstrings),
-                average_score=average_score
-            )
+                total_docstrings=len(all_docstrings), average_score=average_score
+            ),
         )
 
         return analysis_result
@@ -776,22 +833,28 @@ class DocumentationGenerator:
             f"- 平均品質スコア: {analysis_result['average_quality_score']:.1f}/100",
             "",
             "## 品質問題",
-            ""
+            "",
         ]
 
         # 問題のある項目をリストアップ
-        problematic_items = [r for r in analysis_result['quality_results'] if r['issues']]
-        
+        problematic_items = [
+            r for r in analysis_result["quality_results"] if r["issues"]
+        ]
+
         if problematic_items:
             for item in problematic_items:
-                report_lines.append(f"### {item['function_name']} ({item['file_path']}:{item['line_number']})")
+                report_lines.append(
+                    f"### {item['function_name']} ({item['file_path']}:{item['line_number']})"
+                )
                 report_lines.append(f"スコア: {item['score']}/100")
                 report_lines.append("")
-                
-                for issue in item['issues']:
-                    severity_icon = {"error": "❌", "warning": "⚠️", "info": "ℹ️"}.get(issue['severity'], "•")
+
+                for issue in item["issues"]:
+                    severity_icon = {"error": "❌", "warning": "⚠️", "info": "ℹ️"}.get(
+                        issue["severity"], "•"
+                    )
                     report_lines.append(f"- {severity_icon} {issue['message']}")
-                
+
                 report_lines.append("")
         else:
             report_lines.append("品質問題は検出されませんでした。")
@@ -810,29 +873,29 @@ class DocumentationGenerator:
         self.logger.info(
             f"{doc_type}ドキュメント生成開始",
             LogCategory.GENERAL,
-            LogContext(doc_type=doc_type, project_root=str(self.project_root))
+            LogContext(doc_type=doc_type, project_root=str(self.project_root)),
         )
 
         try:
             if doc_type.lower() == "sphinx":
                 generator = SphinxDocGenerator(self.project_root)
                 success = (
-                    generator.setup_sphinx_project() and
-                    generator.generate_module_docs() and
-                    generator.build_html_docs()
+                    generator.setup_sphinx_project()
+                    and generator.generate_module_docs()
+                    and generator.build_html_docs()
                 )
             elif doc_type.lower() == "mkdocs":
                 generator = MkDocsGenerator(self.project_root)
                 success = (
-                    generator.setup_mkdocs_project() and
-                    generator.generate_api_docs() and
-                    generator.build_site()
+                    generator.setup_mkdocs_project()
+                    and generator.generate_api_docs()
+                    and generator.build_site()
                 )
             else:
                 self.logger.error(
                     f"サポートされていないドキュメントタイプ: {doc_type}",
                     LogCategory.ERROR,
-                    LogContext(doc_type=doc_type)
+                    LogContext(doc_type=doc_type),
                 )
                 return False
 
@@ -840,13 +903,13 @@ class DocumentationGenerator:
                 self.logger.info(
                     f"{doc_type}ドキュメント生成完了",
                     LogCategory.GENERAL,
-                    LogContext(doc_type=doc_type)
+                    LogContext(doc_type=doc_type),
                 )
             else:
                 self.logger.error(
                     f"{doc_type}ドキュメント生成失敗",
                     LogCategory.ERROR,
-                    LogContext(doc_type=doc_type)
+                    LogContext(doc_type=doc_type),
                 )
 
             return success
@@ -855,7 +918,7 @@ class DocumentationGenerator:
             self.logger.error(
                 f"ドキュメント生成エラー: {e}",
                 LogCategory.ERROR,
-                LogContext(doc_type=doc_type, error=str(e))
+                LogContext(doc_type=doc_type, error=str(e)),
             )
             return False
 
@@ -866,44 +929,42 @@ def main():
 
     parser = argparse.ArgumentParser(description="APIドキュメント自動生成システム")
     parser.add_argument(
-        "--type", 
-        choices=["sphinx", "mkdocs"], 
+        "--type",
+        choices=["sphinx", "mkdocs"],
         default="sphinx",
-        help="ドキュメント生成タイプ"
+        help="ドキュメント生成タイプ",
     )
     parser.add_argument(
-        "--analyze-only", 
-        action="store_true",
-        help="docstring分析のみ実行"
+        "--analyze-only", action="store_true", help="docstring分析のみ実行"
     )
     parser.add_argument(
         "--project-root",
         type=Path,
         default=Path.cwd(),
-        help="プロジェクトルートディレクトリ"
+        help="プロジェクトルートディレクトリ",
     )
 
     args = parser.parse_args()
 
     # ロガー設定
     logger = get_logger()
-    
+
     try:
         generator = DocumentationGenerator(args.project_root)
 
         # docstring分析
         analysis_result = generator.analyze_project_docstrings()
-        
+
         # 品質レポート生成
         quality_report = generator.generate_quality_report(analysis_result)
         report_path = args.project_root / "docs" / "docstring_quality_report.md"
         report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(quality_report, encoding='utf-8')
-        
+        report_path.write_text(quality_report, encoding="utf-8")
+
         logger.info(
             f"品質レポート生成完了: {report_path}",
             LogCategory.GENERAL,
-            LogContext(report_path=str(report_path))
+            LogContext(report_path=str(report_path)),
         )
 
         # 分析のみの場合はここで終了
@@ -912,18 +973,18 @@ def main():
 
         # ドキュメント生成
         success = generator.generate_documentation(args.type)
-        
+
         if success:
             logger.info(
                 "ドキュメント生成処理完了",
                 LogCategory.GENERAL,
-                LogContext(doc_type=args.type)
+                LogContext(doc_type=args.type),
             )
         else:
             logger.error(
                 "ドキュメント生成処理失敗",
                 LogCategory.ERROR,
-                LogContext(doc_type=args.type)
+                LogContext(doc_type=args.type),
             )
             sys.exit(1)
 
@@ -931,7 +992,7 @@ def main():
         logger.error(
             f"ドキュメント生成システムエラー: {e}",
             LogCategory.ERROR,
-            LogContext(error=str(e))
+            LogContext(error=str(e)),
         )
         sys.exit(1)
 

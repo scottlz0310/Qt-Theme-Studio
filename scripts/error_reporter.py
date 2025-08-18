@@ -14,9 +14,9 @@ import sys
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
-from qt_theme_studio.logger import get_logger, LogCategory, LogContext
+from qt_theme_studio.logger import LogCategory, LogContext, get_logger
 
 logger = get_logger(__name__)
 
@@ -49,7 +49,9 @@ class SystemInfo:
             "environment": {
                 "cwd": os.getcwd(),
                 "user": os.environ.get("USER", os.environ.get("USERNAME", "unknown")),
-                "home": os.environ.get("HOME", os.environ.get("USERPROFILE", "unknown")),
+                "home": os.environ.get(
+                    "HOME", os.environ.get("USERPROFILE", "unknown")
+                ),
                 "path_env": os.environ.get("PATH", "")[:500],  # 最初の500文字のみ
             },
         }
@@ -62,11 +64,16 @@ class SystemInfo:
         # PySide6チェック
         try:
             import PySide6
-            qt_info["available_frameworks"].append({
-                "name": "PySide6",
-                "version": PySide6.__version__,
-                "qt_version": PySide6.QtCore.qVersion() if hasattr(PySide6, 'QtCore') else "unknown"
-            })
+
+            qt_info["available_frameworks"].append(
+                {
+                    "name": "PySide6",
+                    "version": PySide6.__version__,
+                    "qt_version": PySide6.QtCore.qVersion()
+                    if hasattr(PySide6, "QtCore")
+                    else "unknown",
+                }
+            )
             if qt_info["active_framework"] is None:
                 qt_info["active_framework"] = "PySide6"
         except ImportError:
@@ -75,11 +82,16 @@ class SystemInfo:
         # PyQt6チェック
         try:
             import PyQt6
-            qt_info["available_frameworks"].append({
-                "name": "PyQt6",
-                "version": getattr(PyQt6, '__version__', 'unknown'),
-                "qt_version": PyQt6.QtCore.qVersion() if hasattr(PyQt6, 'QtCore') else "unknown"
-            })
+
+            qt_info["available_frameworks"].append(
+                {
+                    "name": "PyQt6",
+                    "version": getattr(PyQt6, "__version__", "unknown"),
+                    "qt_version": PyQt6.QtCore.qVersion()
+                    if hasattr(PyQt6, "QtCore")
+                    else "unknown",
+                }
+            )
             if qt_info["active_framework"] is None:
                 qt_info["active_framework"] = "PyQt6"
         except ImportError:
@@ -88,11 +100,16 @@ class SystemInfo:
         # PyQt5チェック
         try:
             import PyQt5
-            qt_info["available_frameworks"].append({
-                "name": "PyQt5",
-                "version": getattr(PyQt5, '__version__', 'unknown'),
-                "qt_version": PyQt5.QtCore.qVersion() if hasattr(PyQt5, 'QtCore') else "unknown"
-            })
+
+            qt_info["available_frameworks"].append(
+                {
+                    "name": "PyQt5",
+                    "version": getattr(PyQt5, "__version__", "unknown"),
+                    "qt_version": PyQt5.QtCore.qVersion()
+                    if hasattr(PyQt5, "QtCore")
+                    else "unknown",
+                }
+            )
             if qt_info["active_framework"] is None:
                 qt_info["active_framework"] = "PyQt5"
         except ImportError:
@@ -104,15 +121,14 @@ class SystemInfo:
     def get_dependencies_info() -> Dict[str, Any]:
         """依存関係情報を収集"""
         dependencies = {}
-        
+
         # 主要な依存関係をチェック
-        important_packages = [
-            "qt-theme-manager", "pytest", "ruff", "bandit", "safety"
-        ]
-        
+        important_packages = ["qt-theme-manager", "pytest", "ruff", "bandit", "safety"]
+
         for package in important_packages:
             try:
                 import importlib.metadata
+
                 version = importlib.metadata.version(package)
                 dependencies[package] = version
             except importlib.metadata.PackageNotFoundError:
@@ -133,7 +149,7 @@ class StackTraceTranslator:
         "line": "行",
         "in": "関数内",
         "NameError": "名前エラー",
-        "TypeError": "型エラー", 
+        "TypeError": "型エラー",
         "ValueError": "値エラー",
         "AttributeError": "属性エラー",
         "KeyError": "キーエラー",
@@ -157,10 +173,10 @@ class StackTraceTranslator:
     def translate_traceback(cls, tb_str: str) -> str:
         """スタックトレースを日本語化"""
         translated = tb_str
-        
+
         for english, japanese in cls.TRANSLATIONS.items():
             translated = translated.replace(english, japanese)
-        
+
         return translated
 
     @classmethod
@@ -168,7 +184,7 @@ class StackTraceTranslator:
         """例外の日本語説明を生成"""
         exc_type = type(exception).__name__
         exc_message = str(exception)
-        
+
         explanations = {
             "NameError": f"変数または関数 '{exc_message.split("'")[1] if "'" in exc_message else 'unknown'}' が定義されていません。スペルミスや未定義の変数を確認してください。",
             "TypeError": f"型に関するエラーが発生しました: {exc_message}。引数の型や数を確認してください。",
@@ -180,7 +196,7 @@ class StackTraceTranslator:
             "ImportError": f"インポートエラーが発生しました: {exc_message}。モジュールが正しくインストールされているか確認してください。",
             "ModuleNotFoundError": f"モジュールが見つかりません: {exc_message}。必要なパッケージがインストールされているか確認してください。",
         }
-        
+
         return explanations.get(exc_type, f"{exc_type}: {exc_message}")
 
 
@@ -202,9 +218,9 @@ class ErrorContext:
         try:
             for name, value in self.frame.frame.f_locals.items():
                 # プライベート変数やシステム変数は除外
-                if name.startswith('_'):
+                if name.startswith("_"):
                     continue
-                
+
                 # 値を安全に文字列化
                 try:
                     if isinstance(value, (str, int, float, bool, type(None))):
@@ -212,7 +228,9 @@ class ErrorContext:
                     elif isinstance(value, (list, tuple, dict)):
                         # 大きなコレクションは制限
                         if len(str(value)) > 200:
-                            local_vars[name] = f"{type(value).__name__}(size={len(value)})"
+                            local_vars[name] = (
+                                f"{type(value).__name__}(size={len(value)})"
+                            )
                         else:
                             local_vars[name] = value
                     else:
@@ -251,16 +269,16 @@ class ErrorReporter:
         self.reports_dir.mkdir(parents=True, exist_ok=True)
 
     def capture_exception(
-        self, 
-        exception: Exception, 
+        self,
+        exception: Exception,
         context: Optional[Dict[str, Any]] = None,
-        user_message: Optional[str] = None
+        user_message: Optional[str] = None,
     ) -> Dict[str, Any]:
         """例外を捕捉して詳細レポートを生成"""
-        
+
         # スタックトレース情報を取得
         tb = traceback.extract_tb(exception.__traceback__)
-        
+
         # 最後のフレーム（エラー発生箇所）を取得
         last_frame = None
         if tb:
@@ -273,7 +291,7 @@ class ErrorReporter:
                     lineno=last_tb.lineno,
                     function=last_tb.name,
                     code_context=[last_tb.line] if last_tb.line else None,
-                    index=0
+                    index=0,
                 )
             except Exception:
                 pass
@@ -285,31 +303,31 @@ class ErrorReporter:
                 error_context.add_context(key, value)
 
         # 詳細レポートを生成
-        report = self._generate_detailed_report(
-            exception, error_context, user_message
-        )
+        report = self._generate_detailed_report(exception, error_context, user_message)
 
         # レポートを保存
         report_file = self._save_report(report)
-        
+
         # ログに記録
         self._log_error_report(report, report_file)
 
         return report
 
     def _generate_detailed_report(
-        self, 
-        exception: Exception, 
+        self,
+        exception: Exception,
         error_context: ErrorContext,
-        user_message: Optional[str] = None
+        user_message: Optional[str] = None,
     ) -> Dict[str, Any]:
         """詳細エラーレポートを生成"""
-        
+
         # 基本的な例外情報
         exception_info = {
             "type": type(exception).__name__,
             "message": str(exception),
-            "japanese_explanation": StackTraceTranslator.get_exception_explanation(exception),
+            "japanese_explanation": StackTraceTranslator.get_exception_explanation(
+                exception
+            ),
         }
 
         # スタックトレース（日本語化）
@@ -356,9 +374,7 @@ class ErrorReporter:
         return report
 
     def _generate_suggestions(
-        self, 
-        exception: Exception, 
-        function_info: Dict[str, Any]
+        self, exception: Exception, function_info: Dict[str, Any]
     ) -> List[str]:
         """エラーに基づく修正提案を生成"""
         suggestions = []
@@ -367,48 +383,60 @@ class ErrorReporter:
 
         if exc_type == "ModuleNotFoundError":
             module_name = exc_message.split("'")[1] if "'" in exc_message else "unknown"
-            suggestions.extend([
-                f"モジュール '{module_name}' をインストールしてください: pip install {module_name}",
-                "仮想環境が正しく有効化されているか確認してください",
-                "requirements.txtに必要な依存関係が記載されているか確認してください"
-            ])
+            suggestions.extend(
+                [
+                    f"モジュール '{module_name}' をインストールしてください: pip install {module_name}",
+                    "仮想環境が正しく有効化されているか確認してください",
+                    "requirements.txtに必要な依存関係が記載されているか確認してください",
+                ]
+            )
 
         elif exc_type == "FileNotFoundError":
-            suggestions.extend([
-                "ファイルパスが正しいか確認してください",
-                "ファイルが存在するか確認してください",
-                "相対パスではなく絶対パスを使用することを検討してください",
-                "ファイルの権限を確認してください"
-            ])
+            suggestions.extend(
+                [
+                    "ファイルパスが正しいか確認してください",
+                    "ファイルが存在するか確認してください",
+                    "相対パスではなく絶対パスを使用することを検討してください",
+                    "ファイルの権限を確認してください",
+                ]
+            )
 
         elif exc_type == "AttributeError":
-            suggestions.extend([
-                "オブジェクトの型が期待されるものか確認してください",
-                "属性名のスペルミスがないか確認してください",
-                "オブジェクトが正しく初期化されているか確認してください"
-            ])
+            suggestions.extend(
+                [
+                    "オブジェクトの型が期待されるものか確認してください",
+                    "属性名のスペルミスがないか確認してください",
+                    "オブジェクトが正しく初期化されているか確認してください",
+                ]
+            )
 
         elif exc_type in ["TypeError", "ValueError"]:
-            suggestions.extend([
-                "関数の引数の型と数を確認してください",
-                "変数の値が期待される範囲内にあるか確認してください",
-                "型変換が必要な場合は適切に行ってください"
-            ])
+            suggestions.extend(
+                [
+                    "関数の引数の型と数を確認してください",
+                    "変数の値が期待される範囲内にあるか確認してください",
+                    "型変換が必要な場合は適切に行ってください",
+                ]
+            )
 
         # Qt関連のエラー
         if "Qt" in exc_message or "PySide" in exc_message or "PyQt" in exc_message:
-            suggestions.extend([
-                "Qtアプリケーションが正しく初期化されているか確認してください",
-                "UIスレッドから操作を実行しているか確認してください",
-                "Qtオブジェクトのライフサイクルを確認してください"
-            ])
+            suggestions.extend(
+                [
+                    "Qtアプリケーションが正しく初期化されているか確認してください",
+                    "UIスレッドから操作を実行しているか確認してください",
+                    "Qtオブジェクトのライフサイクルを確認してください",
+                ]
+            )
 
         # 一般的な提案
-        suggestions.extend([
-            "ログファイルで詳細な情報を確認してください",
-            "デバッガーを使用してステップ実行を行ってください",
-            "単体テストを作成して問題を再現してください"
-        ])
+        suggestions.extend(
+            [
+                "ログファイルで詳細な情報を確認してください",
+                "デバッガーを使用してステップ実行を行ってください",
+                "単体テストを作成して問題を再現してください",
+            ]
+        )
 
         return suggestions
 
@@ -417,21 +445,20 @@ class ErrorReporter:
         report_id = report["metadata"]["report_id"]
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{report_id}_{timestamp}.json"
-        
+
         report_file = self.reports_dir / filename
-        
+
         try:
-            with open(report_file, 'w', encoding='utf-8') as f:
+            with open(report_file, "w", encoding="utf-8") as f:
                 json.dump(report, f, ensure_ascii=False, indent=2)
         except Exception as e:
             self.logger.error(
-                f"エラーレポートの保存に失敗しました: {e}",
-                LogCategory.ERROR
+                f"エラーレポートの保存に失敗しました: {e}", LogCategory.ERROR
             )
             # フォールバック: 一時ファイルに保存
             fallback_file = Path(f"/tmp/{filename}")
             try:
-                with open(fallback_file, 'w', encoding='utf-8') as f:
+                with open(fallback_file, "w", encoding="utf-8") as f:
                     json.dump(report, f, ensure_ascii=False, indent=2)
                 return fallback_file
             except Exception:
@@ -443,33 +470,33 @@ class ErrorReporter:
         """エラーレポートをログに記録"""
         exception_info = report["exception"]
         metadata = report["metadata"]
-        
+
         log_context = LogContext(
             report_id=metadata["report_id"],
             report_file=str(report_file),
-            exception_type=exception_info["type"]
+            exception_type=exception_info["type"],
         )
 
         self.logger.error(
             f"構造化エラーレポートを生成しました: {exception_info['type']} - {exception_info['message']}",
             LogCategory.ERROR,
-            log_context
+            log_context,
         )
 
         # 日本語の説明もログに記録
         self.logger.info(
             f"エラー説明: {exception_info['japanese_explanation']}",
             LogCategory.ERROR,
-            log_context
+            log_context,
         )
 
     def generate_summary_report(self, days: int = 7) -> Dict[str, Any]:
         """過去N日間のエラーサマリーレポートを生成"""
         from datetime import timedelta
-        
+
         cutoff_date = datetime.now() - timedelta(days=days)
         error_files = []
-        
+
         # エラーレポートファイルを収集
         for report_file in self.reports_dir.glob("*.json"):
             try:
@@ -482,10 +509,10 @@ class ErrorReporter:
         # 統計情報を収集
         error_types = {}
         total_errors = len(error_files)
-        
+
         for report_file in error_files:
             try:
-                with open(report_file, 'r', encoding='utf-8') as f:
+                with open(report_file, encoding="utf-8") as f:
                     report = json.load(f)
                     exc_type = report["exception"]["type"]
                     error_types[exc_type] = error_types.get(exc_type, 0) + 1
@@ -496,7 +523,9 @@ class ErrorReporter:
             "period": f"過去{days}日間",
             "total_errors": total_errors,
             "error_types": error_types,
-            "most_common_error": max(error_types.items(), key=lambda x: x[1]) if error_types else None,
+            "most_common_error": max(error_types.items(), key=lambda x: x[1])
+            if error_types
+            else None,
             "report_files": [str(f) for f in error_files],
             "generated_at": datetime.now().isoformat(),
         }
@@ -506,10 +535,10 @@ class ErrorReporter:
 
 # 便利な関数とデコレータ
 def capture_and_report_exceptions(
-    user_message: Optional[str] = None,
-    context: Optional[Dict[str, Any]] = None
+    user_message: Optional[str] = None, context: Optional[Dict[str, Any]] = None
 ):
     """例外を自動的に捕捉してレポートするデコレータ"""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             try:
@@ -518,14 +547,14 @@ def capture_and_report_exceptions(
                 reporter = ErrorReporter()
                 reporter.capture_exception(e, context, user_message)
                 raise  # 例外を再発生させる
+
         return wrapper
+
     return decorator
 
 
 def report_exception(
-    exception: Exception,
-    user_message: Optional[str] = None,
-    **context
+    exception: Exception, user_message: Optional[str] = None, **context
 ) -> Dict[str, Any]:
     """例外を手動でレポート"""
     reporter = ErrorReporter()
@@ -535,15 +564,17 @@ def report_exception(
 def main():
     """メイン処理（テスト用）"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="エラーレポートシステム")
     parser.add_argument("--test", action="store_true", help="テスト例外を生成")
-    parser.add_argument("--summary", type=int, default=7, help="サマリーレポート生成（日数）")
-    
+    parser.add_argument(
+        "--summary", type=int, default=7, help="サマリーレポート生成（日数）"
+    )
+
     args = parser.parse_args()
-    
+
     reporter = ErrorReporter()
-    
+
     if args.test:
         # テスト例外を生成
         try:
@@ -553,24 +584,24 @@ def main():
             report = reporter.capture_exception(
                 e,
                 context={"test_mode": True, "user_action": "テスト実行"},
-                user_message="これはテスト用の例外です"
+                user_message="これはテスト用の例外です",
             )
             print(f"テストレポートを生成しました: {report['metadata']['report_id']}")
-    
+
     elif args.summary:
         summary = reporter.generate_summary_report(args.summary)
         print("=" * 50)
         print(f"エラーサマリーレポート ({summary['period']})")
         print("=" * 50)
         print(f"総エラー数: {summary['total_errors']}")
-        print(f"エラータイプ別統計:")
-        for error_type, count in summary['error_types'].items():
+        print("エラータイプ別統計:")
+        for error_type, count in summary["error_types"].items():
             print(f"  {error_type}: {count}回")
-        
-        if summary['most_common_error']:
-            error_type, count = summary['most_common_error']
+
+        if summary["most_common_error"]:
+            error_type, count = summary["most_common_error"]
             print(f"最も多いエラー: {error_type} ({count}回)")
-    
+
     else:
         parser.print_help()
 

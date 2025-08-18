@@ -10,9 +10,9 @@ import ast
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
-from qt_theme_studio.logger import get_logger, LogCategory, LogContext
+from qt_theme_studio.logger import LogCategory, LogContext, get_logger
 
 logger = get_logger(__name__)
 
@@ -45,7 +45,10 @@ class PrintStatementAnalyzer(ast.NodeVisitor):
     def visit_Assign(self, node: ast.Assign) -> None:
         """代入文を検査してloggerインスタンスを検出"""
         if isinstance(node.value, ast.Call):
-            if isinstance(node.value.func, ast.Name) and node.value.func.id == "get_logger":
+            if (
+                isinstance(node.value.func, ast.Name)
+                and node.value.func.id == "get_logger"
+            ):
                 self.has_logger_instance = True
                 if node.targets and isinstance(node.targets[0], ast.Name):
                     self.logger_variable_name = node.targets[0].id
@@ -68,10 +71,12 @@ class PrintStatementAnalyzer(ast.NodeVisitor):
                 if isinstance(arg, ast.Constant):
                     arg_value = arg.value
                     print_info["args"].append(repr(arg_value))
-                    
+
                     # メッセージ内容からログレベルを推測
                     if isinstance(arg_value, str):
-                        print_info["suggested_level"] = self._suggest_log_level(arg_value)
+                        print_info["suggested_level"] = self._suggest_log_level(
+                            arg_value
+                        )
                 elif isinstance(arg, ast.JoinedStr):  # f-string
                     print_info["args"].append("f-string")
                 elif isinstance(arg, ast.Name):
@@ -88,32 +93,36 @@ class PrintStatementAnalyzer(ast.NodeVisitor):
     def _suggest_log_level(self, message: str) -> str:
         """メッセージ内容からログレベルを推測"""
         message_lower = message.lower()
-        
-        if any(keyword in message_lower for keyword in ["error", "エラー", "❌", "失敗"]):
+
+        if any(
+            keyword in message_lower for keyword in ["error", "エラー", "❌", "失敗"]
+        ):
             return "error"
-        elif any(keyword in message_lower for keyword in ["warning", "warn", "警告", "⚠", "注意"]):
+        if any(
+            keyword in message_lower
+            for keyword in ["warning", "warn", "警告", "⚠", "注意"]
+        ):
             return "warning"
-        elif any(keyword in message_lower for keyword in ["debug", "デバッグ", "詳細"]):
+        if any(keyword in message_lower for keyword in ["debug", "デバッグ", "詳細"]):
             return "debug"
-        elif any(keyword in message_lower for keyword in ["success", "完了", "✓", "成功"]):
+        if any(
+            keyword in message_lower for keyword in ["success", "完了", "✓", "成功"]
+        ):
             return "info"
-        else:
-            return "info"
+        return "info"
 
     def _generate_replacement(self, print_info: Dict) -> str:
         """print文の置換提案を生成"""
         level = print_info["suggested_level"]
         logger_name = self.logger_variable_name or "logger"
-        
+
         if len(print_info["args"]) == 1:
             arg = print_info["args"][0]
             if arg.startswith("f"):  # f-string
                 return f"{logger_name}.{level}({arg})"
-            else:
-                return f"{logger_name}.{level}({arg})"
-        else:
-            args_str = ", ".join(print_info["args"])
-            return f"{logger_name}.{level}({args_str})"
+            return f"{logger_name}.{level}({arg})"
+        args_str = ", ".join(print_info["args"])
+        return f"{logger_name}.{level}({args_str})"
 
 
 class PrintStatementManager:
@@ -137,20 +146,18 @@ class PrintStatementManager:
 
         except SyntaxError as e:
             self.logger.error(
-                f"構文エラー: {file_path}: {e}",
-                LogCategory.ERROR,
-                self.context
+                f"構文エラー: {file_path}: {e}", LogCategory.ERROR, self.context
             )
             return None
         except Exception as e:
             self.logger.error(
-                f"ファイル分析エラー: {file_path}: {e}",
-                LogCategory.ERROR,
-                self.context
+                f"ファイル分析エラー: {file_path}: {e}", LogCategory.ERROR, self.context
             )
             return None
 
-    def check_prints_in_file(self, file_path: Path) -> Dict[str, Union[int, List, bool]]:
+    def check_prints_in_file(
+        self, file_path: Path
+    ) -> Dict[str, Union[int, List, bool]]:
         """ファイル内のprint文をチェック"""
         analyzer = self.analyze_file(file_path)
         if not analyzer:
@@ -165,7 +172,9 @@ class PrintStatementManager:
             "logger_variable": analyzer.logger_variable_name,
         }
 
-    def replace_prints_in_file(self, file_path: Path, auto_fix: bool = False) -> Dict[str, Union[int, bool, List]]:
+    def replace_prints_in_file(
+        self, file_path: Path, auto_fix: bool = False
+    ) -> Dict[str, Union[int, bool, List]]:
         """ファイル内のprint文を置換"""
         try:
             with open(file_path, encoding="utf-8") as f:
@@ -183,14 +192,16 @@ class PrintStatementManager:
                 import_line = "from qt_theme_studio.logger import get_logger\n"
                 if "import" in content:
                     # 既存のimport文の後に追加
-                    lines = content.split('\n')
+                    lines = content.split("\n")
                     import_index = -1
                     for i, line in enumerate(lines):
-                        if line.strip().startswith('import ') or line.strip().startswith('from '):
+                        if line.strip().startswith(
+                            "import "
+                        ) or line.strip().startswith("from "):
                             import_index = i
                     if import_index >= 0:
                         lines.insert(import_index + 1, import_line.strip())
-                        content = '\n'.join(lines)
+                        content = "\n".join(lines)
                         changes.append("loggerインポートを追加")
                 else:
                     content = import_line + content
@@ -203,15 +214,17 @@ class PrintStatementManager:
                 if "class " in content:
                     # クラス内のself.loggerとして追加する処理は複雑なので、
                     # ここではモジュールレベルのloggerを追加
-                    lines = content.split('\n')
+                    lines = content.split("\n")
                     # import文の後に追加
                     for i, line in enumerate(lines):
-                        if not (line.strip().startswith('import ') or 
-                               line.strip().startswith('from ') or
-                               line.strip().startswith('#') or
-                               line.strip() == ''):
+                        if not (
+                            line.strip().startswith("import ")
+                            or line.strip().startswith("from ")
+                            or line.strip().startswith("#")
+                            or line.strip() == ""
+                        ):
                             lines.insert(i, logger_line.strip())
-                            content = '\n'.join(lines)
+                            content = "\n".join(lines)
                             changes.append("loggerインスタンスを追加")
                             break
                 else:
@@ -223,60 +236,68 @@ class PrintStatementManager:
             for print_info in analyzer.print_statements:
                 level = print_info["suggested_level"]
                 logger_name = analyzer.logger_variable_name or "logger"
-                
+
                 # 元のprint文を検索して置換
-                lines = content.split('\n')
+                lines = content.split("\n")
                 if print_info["line"] <= len(lines):
                     original_line = lines[print_info["line"] - 1]
-                    
+
                     # print文を置換
                     if "print(" in original_line:
                         # 簡単な置換パターン
                         new_line = re.sub(
-                            r'print\(',
-                            f'{logger_name}.{level}(',
-                            original_line
+                            r"print\(", f"{logger_name}.{level}(", original_line
                         )
                         lines[print_info["line"] - 1] = new_line
                         replaced_count += 1
-                        changes.append(f"行{print_info['line']}: print → {logger_name}.{level}")
+                        changes.append(
+                            f"行{print_info['line']}: print → {logger_name}.{level}"
+                        )
 
             if replaced_count > 0:
-                content = '\n'.join(lines)
-                
+                content = "\n".join(lines)
+
                 if auto_fix:
-                    with open(file_path, 'w', encoding="utf-8") as f:
+                    with open(file_path, "w", encoding="utf-8") as f:
                         f.write(content)
-                    
+
                     self.logger.info(
                         f"print文を置換しました: {file_path} ({replaced_count}箇所)",
                         LogCategory.GENERAL,
-                        self.context
+                        self.context,
                     )
 
             return {
                 "replaced": replaced_count,
                 "success": True,
                 "changes": changes,
-                "content": content if not auto_fix else None
+                "content": content if not auto_fix else None,
             }
 
         except Exception as e:
             self.logger.error(
-                f"print文置換エラー: {file_path}: {e}",
-                LogCategory.ERROR,
-                self.context
+                f"print文置換エラー: {file_path}: {e}", LogCategory.ERROR, self.context
             )
             return {"replaced": 0, "success": False, "changes": [], "error": str(e)}
 
-    def scan_project(self, project_root: Path, exclude_patterns: Optional[List[str]] = None) -> Dict:
+    def scan_project(
+        self, project_root: Path, exclude_patterns: Optional[List[str]] = None
+    ) -> Dict:
         """プロジェクト全体をスキャン"""
         if exclude_patterns is None:
             exclude_patterns = [
-                "venv", ".venv", "env", ".env",
-                ".git", ".pytest_cache", "__pycache__",
-                "node_modules", "build", "dist",
-                "tests", "test_*"  # テストファイルは除外
+                "venv",
+                ".venv",
+                "env",
+                ".env",
+                ".git",
+                ".pytest_cache",
+                "__pycache__",
+                "node_modules",
+                "build",
+                "dist",
+                "tests",
+                "test_*",  # テストファイルは除外
             ]
 
         python_files = []
@@ -291,19 +312,21 @@ class PrintStatementManager:
             "files_with_prints": [],
             "total_prints": 0,
             "files_without_logger": [],
-            "summary": {}
+            "summary": {},
         }
 
         for py_file in python_files:
             file_result = self.check_prints_in_file(py_file)
-            
+
             if file_result["print_count"] > 0:
-                results["files_with_prints"].append({
-                    "file": py_file,
-                    "print_count": file_result["print_count"],
-                    "prints": file_result["prints"],
-                    "has_logger": file_result.get("has_logger_import", False)
-                })
+                results["files_with_prints"].append(
+                    {
+                        "file": py_file,
+                        "print_count": file_result["print_count"],
+                        "prints": file_result["prints"],
+                        "has_logger": file_result.get("has_logger_import", False),
+                    }
+                )
                 results["total_prints"] += file_result["print_count"]
 
             if not file_result.get("has_logger_import", False):
@@ -314,7 +337,7 @@ class PrintStatementManager:
             "files_scanned": len(python_files),
             "files_with_prints": len(results["files_with_prints"]),
             "total_print_statements": results["total_prints"],
-            "files_without_logger": len(results["files_without_logger"])
+            "files_without_logger": len(results["files_without_logger"]),
         }
 
         return results
@@ -325,7 +348,7 @@ class PrintStatementManager:
         report.append("=" * 60)
         report.append("print文検出レポート")
         report.append("=" * 60)
-        
+
         summary = scan_results["summary"]
         report.append(f"スキャンファイル数: {summary['files_scanned']}")
         report.append(f"print文検出ファイル数: {summary['files_with_prints']}")
@@ -336,24 +359,24 @@ class PrintStatementManager:
         if scan_results["files_with_prints"]:
             report.append("🔍 print文が検出されたファイル:")
             report.append("-" * 40)
-            
+
             for file_info in scan_results["files_with_prints"]:
                 file_path = file_info["file"]
                 print_count = file_info["print_count"]
                 has_logger = file_info["has_logger"]
-                
+
                 report.append(f"📁 {file_path}")
                 report.append(f"   print文数: {print_count}")
                 report.append(f"   logger導入済み: {'✅' if has_logger else '❌'}")
-                
+
                 for print_info in file_info["prints"]:
                     line = print_info["line"]
                     level = print_info["suggested_level"]
                     replacement = print_info["suggested_replacement"]
-                    
+
                     report.append(f"   📍 行{line}: {level}レベル推奨")
                     report.append(f"      提案: {replacement}")
-                
+
                 report.append("")
 
         if scan_results["files_without_logger"]:
@@ -377,19 +400,19 @@ class PrintStatementManager:
 def main():
     """メイン処理"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="print文検出・置換システム")
     parser.add_argument("--scan", action="store_true", help="プロジェクトをスキャン")
     parser.add_argument("--fix", action="store_true", help="print文を自動修正")
     parser.add_argument("--file", type=str, help="特定ファイルを処理")
     parser.add_argument("--report", action="store_true", help="詳細レポートを生成")
     parser.add_argument("--pre-commit", action="store_true", help="pre-commitモード")
-    
+
     args = parser.parse_args()
-    
+
     manager = PrintStatementManager()
     project_root = Path(__file__).parent.parent
-    
+
     if args.pre_commit:
         # pre-commitフック用の簡易チェック
         scan_results = manager.scan_project(project_root)
@@ -401,14 +424,14 @@ def main():
         else:
             print("✅ print文は検出されませんでした。")
             sys.exit(0)
-    
+
     elif args.file:
         # 特定ファイルの処理
         file_path = Path(args.file)
         if not file_path.exists():
             print(f"❌ ファイルが見つかりません: {file_path}")
             sys.exit(1)
-        
+
         if args.fix:
             result = manager.replace_prints_in_file(file_path, auto_fix=True)
             if result["success"]:
@@ -422,39 +445,43 @@ def main():
             if file_result["print_count"] > 0:
                 print(f"🔍 print文検出: {file_result['print_count']}個")
                 for print_info in file_result["prints"]:
-                    print(f"   行{print_info['line']}: {print_info['suggested_replacement']}")
+                    print(
+                        f"   行{print_info['line']}: {print_info['suggested_replacement']}"
+                    )
             else:
                 print("✅ print文は検出されませんでした。")
-    
+
     elif args.scan:
         # プロジェクト全体のスキャン
         scan_results = manager.scan_project(project_root)
-        
+
         if args.report:
             report = manager.generate_report(scan_results)
             print(report)
         else:
             summary = scan_results["summary"]
-            print(f"スキャン結果: {summary['files_with_prints']}/{summary['files_scanned']} ファイルでprint文検出")
+            print(
+                f"スキャン結果: {summary['files_with_prints']}/{summary['files_scanned']} ファイルでprint文検出"
+            )
             print(f"総print文数: {summary['total_print_statements']}")
-    
+
     elif args.fix:
         # プロジェクト全体の自動修正
         scan_results = manager.scan_project(project_root)
         fixed_files = 0
         total_replacements = 0
-        
+
         for file_info in scan_results["files_with_prints"]:
             file_path = file_info["file"]
             result = manager.replace_prints_in_file(file_path, auto_fix=True)
-            
+
             if result["success"] and result["replaced"] > 0:
                 fixed_files += 1
                 total_replacements += result["replaced"]
                 print(f"✅ 修正: {file_path} ({result['replaced']}箇所)")
-        
+
         print(f"\n修正完了: {fixed_files}ファイル, {total_replacements}箇所")
-    
+
     else:
         parser.print_help()
 

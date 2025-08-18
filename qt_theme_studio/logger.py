@@ -104,14 +104,14 @@ class StructuredFormatter(logging.Formatter):
 
 class LogRotationConfig:
     """ログローテーション設定クラス"""
-    
+
     def __init__(
         self,
         max_bytes: int = 10 * 1024 * 1024,  # 10MB
         backup_count: int = 5,
         compress_backups: bool = True,
         archive_after_days: int = 30,
-        cleanup_after_days: int = 90
+        cleanup_after_days: int = 90,
     ):
         self.max_bytes = max_bytes
         self.backup_count = backup_count
@@ -122,101 +122,115 @@ class LogRotationConfig:
 
 class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
     """拡張ローテーションファイルハンドラー（圧縮・アーカイブ機能付き）"""
-    
-    def __init__(self, filename, mode='a', maxBytes=0, backupCount=0, 
-                 encoding=None, delay=False, compress_backups=True):
+
+    def __init__(
+        self,
+        filename,
+        mode="a",
+        maxBytes=0,
+        backupCount=0,
+        encoding=None,
+        delay=False,
+        compress_backups=True,
+    ):
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
         self.compress_backups = compress_backups
-    
+
     def doRollover(self):
         """ローテーション実行時の処理をオーバーライド"""
         if self.stream:
             self.stream.close()
             self.stream = None
-        
+
         if self.backupCount > 0:
             for i in range(self.backupCount - 1, 0, -1):
                 sfn = self.rotation_filename(f"{self.baseFilename}.{i}")
-                dfn = self.rotation_filename(f"{self.baseFilename}.{i+1}")
-                
+                dfn = self.rotation_filename(f"{self.baseFilename}.{i + 1}")
+
                 if os.path.exists(sfn):
                     if os.path.exists(dfn):
                         os.remove(dfn)
                     os.rename(sfn, dfn)
-            
+
             dfn = self.rotation_filename(f"{self.baseFilename}.1")
             if os.path.exists(dfn):
                 os.remove(dfn)
-            
+
             # 現在のログファイルをバックアップ
             if os.path.exists(self.baseFilename):
                 os.rename(self.baseFilename, dfn)
-                
+
                 # 圧縮オプションが有効な場合
                 if self.compress_backups:
                     self._compress_backup(dfn)
-        
+
         if not self.delay:
             self.stream = self._open()
-    
+
     def _compress_backup(self, backup_file: str):
         """バックアップファイルを圧縮"""
         try:
             compressed_file = f"{backup_file}.gz"
-            with open(backup_file, 'rb') as f_in:
-                with gzip.open(compressed_file, 'wb') as f_out:
+            with open(backup_file, "rb") as f_in:
+                with gzip.open(compressed_file, "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
-            
+
             # 元のファイルを削除
             os.remove(backup_file)
-        except Exception as e:
+        except Exception:
             # 圧縮に失敗しても処理を続行
             pass
 
 
 class LogArchiveManager:
     """ログアーカイブ管理クラス"""
-    
+
     def __init__(self, log_dir: Path, config: LogRotationConfig):
         self.log_dir = log_dir
         self.config = config
         self.archive_dir = log_dir / "archive"
         self.archive_dir.mkdir(exist_ok=True)
-    
+
     def archive_old_logs(self):
         """古いログファイルをアーカイブ"""
         cutoff_date = datetime.now() - timedelta(days=self.config.archive_after_days)
-        
+
         for log_file in self.log_dir.glob("*.log*"):
-            if log_file.is_file() and log_file.stat().st_mtime < cutoff_date.timestamp():
+            if (
+                log_file.is_file()
+                and log_file.stat().st_mtime < cutoff_date.timestamp()
+            ):
                 try:
                     archive_path = self.archive_dir / log_file.name
-                    
+
                     # 既に圧縮されている場合はそのまま移動
-                    if log_file.suffix == '.gz':
+                    if log_file.suffix == ".gz":
                         shutil.move(str(log_file), str(archive_path))
                     else:
                         # 圧縮してアーカイブ
-                        with open(log_file, 'rb') as f_in:
-                            with gzip.open(f"{archive_path}.gz", 'wb') as f_out:
+                        with open(log_file, "rb") as f_in:
+                            with gzip.open(f"{archive_path}.gz", "wb") as f_out:
                                 shutil.copyfileobj(f_in, f_out)
                         log_file.unlink()
-                        
-                except Exception as e:
+
+                except Exception:
                     # アーカイブに失敗しても処理を続行
                     pass
-    
+
     def cleanup_old_archives(self):
         """古いアーカイブファイルを削除"""
         cutoff_date = datetime.now() - timedelta(days=self.config.cleanup_after_days)
-        
+
         for archive_file in self.archive_dir.glob("*"):
-            if archive_file.is_file() and archive_file.stat().st_mtime < cutoff_date.timestamp():
+            if (
+                archive_file.is_file()
+                and archive_file.stat().st_mtime < cutoff_date.timestamp()
+            ):
                 try:
                     archive_file.unlink()
                 except Exception:
                     pass
-    
+
     def get_archive_stats(self) -> Dict[str, Any]:
         """アーカイブ統計情報を取得"""
         stats = {
@@ -225,19 +239,23 @@ class LogArchiveManager:
             "oldest_file": None,
             "newest_file": None,
         }
-        
+
         archive_files = list(self.archive_dir.glob("*"))
         stats["total_files"] = len(archive_files)
-        
+
         if archive_files:
             total_size = sum(f.stat().st_size for f in archive_files if f.is_file())
             stats["total_size_mb"] = round(total_size / (1024 * 1024), 2)
-            
+
             file_times = [f.stat().st_mtime for f in archive_files if f.is_file()]
             if file_times:
-                stats["oldest_file"] = datetime.fromtimestamp(min(file_times)).isoformat()
-                stats["newest_file"] = datetime.fromtimestamp(max(file_times)).isoformat()
-        
+                stats["oldest_file"] = datetime.fromtimestamp(
+                    min(file_times)
+                ).isoformat()
+                stats["newest_file"] = datetime.fromtimestamp(
+                    max(file_times)
+                ).isoformat()
+
         return stats
 
 
@@ -245,21 +263,21 @@ class QtThemeStudioLogger:
     """Qt-Theme-Studio専用ロガー（拡張版）"""
 
     def __init__(
-        self, 
+        self,
         name: str = "qt_theme_studio",
-        rotation_config: Optional[LogRotationConfig] = None
+        rotation_config: Optional[LogRotationConfig] = None,
     ):
         self.name = name
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
-        
+
         # ローテーション設定
         self.rotation_config = rotation_config or LogRotationConfig()
-        
+
         # ログディレクトリの設定
         self.log_dir = Path("logs")
         self.log_dir.mkdir(exist_ok=True)
-        
+
         # アーカイブマネージャー
         self.archive_manager = LogArchiveManager(self.log_dir, self.rotation_config)
 
@@ -268,7 +286,7 @@ class QtThemeStudioLogger:
 
         # パフォーマンス測定用
         self._performance_timers = {}
-        
+
         # 定期メンテナンス用のカウンター
         self._maintenance_counter = 0
         self._maintenance_interval = 100  # 100回のログ出力ごとにメンテナンス実行
@@ -278,13 +296,13 @@ class QtThemeStudioLogger:
         # 既存のハンドラーをクリア
         for handler in self.logger.handlers[:]:
             self.logger.removeHandler(handler)
-        
+
         # コンソールハンドラー
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)  # コンソールは INFO 以上
         console_formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
         console_handler.setFormatter(console_formatter)
 
@@ -295,23 +313,26 @@ class QtThemeStudioLogger:
             maxBytes=self.rotation_config.max_bytes,
             backupCount=self.rotation_config.backup_count,
             encoding="utf-8",
-            compress_backups=self.rotation_config.compress_backups
+            compress_backups=self.rotation_config.compress_backups,
         )
         main_handler.setLevel(logging.DEBUG)
         main_formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
         main_handler.setFormatter(main_formatter)
 
         # 構造化ログファイルハンドラー（日別）
-        structured_log_file = self.log_dir / f"{self.name}_structured_{datetime.now().strftime('%Y%m%d')}.log"
+        structured_log_file = (
+            self.log_dir
+            / f"{self.name}_structured_{datetime.now().strftime('%Y%m%d')}.log"
+        )
         structured_handler = AdvancedRotatingFileHandler(
             filename=str(structured_log_file),
             maxBytes=self.rotation_config.max_bytes,
             backupCount=self.rotation_config.backup_count,
             encoding="utf-8",
-            compress_backups=self.rotation_config.compress_backups
+            compress_backups=self.rotation_config.compress_backups,
         )
         structured_handler.setLevel(logging.DEBUG)
         structured_formatter = StructuredFormatter()
@@ -324,12 +345,12 @@ class QtThemeStudioLogger:
             maxBytes=self.rotation_config.max_bytes // 2,  # エラーログは小さめ
             backupCount=self.rotation_config.backup_count,
             encoding="utf-8",
-            compress_backups=self.rotation_config.compress_backups
+            compress_backups=self.rotation_config.compress_backups,
         )
         error_handler.setLevel(logging.ERROR)
         error_formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s\n%(exc_info)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
         error_handler.setFormatter(error_formatter)
 
@@ -340,13 +361,12 @@ class QtThemeStudioLogger:
             maxBytes=self.rotation_config.max_bytes // 4,  # パフォーマンスログは小さめ
             backupCount=self.rotation_config.backup_count,
             encoding="utf-8",
-            compress_backups=self.rotation_config.compress_backups
+            compress_backups=self.rotation_config.compress_backups,
         )
         perf_handler.setLevel(logging.DEBUG)
         perf_handler.addFilter(self._performance_filter)
         perf_formatter = logging.Formatter(
-            "%(asctime)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
+            "%(asctime)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
         perf_handler.setFormatter(perf_formatter)
 
@@ -359,7 +379,9 @@ class QtThemeStudioLogger:
 
     def _performance_filter(self, record):
         """パフォーマンスログ用フィルター"""
-        return hasattr(record, 'category') and record.category == LogCategory.PERFORMANCE
+        return (
+            hasattr(record, "category") and record.category == LogCategory.PERFORMANCE
+        )
 
     def _log_with_category(
         self,
@@ -379,7 +401,7 @@ class QtThemeStudioLogger:
             extra["performance_data"] = kwargs["performance_data"]
 
         self.logger.log(level, message, extra=extra)
-        
+
         # 定期メンテナンスの実行
         self._maintenance_counter += 1
         if self._maintenance_counter >= self._maintenance_interval:
@@ -512,14 +534,14 @@ class QtThemeStudioLogger:
         try:
             # アーカイブ処理
             self.archive_manager.archive_old_logs()
-            
+
             # 古いアーカイブの削除
             self.archive_manager.cleanup_old_archives()
-            
+
             # ログディスク使用量のチェック
             self._check_disk_usage()
-            
-        except Exception as e:
+
+        except Exception:
             # メンテナンス処理でエラーが発生しても本来の処理は継続
             pass
 
@@ -527,17 +549,16 @@ class QtThemeStudioLogger:
         """ログディスクの使用量をチェック"""
         try:
             total_size = sum(
-                f.stat().st_size for f in self.log_dir.rglob("*") 
-                if f.is_file()
+                f.stat().st_size for f in self.log_dir.rglob("*") if f.is_file()
             )
-            
+
             # 100MB を超えた場合は警告
             if total_size > 100 * 1024 * 1024:
                 self.warning(
-                    f"ログディスク使用量が大きくなっています: {total_size / (1024*1024):.1f}MB",
-                    LogCategory.GENERAL
+                    f"ログディスク使用量が大きくなっています: {total_size / (1024 * 1024):.1f}MB",
+                    LogCategory.GENERAL,
                 )
-                
+
         except Exception:
             pass
 
@@ -556,18 +577,22 @@ class QtThemeStudioLogger:
             "total_size_mb": 0,
             "archive_stats": self.archive_manager.get_archive_stats(),
         }
-        
+
         # 現在のログファイル情報
         for log_file in self.log_dir.glob("*.log*"):
             if log_file.is_file():
                 file_stats = log_file.stat()
-                stats["current_logs"].append({
-                    "name": log_file.name,
-                    "size_mb": round(file_stats.st_size / (1024 * 1024), 2),
-                    "modified": datetime.fromtimestamp(file_stats.st_mtime).isoformat(),
-                })
+                stats["current_logs"].append(
+                    {
+                        "name": log_file.name,
+                        "size_mb": round(file_stats.st_size / (1024 * 1024), 2),
+                        "modified": datetime.fromtimestamp(
+                            file_stats.st_mtime
+                        ).isoformat(),
+                    }
+                )
                 stats["total_size_mb"] += file_stats.st_size / (1024 * 1024)
-        
+
         stats["total_size_mb"] = round(stats["total_size_mb"], 2)
         return stats
 
@@ -575,7 +600,7 @@ class QtThemeStudioLogger:
         """指定日数より古いログファイルを削除"""
         cutoff_date = datetime.now() - timedelta(days=older_than_days)
         deleted_files = []
-        
+
         for log_file in self.log_dir.glob("*.log*"):
             if log_file.is_file():
                 file_time = datetime.fromtimestamp(log_file.stat().st_mtime)
@@ -586,15 +611,15 @@ class QtThemeStudioLogger:
                     except Exception as e:
                         self.warning(
                             f"ログファイル削除に失敗: {log_file} - {e}",
-                            LogCategory.GENERAL
+                            LogCategory.GENERAL,
                         )
-        
+
         if deleted_files:
             self.info(
                 f"古いログファイルを削除しました: {len(deleted_files)}ファイル",
-                LogCategory.GENERAL
+                LogCategory.GENERAL,
             )
-        
+
         return deleted_files
 
     def set_log_level(self, level: LogLevel):
@@ -606,14 +631,14 @@ class QtThemeStudioLogger:
             LogLevel.ERROR: logging.ERROR,
             LogLevel.CRITICAL: logging.CRITICAL,
         }
-        
+
         self.logger.setLevel(level_map[level])
         self.info(f"ログレベルを {level.name} に変更しました", LogCategory.GENERAL)
 
     def rotate_logs_now(self):
         """手動でログローテーションを実行"""
         rotated_handlers = []
-        
+
         for handler in self.logger.handlers:
             if isinstance(handler, AdvancedRotatingFileHandler):
                 try:
@@ -622,37 +647,37 @@ class QtThemeStudioLogger:
                 except Exception as e:
                     self.warning(
                         f"ログローテーションに失敗: {handler.baseFilename} - {e}",
-                        LogCategory.GENERAL
+                        LogCategory.GENERAL,
                     )
-        
+
         if rotated_handlers:
             self.info(
                 f"ログローテーションを実行しました: {len(rotated_handlers)}ファイル",
-                LogCategory.GENERAL
+                LogCategory.GENERAL,
             )
-        
+
         return rotated_handlers
 
     def export_logs(
-        self, 
-        output_file: Union[str, Path], 
+        self,
+        output_file: Union[str, Path],
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
-        log_levels: Optional[List[LogLevel]] = None
+        log_levels: Optional[List[LogLevel]] = None,
     ) -> bool:
         """ログをエクスポート"""
         try:
             output_path = Path(output_file)
             exported_entries = []
-            
+
             # フィルター条件の設定
             level_names = [level.name for level in log_levels] if log_levels else None
-            
+
             # ログファイルを読み込んでフィルタリング
             for log_file in self.log_dir.glob("*.log"):
                 if log_file.is_file():
                     try:
-                        with open(log_file, 'r', encoding='utf-8') as f:
+                        with open(log_file, encoding="utf-8") as f:
                             for line in f:
                                 # 簡単な日付・レベルフィルタリング
                                 if start_date or end_date or level_names:
@@ -661,27 +686,24 @@ class QtThemeStudioLogger:
                                 exported_entries.append(line.strip())
                     except Exception:
                         continue
-            
+
             # エクスポートファイルに書き込み
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(f"# Qt-Theme-Studio ログエクスポート\n")
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write("# Qt-Theme-Studio ログエクスポート\n")
                 f.write(f"# エクスポート日時: {datetime.now().isoformat()}\n")
                 f.write(f"# 総エントリ数: {len(exported_entries)}\n\n")
-                
+
                 for entry in exported_entries:
                     f.write(f"{entry}\n")
-            
+
             self.info(
                 f"ログをエクスポートしました: {output_path} ({len(exported_entries)}エントリ)",
-                LogCategory.GENERAL
+                LogCategory.GENERAL,
             )
             return True
-            
+
         except Exception as e:
-            self.error(
-                f"ログエクスポートに失敗: {e}",
-                LogCategory.ERROR
-            )
+            self.error(f"ログエクスポートに失敗: {e}", LogCategory.ERROR)
             return False
 
 
@@ -698,19 +720,18 @@ def get_logger(name: str = "qt_theme_studio") -> QtThemeStudioLogger:
 
 
 def setup_logging(
-    log_level: LogLevel = LogLevel.INFO, 
+    log_level: LogLevel = LogLevel.INFO,
     log_file: Optional[Union[str, Path]] = None,
-    rotation_config: Optional[LogRotationConfig] = None
+    rotation_config: Optional[LogRotationConfig] = None,
 ):
     """ログ設定を初期化（拡張版）"""
     global _global_logger
-    
+
     # 新しい設定でロガーを再作成
     _global_logger = QtThemeStudioLogger(
-        "qt_theme_studio", 
-        rotation_config or LogRotationConfig()
+        "qt_theme_studio", rotation_config or LogRotationConfig()
     )
-    
+
     # ログレベルの設定
     _global_logger.set_log_level(log_level)
 
@@ -721,10 +742,12 @@ def setup_logging(
 
         custom_handler = AdvancedRotatingFileHandler(
             filename=str(file_path),
-            maxBytes=rotation_config.max_bytes if rotation_config else 10*1024*1024,
+            maxBytes=rotation_config.max_bytes if rotation_config else 10 * 1024 * 1024,
             backupCount=rotation_config.backup_count if rotation_config else 5,
             encoding="utf-8",
-            compress_backups=rotation_config.compress_backups if rotation_config else True
+            compress_backups=rotation_config.compress_backups
+            if rotation_config
+            else True,
         )
         custom_handler.setLevel(logging.DEBUG)
         structured_formatter = StructuredFormatter()

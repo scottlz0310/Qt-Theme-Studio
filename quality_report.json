@@ -8,17 +8,17 @@
   },
   "coverage_data": {
     "TOTAL": {
-      "statements": 1331,
-      "missed": 851,
-      "coverage": 36.0
+      "statements": 1658,
+      "missed": 1086,
+      "coverage": 34.0
     }
   },
   "file_statistics": {
     "source_files": 11,
-    "source_lines": 4713,
-    "test_files": 16,
-    "test_lines": 2789,
-    "test_ratio": 0.5917674517292595
+    "source_lines": 5743,
+    "test_files": 21,
+    "test_lines": 5865,
+    "test_ratio": 1.0212432526554065
   },
   "quality_score": "D"
 }
