@@ -5,11 +5,11 @@ Qt-Theme-Studio 品質メトリクスダッシュボード
 テスト統計、カバレッジ、品質スコアを可視化します
 """
 
-import sys
 import json
 import subprocess
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 # プロジェクトルートをパスに追加
@@ -18,6 +18,7 @@ sys.path.insert(0, str(project_root))
 
 try:
     import matplotlib.pyplot as plt
+
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
@@ -40,7 +41,9 @@ class QualityDashboard:
             # テスト数のカウント
             result = subprocess.run(
                 ["python", "-m", "pytest", "tests/", "--collect-only", "-q"],
-                capture_output=True, text=True, cwd=self.project_root
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
             )
 
             if "collected" in result.stdout:
@@ -51,21 +54,23 @@ class QualityDashboard:
             # テスト実行
             result = subprocess.run(
                 ["python", "-m", "pytest", "tests/", "--tb=no", "-q"],
-                capture_output=True, text=True, cwd=self.project_root
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
             )
 
             # 成功・失敗のカウント
-            output_lines = result.stdout.split('\n')
-            passed = sum(1 for line in output_lines if line.startswith('.'))
-            failed = sum(1 for line in output_lines if line.startswith('F'))
-            errors = sum(1 for line in output_lines if line.startswith('E'))
+            output_lines = result.stdout.split("\n")
+            passed = sum(1 for line in output_lines if line.startswith("."))
+            failed = sum(1 for line in output_lines if line.startswith("F"))
+            errors = sum(1 for line in output_lines if line.startswith("E"))
 
             return {
                 "total_tests": test_count,
                 "passed": passed,
                 "failed": failed,
                 "errors": errors,
-                "success_rate": (passed / test_count * 100) if test_count > 0 else 0
+                "success_rate": (passed / test_count * 100) if test_count > 0 else 0,
             }
 
         except Exception as e:
@@ -75,7 +80,7 @@ class QualityDashboard:
                 "passed": 0,
                 "failed": 0,
                 "errors": 0,
-                "success_rate": 0
+                "success_rate": 0,
             }
 
     def collect_coverage_data(self) -> dict[str, Any]:
@@ -84,12 +89,21 @@ class QualityDashboard:
 
         try:
             result = subprocess.run(
-                ["python", "-m", "pytest", "tests/", "--cov=qt_theme_studio", "--cov-report=term-missing"],
-                capture_output=True, text=True, cwd=self.project_root
+                [
+                    "python",
+                    "-m",
+                    "pytest",
+                    "tests/",
+                    "--cov=qt_theme_studio",
+                    "--cov-report=term-missing",
+                ],
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
             )
 
             coverage_data = {}
-            output_lines = result.stdout.split('\n')
+            output_lines = result.stdout.split("\n")
 
             for line in output_lines:
                 if "qt_theme_studio/" in line and "Stmts" in line:
@@ -98,12 +112,12 @@ class QualityDashboard:
                         module_name = parts[0]
                         statements = int(parts[1])
                         missed = int(parts[2])
-                        coverage = float(parts[3].rstrip('%'))
+                        coverage = float(parts[3].rstrip("%"))
 
                         coverage_data[module_name] = {
                             "statements": statements,
                             "missed": missed,
-                            "coverage": coverage
+                            "coverage": coverage,
                         }
 
             # 全体カバレッジ
@@ -113,12 +127,12 @@ class QualityDashboard:
                 if len(total_parts) >= 4:
                     total_statements = int(total_parts[1])
                     total_missed = int(total_parts[2])
-                    total_coverage = float(total_parts[3].rstrip('%'))
+                    total_coverage = float(total_parts[3].rstrip("%"))
 
                     coverage_data["TOTAL"] = {
                         "statements": total_statements,
                         "missed": total_missed,
-                        "coverage": total_coverage
+                        "coverage": total_coverage,
                     }
 
             return coverage_data
@@ -148,14 +162,16 @@ class QualityDashboard:
                 "source_lines": source_lines,
                 "test_files": len(test_files),
                 "test_lines": test_lines,
-                "test_ratio": test_lines / source_lines if source_lines > 0 else 0
+                "test_ratio": test_lines / source_lines if source_lines > 0 else 0,
             }
 
         except Exception as e:
             print(f"❌ ファイル統計の収集に失敗: {e}")
             return {}
 
-    def calculate_quality_score(self, coverage: float, test_count: int, success_rate: float) -> str:
+    def calculate_quality_score(
+        self, coverage: float, test_count: int, success_rate: float
+    ) -> str:
         """品質スコアを計算"""
         # カバレッジの重み: 40%
         coverage_score = min(coverage / 100, 1.0) * 40
@@ -170,18 +186,17 @@ class QualityDashboard:
 
         if total_score >= 85:
             return "A+"
-        elif total_score >= 75:
+        if total_score >= 75:
             return "A"
-        elif total_score >= 65:
+        if total_score >= 65:
             return "B+"
-        elif total_score >= 55:
+        if total_score >= 55:
             return "B"
-        elif total_score >= 45:
+        if total_score >= 45:
             return "C+"
-        elif total_score >= 35:
+        if total_score >= 35:
             return "C"
-        else:
-            return "D"
+        return "D"
 
     def generate_text_report(self) -> str:
         """テキストレポートを生成"""
@@ -210,7 +225,9 @@ class QualityDashboard:
 
         for module, data in coverage_data.items():
             if module != "TOTAL":
-                report.append(f"{module}: {data['coverage']:.1f}% ({data['statements']}行)")
+                report.append(
+                    f"{module}: {data['coverage']:.1f}% ({data['statements']}行)"
+                )
 
         if "TOTAL" in coverage_data:
             total = coverage_data["TOTAL"]
@@ -241,7 +258,9 @@ class QualityDashboard:
 
         total_coverage = coverage_data.get("TOTAL", {}).get("coverage", 0)
         if total_coverage < 50:
-            report.append("🚨 カバレッジが50%未満です。テストの追加を優先してください。")
+            report.append(
+                "🚨 カバレッジが50%未満です。テストの追加を優先してください。"
+            )
         elif total_coverage < 70:
             report.append("⚠️ カバレッジが70%未満です。テストの追加を検討してください。")
         else:
@@ -277,44 +296,67 @@ class QualityDashboard:
 
                 # メインのカバレッジグラフ
                 plt.subplot(2, 2, 1)
-                bars = plt.bar(modules, coverages, color='skyblue', edgecolor='navy')
-                plt.title('モジュール別カバレッジ', fontsize=14, fontweight='bold')
-                plt.ylabel('カバレッジ (%)')
-                plt.xticks(rotation=45, ha='right')
+                bars = plt.bar(modules, coverages, color="skyblue", edgecolor="navy")
+                plt.title("モジュール別カバレッジ", fontsize=14, fontweight="bold")
+                plt.ylabel("カバレッジ (%)")
+                plt.xticks(rotation=45, ha="right")
                 plt.ylim(0, 100)
 
                 # カバレッジ値の表示
                 for bar, coverage in zip(bars, coverages):
-                    plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
-                            f'{coverage:.1f}%', ha='center', va='bottom')
+                    plt.text(
+                        bar.get_x() + bar.get_width() / 2,
+                        bar.get_height() + 1,
+                        f"{coverage:.1f}%",
+                        ha="center",
+                        va="bottom",
+                    )
 
                 # テスト統計の円グラフ
                 plt.subplot(2, 2, 2)
                 test_stats = self.results.get("test_statistics", {})
                 if test_stats:
-                    labels = ['成功', '失敗', 'エラー']
-                    sizes = [test_stats.get('passed', 0), test_stats.get('failed', 0), test_stats.get('errors', 0)]
-                    colors = ['lightgreen', 'lightcoral', 'gold']
+                    labels = ["成功", "失敗", "エラー"]
+                    sizes = [
+                        test_stats.get("passed", 0),
+                        test_stats.get("failed", 0),
+                        test_stats.get("errors", 0),
+                    ]
+                    colors = ["lightgreen", "lightcoral", "gold"]
 
                     if sum(sizes) > 0:
-                        plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
-                        plt.title('テスト結果の分布', fontsize=14, fontweight='bold')
+                        plt.pie(
+                            sizes,
+                            labels=labels,
+                            colors=colors,
+                            autopct="%1.1f%%",
+                            startangle=90,
+                        )
+                        plt.title("テスト結果の分布", fontsize=14, fontweight="bold")
 
                 # ファイル統計の棒グラフ
                 plt.subplot(2, 2, 3)
                 file_stats = self.results.get("file_statistics", {})
                 if file_stats:
-                    categories = ['ソース', 'テスト']
-                    lines = [file_stats.get('source_lines', 0), file_stats.get('test_lines', 0)]
-                    colors = ['lightblue', 'lightgreen']
+                    categories = ["ソース", "テスト"]
+                    lines = [
+                        file_stats.get("source_lines", 0),
+                        file_stats.get("test_lines", 0),
+                    ]
+                    colors = ["lightblue", "lightgreen"]
 
-                    bars = plt.bar(categories, lines, color=colors, edgecolor='navy')
-                    plt.title('コード行数の比較', fontsize=14, fontweight='bold')
-                    plt.ylabel('行数')
+                    bars = plt.bar(categories, lines, color=colors, edgecolor="navy")
+                    plt.title("コード行数の比較", fontsize=14, fontweight="bold")
+                    plt.ylabel("行数")
 
                     for bar, line_count in zip(bars, lines):
-                        plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
-                                f'{line_count}', ha='center', va='bottom')
+                        plt.text(
+                            bar.get_x() + bar.get_width() / 2,
+                            bar.get_height() + 1,
+                            f"{line_count}",
+                            ha="center",
+                            va="bottom",
+                        )
 
                 # 品質スコアの表示
                 plt.subplot(2, 2, 4)
@@ -322,23 +364,36 @@ class QualityDashboard:
 
                 # スコアに基づく色の設定
                 score_colors = {
-                    'A+': 'darkgreen', 'A': 'green', 'B+': 'lightgreen',
-                    'B': 'yellow', 'C+': 'orange', 'C': 'darkorange', 'D': 'red'
+                    "A+": "darkgreen",
+                    "A": "green",
+                    "B+": "lightgreen",
+                    "B": "yellow",
+                    "C+": "orange",
+                    "C": "darkorange",
+                    "D": "red",
                 }
 
-                color = score_colors.get(quality_score, 'gray')
+                color = score_colors.get(quality_score, "gray")
 
-                plt.text(0.5, 0.5, f'品質スコア\n{quality_score}',
-                        ha='center', va='center', fontsize=24, fontweight='bold',
-                        transform=plt.gca().transAxes, color=color)
-                plt.title('総合品質評価', fontsize=14, fontweight='bold')
-                plt.axis('off')
+                plt.text(
+                    0.5,
+                    0.5,
+                    f"品質スコア\n{quality_score}",
+                    ha="center",
+                    va="center",
+                    fontsize=24,
+                    fontweight="bold",
+                    transform=plt.gca().transAxes,
+                    color=color,
+                )
+                plt.title("総合品質評価", fontsize=14, fontweight="bold")
+                plt.axis("off")
 
                 plt.tight_layout()
 
                 # 保存
                 output_file = self.project_root / "quality_dashboard.png"
-                plt.savefig(output_file, dpi=300, bbox_inches='tight')
+                plt.savefig(output_file, dpi=300, bbox_inches="tight")
                 print(f"✅ 可視化を保存しました: {output_file}")
 
                 # 表示
@@ -351,7 +406,7 @@ class QualityDashboard:
         """JSONレポートを保存"""
         try:
             output_file = self.project_root / "quality_report.json"
-            with open(output_file, 'w', encoding='utf-8') as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(self.results, f, indent=2, ensure_ascii=False)
             print(f"✅ JSONレポートを保存しました: {output_file}")
         except Exception as e:
@@ -368,7 +423,9 @@ class QualityDashboard:
         self.results["file_statistics"] = self.collect_file_statistics()
 
         # 品質スコアの計算
-        total_coverage = self.results["coverage_data"].get("TOTAL", {}).get("coverage", 0)
+        total_coverage = (
+            self.results["coverage_data"].get("TOTAL", {}).get("coverage", 0)
+        )
         test_count = self.results["test_statistics"].get("total_tests", 0)
         success_rate = self.results["test_statistics"].get("success_rate", 0)
 
@@ -388,9 +445,9 @@ class QualityDashboard:
 
         print("\n🎉 品質メトリクスダッシュボードが完了しました！")
         print("📁 生成されたファイル:")
-        print(f"   - quality_report.json: 詳細データ")
+        print("   - quality_report.json: 詳細データ")
         if MATPLOTLIB_AVAILABLE:
-            print(f"   - quality_dashboard.png: 可視化グラフ")
+            print("   - quality_dashboard.png: 可視化グラフ")
 
 
 def main():
