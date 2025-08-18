@@ -39,7 +39,7 @@ def main():
         "qt_theme_studio/utilities/accessibility_manager.py",
         "qt_theme_studio/utilities/japanese_file_handler.py",
         "qt_theme_studio/views/theme_gallery.py",
-        "qt_theme_studio/views/zebra_editor.py"
+        "qt_theme_studio/views/zebra_editor.py",
     ]
 
     print(f"修正対象ファイル数: {len(problem_files)}")

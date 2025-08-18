@@ -30,7 +30,7 @@ def test_config() -> dict[str, Any]:
         "theme_dir": str(project_root / "themes"),
         "temp_dir": str(project_root / "tests" / "temp"),
         "log_level": "DEBUG",
-        "testing": True
+        "testing": True,
     }
 
 
@@ -45,12 +45,9 @@ def sample_theme_data() -> dict[str, Any]:
             "primary": "#007acc",
             "secondary": "#6c757d",
             "background": "#ffffff",
-            "text": "#212529"
+            "text": "#212529",
         },
-        "fonts": {
-            "default": "Arial",
-            "size": 12
-        }
+        "fonts": {"default": "Arial", "size": 12},
     }
 
 

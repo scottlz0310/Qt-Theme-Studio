@@ -44,7 +44,7 @@ pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
 # PyQt6を使用する場合
 pip install -e .[qt6]
 
-# PyQt5を使用する場合  
+# PyQt5を使用する場合
 pip install -e .[qt5]
 ```
 

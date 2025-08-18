@@ -17,11 +17,27 @@ def fix_type_annotations_in_file(file_path: Path) -> int:
 
         # dict → dict
         content = re.sub(r"typing\.Dict", "dict", content)
-        content = re.sub(r"from typing import.*.*", lambda m: m.group(0).replace("", "").replace(",", ",").replace("]", "]").replace("[", "["), content)
+        content = re.sub(
+            r"from typing import.*.*",
+            lambda m: m.group(0)
+            .replace("", "")
+            .replace(",", ",")
+            .replace("]", "]")
+            .replace("[", "["),
+            content,
+        )
 
         # list → list
         content = re.sub(r"typing\.List", "list", content)
-        content = re.sub(r"from typing import.*.*", lambda m: m.group(0).replace("", "").replace(",", ",").replace("]", "]").replace("[", "["), content)
+        content = re.sub(
+            r"from typing import.*.*",
+            lambda m: m.group(0)
+            .replace("", "")
+            .replace(",", ",")
+            .replace("]", "]")
+            .replace("[", "["),
+            content,
+        )
 
         # Dict → dict (型注釈のみ)
         content = re.sub(r"(\w+):\s*Dict\[", r"\1: dict[", content)
@@ -44,6 +60,7 @@ def fix_type_annotations_in_file(file_path: Path) -> int:
         print(f"エラー: {file_path} - {e}")
         return 0
 
+
 def main():
     """メイン処理"""
     project_root = Path(__file__).parent.parent
@@ -61,6 +78,7 @@ def main():
             fixed_count += 1
 
     print(f"\n修正完了: {fixed_count}ファイル")
+
 
 if __name__ == "__main__":
     main()

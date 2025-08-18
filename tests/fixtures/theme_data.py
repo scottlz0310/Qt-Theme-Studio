@@ -26,43 +26,31 @@ def create_sample_theme(name: str = "Test Theme") -> dict[str, Any]:
             "border": "#dee2e6",
             "accent": "#28a745",
             "error": "#dc3545",
-            "warning": "#ffc107"
+            "warning": "#ffc107",
         },
         "fonts": {
             "default": "Arial",
             "monospace": "Consolas",
-            "size": {
-                "small": 10,
-                "normal": 12,
-                "large": 14,
-                "title": 18
-            }
+            "size": {"small": 10, "normal": 12, "large": 14, "title": 18},
         },
-        "spacing": {
-            "xs": 4,
-            "sm": 8,
-            "md": 16,
-            "lg": 24,
-            "xl": 32
-        },
+        "spacing": {"xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 32},
         "border_radius": 4,
-        "shadows": {
-            "enabled": True,
-            "color": "rgba(0, 0, 0, 0.1)"
-        }
+        "shadows": {"enabled": True, "color": "rgba(0, 0, 0, 0.1)"},
     }
 
 
 def create_dark_theme(name: str = "Dark Test Theme") -> dict[str, Any]:
     """ダークテーマのサンプルを作成"""
     theme = create_sample_theme(name)
-    theme["colors"].update({
-        "background": "#1e1e1e",
-        "surface": "#2d2d30",
-        "text": "#ffffff",
-        "text_secondary": "#cccccc",
-        "border": "#3e3e42"
-    })
+    theme["colors"].update(
+        {
+            "background": "#1e1e1e",
+            "surface": "#2d2d30",
+            "text": "#ffffff",
+            "text_secondary": "#cccccc",
+            "border": "#3e3e42",
+        }
+    )
     return theme
 
 
@@ -71,10 +59,7 @@ def create_minimal_theme(name: str = "Minimal Theme") -> dict[str, Any]:
     return {
         "name": name,
         "version": "1.0.0",
-        "colors": {
-            "primary": "#000000",
-            "background": "#ffffff"
-        }
+        "colors": {"primary": "#000000", "background": "#ffffff"},
     }
 
 
@@ -96,6 +81,6 @@ def get_test_themes() -> list[dict[str, Any]]:
     themes: list[dict[str, Any]] = [
         create_sample_theme("Light Theme"),
         create_dark_theme("Dark Theme"),
-        create_minimal_theme("Minimal Theme")
+        create_minimal_theme("Minimal Theme"),
     ]
     return themes

@@ -18,33 +18,33 @@ class ThemeGenerator:
             "dark": {
                 "name": "ダークモード",
                 "background": "#1a1a1a",
-                "description": "暗い背景の低負荷テーマ"
+                "description": "暗い背景の低負荷テーマ",
             },
             "light": {
                 "name": "ライトモード",
                 "background": "#ffffff",
-                "description": "明るい背景の標準テーマ"
+                "description": "明るい背景の標準テーマ",
             },
             "blue": {
                 "name": "ブルーモード",
                 "background": "#1e3a5f",
-                "description": "プロフェッショナルなブルーベーステーマ"
+                "description": "プロフェッショナルなブルーベーステーマ",
             },
             "green": {
                 "name": "グリーンモード",
                 "background": "#1a2e1a",
-                "description": "自然なグリーンベーステーマ"
+                "description": "自然なグリーンベーステーマ",
             },
             "purple": {
                 "name": "パープルモード",
                 "background": "#2d1b45",
-                "description": "エレガントなパープルベーステーマ"
+                "description": "エレガントなパープルベーステーマ",
             },
             "orange": {
                 "name": "オレンジモード",
                 "background": "#4a1c1c",
-                "description": "温かみのあるオレンジベーステーマ"
-            }
+                "description": "温かみのあるオレンジベーステーマ",
+            },
         }
 
     def generate_theme_from_background(self, bg_color: QColor) -> dict[str, Any]:
@@ -106,7 +106,9 @@ class ThemeGenerator:
                 "selection_background": primary_color.name(),
                 "selection_text": button_text.name(),
                 # スクロールバー関連の色
-                "scrollbar_background": self._adjust_color(surface_color, -10, 0).name(),
+                "scrollbar_background": self._adjust_color(
+                    surface_color, -10, 0
+                ).name(),
                 "scrollbar_handle": primary_color.name(),
                 "scrollbar_handle_hover": accent_color.name(),
                 # プログレス関連の色
@@ -118,9 +120,11 @@ class ThemeGenerator:
                 # 境界線関連の色
                 "border": self._adjust_color(surface_color, -30, 0).name(),
                 # 無効状態の色
-                "disabled_background": self._adjust_color(surface_color, -20, -20).name(),
+                "disabled_background": self._adjust_color(
+                    surface_color, -20, -20
+                ).name(),
                 "disabled_text": self._adjust_color(text_color, -30, -30).name(),
-                "disabled_border": self._adjust_color(surface_color, -40, -40).name()
+                "disabled_border": self._adjust_color(surface_color, -40, -40).name(),
             },
             "primaryColor": primary_color.name(),
             "accentColor": accent_color.name(),
@@ -131,7 +135,7 @@ class ThemeGenerator:
                 "text": button_text.name(),
                 "hover": button_hover.name(),
                 "pressed": button_pressed.name(),
-                "border": button_border.name()
+                "border": button_border.name(),
             },
             "panel": {
                 "background": panel_bg.name(),
@@ -139,15 +143,15 @@ class ThemeGenerator:
                 "header": {
                     "background": header_bg.name(),
                     "text": header_text.name(),
-                    "border": header_border.name()
+                    "border": header_border.name(),
                 },
-                "zebra": {
-                    "alternate": zebra_alternate.name()
-                }
-            }
+                "zebra": {"alternate": zebra_alternate.name()},
+            },
         }
 
-    def _generate_contrasting_color(self, base_color: QColor, contrast_ratio: float) -> QColor:
+    def _generate_contrasting_color(
+        self, base_color: QColor, contrast_ratio: float
+    ) -> QColor:
         """基準色から指定されたコントラスト比の色を生成"""
         h, s, lightness, a = base_color.getHsl()
 
@@ -172,8 +176,7 @@ class ThemeGenerator:
         h, s, lightness, a = color.getHsl()
 
         # 明度調整(-50 to 50)
-        lightness = max(0, min(255,
-                               lightness + brightness * 2.55))
+        lightness = max(0, min(255, lightness + brightness * 2.55))
 
         # 彩度調整(-50 to 50)
         s = max(0, min(255, s + saturation * 2.55))

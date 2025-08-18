@@ -24,7 +24,9 @@ def fix_common_imports(file_path):
         imports_to_add.append("import logging")
 
     # os の使用をチェック
-    if ("os.path" in content or "os.environ" in content or "os.makedirs" in content) and "import os" not in content:
+    if (
+        "os.path" in content or "os.environ" in content or "os.makedirs" in content
+    ) and "import os" not in content:
         imports_to_add.append("import os")
 
     # datetime の使用をチェック

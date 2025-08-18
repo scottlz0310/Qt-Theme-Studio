@@ -69,21 +69,21 @@ def calculate_contrast_ratio(color1: str, color2: str) -> float:
     """WCAG 2.1準拠のコントラスト比計算"""
     l1 = get_relative_luminance(color1)
     l2 = get_relative_luminance(color2)
-    
+
     lighter = max(l1, l2)
     darker = min(l1, l2)
-    
+
     return (lighter + 0.05) / (darker + 0.05)
 
 def get_relative_luminance(color: str) -> float:
     """相対輝度計算"""
     r, g, b = hex_to_rgb(color)
-    
+
     # sRGB色空間での線形化
     r_linear = linearize_srgb(r / 255.0)
     g_linear = linearize_srgb(g / 255.0)
     b_linear = linearize_srgb(b / 255.0)
-    
+
     # ITU-R BT.709係数での輝度計算
     return 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
 ```
@@ -97,16 +97,16 @@ def generate_alternate_color(
 ) -> str:
     """交互色生成"""
     h, s, l = rgb_to_hsl(hex_to_rgb(base_color))
-    
+
     # 明度調整
     l_alt = max(0, min(1, l + brightness_offset))
-    
+
     # 彩度調整
     s_alt = s * saturation_factor
-    
+
     # RGB変換
     r, g, b = hsl_to_rgb(h, s_alt, l_alt)
-    
+
     return rgb_to_hex(r, g, b)
 ```
 
@@ -131,7 +131,7 @@ class ColorHarmonyGenerator:
         h, s, l = rgb_to_hsl(hex_to_rgb(base_color))
         h_comp = (h + 180) % 360
         return hsl_to_hex(h_comp, s, l)
-    
+
     def generate_triadic(self, base_color: str) -> List[str]:
         """三色配色生成"""
         h, s, l = rgb_to_hsl(hex_to_rgb(base_color))
@@ -140,17 +140,17 @@ class ColorHarmonyGenerator:
             hsl_to_hex((h + 120) % 360, s, l),
             hsl_to_hex((h + 240) % 360, s, l)
         ]
-    
+
     def generate_analogous(self, base_color: str, count: int = 5) -> List[str]:
         """類似色生成"""
         h, s, l = rgb_to_hsl(hex_to_rgb(base_color))
         step = 30  # 30度間隔
-        
+
         colors = []
         for i in range(count):
             h_analog = (h + (i - count//2) * step) % 360
             colors.append(hsl_to_hex(h_analog, s, l))
-        
+
         return colors
 ```
 
@@ -162,23 +162,23 @@ class ColorBlindnessSimulator:
     def simulate_protanopia(self, color: str) -> str:
         """1型色覚（赤色盲）シミュレーション"""
         r, g, b = hex_to_rgb(color)
-        
+
         # Brettel et al. (1997) アルゴリズム
         r_sim = 0.152286 * r + 1.052583 * g + -0.204868 * b
         g_sim = 0.114503 * r + 0.786281 * g + 0.099216 * b
         b_sim = -0.003882 * r + -0.048116 * g + 1.051998 * b
-        
+
         return rgb_to_hex(
             max(0, min(255, int(r_sim))),
             max(0, min(255, int(g_sim))),
             max(0, min(255, int(b_sim)))
         )
-    
+
     def simulate_deuteranopia(self, color: str) -> str:
         """2型色覚（緑色盲）シミュレーション"""
         # 実装...
         pass
-    
+
     def simulate_tritanopia(self, color: str) -> str:
         """3型色覚（青色盲）シミュレーション"""
         # 実装...
@@ -248,7 +248,7 @@ $accent-color: #ff6b6b;
   background-color: $bg-color;
   color: contrast-color($bg-color);
   border: 1px solid $bg-color;
-  
+
   &:hover {
     background-color: darken($bg-color, 10%);
   }
@@ -310,7 +310,7 @@ class ThemeMerger:
     def __init__(self):
         self.color_analyzer = ColorHarmonyAnalyzer()
         self.conflict_resolver = ConflictResolver()
-    
+
     def merge_themes(
         self,
         theme_files: List[str],
@@ -319,23 +319,23 @@ class ThemeMerger:
     ) -> Dict[str, Any]:
         """
         複数テーマのマージ
-        
+
         Args:
             theme_files: テーマファイルパスのリスト
             merge_strategy: マージ戦略
             priority_order: 優先順位（priority戦略時）
-            
+
         Returns:
             マージされたテーマデータ
         """
         themes = [self.load_theme(file) for file in theme_files]
-        
+
         # 構造解析
         structure_analysis = self.analyze_theme_structures(themes)
-        
+
         # 競合検出
         conflicts = self.detect_conflicts(themes, structure_analysis)
-        
+
         # マージ実行
         if merge_strategy == "intelligent":
             merged = self.intelligent_merge(themes, conflicts)
@@ -343,9 +343,9 @@ class ThemeMerger:
             merged = self.priority_merge(themes, priority_order)
         else:  # manual
             merged = self.manual_merge(themes, conflicts)
-        
+
         return merged
-    
+
     def intelligent_merge(
         self,
         themes: List[Dict[str, Any]],
@@ -353,7 +353,7 @@ class ThemeMerger:
     ) -> Dict[str, Any]:
         """インテリジェントマージ"""
         merged = {}
-        
+
         # 色調和性分析
         for conflict in conflicts:
             if conflict.type == "color":
@@ -366,7 +366,7 @@ class ThemeMerger:
                 # フォントの互換性チェック
                 compatible_font = self.find_compatible_font(conflict.values)
                 self.set_nested_value(merged, conflict.path, compatible_font)
-        
+
         return merged
 ```
 
@@ -419,15 +419,15 @@ class ColorHarmonyAnalyzer:
         """最も調和の取れた色を選択"""
         best_color = candidate_colors[0]
         best_score = 0
-        
+
         for color in candidate_colors:
             score = self.calculate_harmony_score(color, existing_colors)
             if score > best_score:
                 best_score = score
                 best_color = color
-        
+
         return best_color
-    
+
     def calculate_harmony_score(
         self,
         color: str,
@@ -436,23 +436,23 @@ class ColorHarmonyAnalyzer:
         """調和スコア計算"""
         if not existing_colors:
             return 1.0
-        
+
         total_score = 0
         count = 0
-        
+
         for existing_color in existing_colors.values():
             # 色相差による調和性
             hue_harmony = self.calculate_hue_harmony(color, existing_color)
-            
+
             # 彩度・明度の調和性
             saturation_harmony = self.calculate_saturation_harmony(color, existing_color)
             lightness_harmony = self.calculate_lightness_harmony(color, existing_color)
-            
+
             # 総合スコア
             harmony_score = (hue_harmony + saturation_harmony + lightness_harmony) / 3
             total_score += harmony_score
             count += 1
-        
+
         return total_score / count if count > 0 else 1.0
 ```
 
@@ -486,23 +486,23 @@ class SmartImportExportSystem:
             'jetbrains': JetBrainsAdapter()
         }
         self.quality_evaluator = QualityEvaluator()
-    
+
     def import_theme(self, file_path: str) -> Dict[str, Any]:
         """スマートインポート実行"""
         raw_data = self.load_json_file(file_path)
-        
+
         # 形式検出
         detection_results = self.detect_format(raw_data)
         best_match = max(detection_results, key=lambda x: x['confidence'])
-        
+
         if best_match['confidence'] < 0.7:
             # 信頼度が低い場合は汎用処理
             return self.generic_import(raw_data, file_path)
-        
+
         # 専用アダプターで変換
         adapter = self.adapters[best_match['format']]
         theme_data = adapter.import_data(raw_data)
-        
+
         # メタデータ追加
         theme_data['_import_metadata'] = {
             'source_file': file_path,
@@ -513,13 +513,13 @@ class SmartImportExportSystem:
             'lost_fields': adapter.get_lost_fields(),
             'original_data_hash': self.calculate_hash(raw_data)
         }
-        
+
         return theme_data
-    
+
     def detect_format(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """形式検出（複数候補を信頼度付きで返す）"""
         results = []
-        
+
         for format_name, detector in self.format_detectors.items():
             confidence = detector.calculate_confidence(data)
             results.append({
@@ -527,35 +527,35 @@ class SmartImportExportSystem:
                 'confidence': confidence,
                 'indicators': detector.get_indicators(data)
             })
-        
+
         return sorted(results, key=lambda x: x['confidence'], reverse=True)
 
 #### 形式検出器の実装例
 ```python
 class VSCodeFormatDetector:
     """VS Code テーマ形式検出器"""
-    
+
     def calculate_confidence(self, data: Dict[str, Any]) -> float:
         """信頼度計算（0.0-1.0）"""
         score = 0.0
         indicators = []
-        
+
         # 必須フィールドの確認
         if 'colors' in data:
             score += 0.3
             indicators.append('colors_field_present')
-        
+
         if 'tokenColors' in data:
             score += 0.3
             indicators.append('tokenColors_field_present')
-        
+
         # VS Code特有のフィールド
         vscode_fields = ['name', 'type', 'semanticHighlighting']
         for field in vscode_fields:
             if field in data:
                 score += 0.1
                 indicators.append(f'{field}_field_present')
-        
+
         # 色の形式チェック
         if 'colors' in data and isinstance(data['colors'], dict):
             vscode_color_keys = [
@@ -566,41 +566,41 @@ class VSCodeFormatDetector:
             if matching_keys > 0:
                 score += min(0.3, matching_keys * 0.1)
                 indicators.append(f'{matching_keys}_vscode_color_keys')
-        
+
         return min(1.0, score)
-    
+
     def get_indicators(self, data: Dict[str, Any]) -> List[str]:
         """検出根拠の取得"""
         indicators = []
-        
+
         if 'colors' in data:
             indicators.append('VS Code colors object found')
         if 'tokenColors' in data:
             indicators.append('VS Code tokenColors array found')
         if data.get('type') == 'dark' or data.get('type') == 'light':
             indicators.append(f'VS Code theme type: {data.get("type")}')
-        
+
         return indicators
 
 class SublimeFormatDetector:
     """Sublime Text テーマ形式検出器"""
-    
+
     def calculate_confidence(self, data: Dict[str, Any]) -> float:
         score = 0.0
-        
+
         # Sublime特有の構造
         if 'variables' in data:
             score += 0.4
-        
+
         if 'rules' in data and isinstance(data['rules'], list):
             score += 0.4
-        
+
         # Sublime特有のフィールド
         sublime_fields = ['author', 'uuid', 'semanticClass']
         for field in sublime_fields:
             if field in data:
                 score += 0.1
-        
+
         # スコープパターンの確認
         if 'rules' in data:
             for rule in data.get('rules', []):
@@ -608,49 +608,49 @@ class SublimeFormatDetector:
                     if any(scope in rule['scope'] for scope in ['source', 'comment', 'string']):
                         score += 0.1
                         break
-        
+
         return min(1.0, score)
-    
+
     def get_indicators(self, data: Dict[str, Any]) -> List[str]:
         indicators = []
-        
+
         if 'variables' in data:
             indicators.append('Sublime Text variables found')
         if 'rules' in data:
             indicators.append('Sublime Text rules array found')
         if 'uuid' in data:
             indicators.append('Sublime Text UUID found')
-        
+
         return indicators
 
 #### 品質評価システム
 ```python
 class QualityEvaluator:
     """変換品質の評価"""
-    
+
     def evaluate_import(
         self,
         original_data: Dict[str, Any],
         converted_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """インポート品質評価"""
-        
+
         # 基本メトリクス
         original_fields = self.count_fields(original_data)
         converted_fields = self.count_fields(converted_data.get('colors', {}))
-        
+
         # 色情報の保持率
         original_colors = self.extract_colors(original_data)
         converted_colors = self.extract_colors(converted_data.get('colors', {}))
         color_preservation = len(converted_colors) / max(len(original_colors), 1)
-        
+
         # セマンティック情報の保持
         semantic_score = self.evaluate_semantic_preservation(original_data, converted_data)
-        
+
         # 総合スコア計算
-        overall_score = (color_preservation * 0.5 + semantic_score * 0.3 + 
+        overall_score = (color_preservation * 0.5 + semantic_score * 0.3 +
                         min(converted_fields / max(original_fields, 1), 1.0) * 0.2)
-        
+
         return {
             'overall_score': round(overall_score, 2),
             'color_preservation': round(color_preservation, 2),
@@ -660,7 +660,7 @@ class QualityEvaluator:
             'converted_field_count': converted_fields,
             'quality_level': self.get_quality_level(overall_score)
         }
-    
+
     def get_quality_level(self, score: float) -> str:
         """品質レベルの判定"""
         if score >= 0.9:
@@ -715,34 +715,34 @@ def simple_vscode_detection(data):
 
 ### 5.4 実装の利点
 
-✅ **技術的実現可能性**: 既知形式への対応は確実に実装可能  
-✅ **段階的改善**: 基本機能から始めて徐々に拡張  
-✅ **品質の可視化**: ユーザーが変換品質を理解できる  
-✅ **拡張性**: 新しい形式への対応が容易  
+✅ **技術的実現可能性**: 既知形式への対応は確実に実装可能
+✅ **段階的改善**: 基本機能から始めて徐々に拡張
+✅ **品質の可視化**: ユーザーが変換品質を理解できる
+✅ **拡張性**: 新しい形式への対応が容易
 
 ### 5.5 制限事項
 
-⚠️ **完全可逆性なし**: 一部情報の損失は避けられない  
-⚠️ **未知形式への対応限界**: 汎用的な対応は困難  
+⚠️ **完全可逆性なし**: 一部情報の損失は避けられない
+⚠️ **未知形式への対応限界**: 汎用的な対応は困難
 ⚠️ **メンテナンス負荷**: 新しい形式への対応が必要
         """スマートインポート"""
         # ファイル読み込み
         raw_data = self.load_json_file(file_path)
-        
+
         # 形式検出
         detection_result = self.detect_format(raw_data)
-        
+
         # 適切なアダプター選択
         adapter = self.get_adapter(detection_result.format_name)
-        
+
         # 変換実行
         theme_data = adapter.import_data(raw_data)
-        
+
         # 品質評価
         quality_score = self.quality_evaluator.evaluate_import(
             raw_data, theme_data, adapter
         )
-        
+
         # メタデータ保存
         theme_data['_import_info'] = {
             'original_format': detection_result.format_name,
@@ -753,12 +753,12 @@ def simple_vscode_detection(data):
             'unmapped_fields': adapter.get_unmapped_fields(),
             'warnings': adapter.get_warnings()
         }
-        
+
         # 元データ保持（準可逆のため）
         theme_data['_original_data'] = raw_data
-        
+
         return theme_data
-    
+
     def export_theme(
         self,
         theme_data: Dict[str, Any],
@@ -766,11 +766,11 @@ def simple_vscode_detection(data):
     ) -> Dict[str, Any]:
         """スマートエクスポート"""
         import_info = theme_data.get('_import_info', {})
-        
+
         # ターゲット形式決定
         if target_forma
         exported_data = adapter.export_data(theme_data)
-        
+
         # メタデータ埋め込み
         if import_metadata:
             exported_data['_qt_theme_studio_metadata'] = {
@@ -779,7 +779,7 @@ def simple_vscode_detection(data):
                 'original_import': import_metadata,
                 'reversible': True
             }
-        
+
         return exported_data
 ```
 
@@ -793,16 +793,16 @@ class JSONSchemaAnalyzer:
             "properties": {},
             "required": []
         }
-        
+
         for key, value in data.items():
             schema["properties"][key] = self.infer_property_schema(value)
-            
+
             # 必須フィールドの判定
             if self.is_required_field(key, value):
                 schema["required"].append(key)
-        
+
         return schema
-    
+
     def infer_property_schema(self, value: Any) -> Dict[str, Any]:
         """プロパティスキーマの推論"""
         if isinstance(value, str):
@@ -815,13 +815,13 @@ class JSONSchemaAnalyzer:
                 }
             else:
                 return {"type": "string"}
-        
+
         elif isinstance(value, (int, float)):
             return {"type": "number"}
-        
+
         elif isinstance(value, bool):
             return {"type": "boolean"}
-        
+
         elif isinstance(value, dict):
             return {
                 "type": "object",
@@ -829,7 +829,7 @@ class JSONSchemaAnalyzer:
                     k: self.infer_property_schema(v) for k, v in value.items()
                 }
             }
-        
+
         elif isinstance(value, list):
             if value:
                 return {
@@ -838,7 +838,7 @@ class JSONSchemaAnalyzer:
                 }
             else:
                 return {"type": "array"}
-        
+
         return {"type": "null"}
 ```
 
@@ -848,14 +848,14 @@ class AdapterGenerator:
     def __init__(self):
         self.known_formats = self.load_known_formats()
         self.adapter_cache = {}
-    
+
     def create_adapter(self, format_info: Dict[str, Any]) -> 'ThemeAdapter':
         """動的アダプター生成"""
         format_name = format_info['name']
-        
+
         if format_name in self.adapter_cache:
             return self.adapter_cache[format_name]
-        
+
         # 既知形式の確認
         if format_name in self.known_formats:
             adapter_class = self.known_formats[format_name]['adapter_class']
@@ -863,24 +863,24 @@ class AdapterGenerator:
         else:
             # 汎用アダプターの生成
             adapter = self.generate_generic_adapter(format_info)
-        
+
         self.adapter_cache[format_name] = adapter
         return adapter
-    
+
     def generate_generic_adapter(self, format_info: Dict[str, Any]) -> 'GenericThemeAdapter':
         """汎用アダプターの生成"""
         schema = format_info['schema']
         mapping_rules = self.generate_mapping_rules(schema)
-        
+
         return GenericThemeAdapter(
             format_info=format_info,
             mapping_rules=mapping_rules
         )
-    
+
     def generate_mapping_rules(self, schema: Dict[str, Any]) -> Dict[str, str]:
         """マッピングルールの生成"""
         rules = {}
-        
+
         # 色関連フィールドの検出
         color_fields = self.find_color_fields(schema)
         for field_path in color_fields:
@@ -891,7 +891,7 @@ class AdapterGenerator:
             elif 'text' in field_path.lower():
                 rules[field_path] = 'colors.text'
             # その他のマッピングルール...
-        
+
         return rules
 ```
 
@@ -974,7 +974,7 @@ from PySide6.QtWidgets import QWidget
 
 class ThemeStudioPlugin(ABC):
     """プラグイン基底クラス"""
-    
+
     @abstractmethod
     def get_metadata(self) -> Dict[str, Any]:
         """プラグインメタデータ"""
@@ -986,22 +986,22 @@ class ThemeStudioPlugin(ABC):
             "api_version": "1.0",
             "dependencies": []
         }
-    
+
     @abstractmethod
     def initialize(self, context: 'PluginContext') -> bool:
         """プラグイン初期化"""
         pass
-    
+
     @abstractmethod
     def create_widget(self) -> QWidget:
         """プラグインウィジェット作成"""
         pass
-    
+
     @abstractmethod
     def process_theme(self, theme_data: Dict[str, Any]) -> Dict[str, Any]:
         """テーマデータ処理"""
         pass
-    
+
     def cleanup(self):
         """クリーンアップ処理"""
         pass
@@ -1011,24 +1011,24 @@ class ThemeStudioPlugin(ABC):
 ```python
 class PluginContext:
     """プラグイン実行コンテキスト"""
-    
+
     def __init__(self, app_instance):
         self.app = app_instance
         self.theme_manager = app_instance.theme_manager
         self.settings = app_instance.settings
-    
+
     def get_current_theme(self) -> Dict[str, Any]:
         """現在のテーマ取得"""
         return self.theme_manager.get_current_theme()
-    
+
     def set_theme(self, theme_data: Dict[str, Any]):
         """テーマ設定"""
         self.theme_manager.set_theme(theme_data)
-    
+
     def show_notification(self, message: str, level: str = "info"):
         """通知表示"""
         self.app.show_notification(message, level)
-    
+
     def register_menu_action(self, menu_path: str, action_name: str, callback):
         """メニューアクション登録"""
         self.app.register_plugin_action(menu_path, action_name, callback)
@@ -1046,17 +1046,17 @@ class ColorPickerPlugin(ThemeStudioPlugin):
             "author": "Example Developer",
             "description": "高度なカラーピッカー機能"
         }
-    
+
     def initialize(self, context):
         self.context = context
         context.register_menu_action(
             "Tools", "Advanced Color Picker", self.show_color_picker
         )
         return True
-    
+
     def create_widget(self):
         return AdvancedColorPickerWidget()
-    
+
     def show_color_picker(self):
         dialog = ColorPickerDialog()
         if dialog.exec():
@@ -1086,7 +1086,7 @@ class AIThemeGenerator:
     def __init__(self, model_path: str):
         self.model = self.load_model(model_path)
         self.feature_extractor = ColorFeatureExtractor()
-    
+
     def generate_theme(
         self,
         style_preference: str,  # "modern", "classic", "vibrant"
@@ -1095,20 +1095,20 @@ class AIThemeGenerator:
         user_history: List[Dict] = None
     ) -> Dict[str, Any]:
         """AI支援テーマ生成"""
-        
+
         # 特徴量抽出
         features = self.extract_features(
             style_preference, use_case, base_colors, user_history
         )
-        
+
         # モデル推論
         prediction = self.model.predict(features)
-        
+
         # テーマデータ生成
         theme_data = self.prediction_to_theme(prediction)
-        
+
         return theme_data
-    
+
     def learn_from_feedback(
         self,
         theme_data: Dict[str, Any],
@@ -1128,35 +1128,35 @@ class ColorFeatureExtractor:
     def extract_color_features(self, colors: List[str]) -> np.ndarray:
         """色特徴量抽出"""
         features = []
-        
+
         for color in colors:
             h, s, l = rgb_to_hsl(hex_to_rgb(color))
-            
+
             # 基本特徴量
             features.extend([h/360, s, l])
-            
+
             # 色温度
             temp = self.calculate_color_temperature(color)
             features.append(temp / 10000)  # 正規化
-            
+
             # 彩度・明度の分散
             features.append(self.calculate_saturation_variance(colors))
             features.append(self.calculate_lightness_variance(colors))
-        
+
         return np.array(features)
-    
+
     def extract_harmony_features(self, colors: List[str]) -> np.ndarray:
         """調和特徴量抽出"""
         # 色相差の分析
         hue_differences = self.calculate_hue_differences(colors)
-        
+
         # 調和パターンの検出
         harmony_scores = {
             'complementary': self.detect_complementary(colors),
             'triadic': self.detect_triadic(colors),
             'analogous': self.detect_analogous(colors)
         }
-        
+
         return np.array(list(harmony_scores.values()))
 ```
 
@@ -1180,34 +1180,34 @@ class CollaborationManager:
         self.ws_client = WebSocketClient(websocket_url)
         self.operation_queue = OperationQueue()
         self.conflict_resolver = ConflictResolver()
-    
+
     def start_collaboration_session(self, theme_id: str, user_id: str):
         """コラボレーションセッション開始"""
         self.ws_client.connect()
         self.ws_client.join_room(theme_id, user_id)
         self.ws_client.on_message = self.handle_remote_operation
-    
+
     def apply_local_operation(self, operation: 'ThemeOperation'):
         """ローカル操作適用"""
         # 操作的変換（Operational Transformation）
         transformed_op = self.operation_queue.transform(operation)
-        
+
         # ローカル適用
         self.apply_operation(transformed_op)
-        
+
         # リモート送信
         self.ws_client.send_operation(transformed_op)
-    
+
     def handle_remote_operation(self, operation: 'ThemeOperation'):
         """リモート操作処理"""
         # 競合解決
         resolved_op = self.conflict_resolver.resolve(
             operation, self.operation_queue.get_pending()
         )
-        
+
         # 適用
         self.apply_operation(resolved_op)
-        
+
         # UI更新
         self.notify_ui_update(resolved_op)
 ```

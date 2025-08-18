@@ -33,18 +33,18 @@ self.setWindowModality(Qt.WindowModality.NonModal)
 ```python
 def choose_color(self, color_type):
     current_color = self.get_current_color(color_type)
-    
+
     # 色選択ダイアログをインスタンス化して適切な親子関係を設定
     color_dialog = QColorDialog(current_color, self)
-    
+
     # WSL2環境でのフォーカス問題を解決するための設定
     color_dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
     color_dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
     color_dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
-    
+
     # フォーカス設定を最適化
     color_dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-    
+
     # ダイアログを表示してフォーカスを確実に取得
     if color_dialog.exec() == QColorDialog.DialogCode.Accepted:
         color = color_dialog.currentColor()
@@ -62,15 +62,15 @@ def load_custom_theme_file(self):
         dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
         dialog.setNameFilter("JSON Files (*.json)")
         dialog.setViewMode(QFileDialog.ViewMode.List)
-        
+
         # WSL2環境でのフォーカス問題を解決するための設定
         dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
         dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
         dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
-        
+
         # フォーカス設定を最適化
         dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        
+
         # ネイティブダイアログを使用してフォーカス問題を解決
         dialog.setOptions(
             QFileDialog.Option.DontResolveSymlinks |
@@ -78,7 +78,7 @@ def load_custom_theme_file(self):
             QFileDialog.Option.DontUseCustomDirectoryIcons |
             QFileDialog.Option.ReadOnly
         )
-        
+
         # 同期的にファイルダイアログを表示（フォーカス問題を解決）
         if dialog.exec() == QFileDialog.DialogCode.Accepted:
             file_path = dialog.selectedFiles()[0]

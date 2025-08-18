@@ -27,7 +27,7 @@ class NewFeatureController:
 ```python
 class FeatureWidget(QtWidgets.QWidget):
     feature_changed = QtCore.Signal(dict)  # シグナル定義
-    
+
     def on_change(self):
         self.feature_changed.emit(self.get_data())  # イベント発火
 ```
@@ -41,12 +41,12 @@ class FeatureWidget(QtWidgets.QWidget):
 # qt_theme_studio/services/zebra_service.py
 class ZebraPatternService:
     """ゼブラパターン生成サービス"""
-    
+
     def generate_zebra_colors(self, base_color: str, contrast_level: str) -> Dict[str, str]:
         """WCAG準拠のゼブラパターン色を生成"""
         # 色理論に基づく実装
         pass
-    
+
     def validate_accessibility(self, colors: Dict[str, str]) -> Dict[str, bool]:
         """アクセシビリティ検証"""
         # WCAG 2.1準拠の検証
@@ -58,11 +58,11 @@ class ZebraPatternService:
 # qt_theme_studio/controllers/zebra_controller.py
 class ZebraPatternController:
     """ゼブラパターン制御"""
-    
+
     def __init__(self, zebra_service: ZebraPatternService):
         self.zebra_service = zebra_service
         self.current_pattern = {}
-    
+
     def update_pattern(self, base_color: str, level: str):
         """パターン更新"""
         self.current_pattern = self.zebra_service.generate_zebra_colors(
@@ -76,18 +76,18 @@ class ZebraPatternController:
 # qt_theme_studio/views/zebra_pattern_editor.py
 class ZebraPatternEditor(QtWidgets.QWidget):
     """ゼブラパターンエディター"""
-    
+
     def __init__(self, controller: ZebraPatternController):
         super().__init__()
         self.controller = controller
         self.setup_ui()
         self.connect_signals()
-    
+
     def setup_ui(self):
         """UI構築"""
         # ウィジェット作成とレイアウト
         pass
-    
+
     def connect_signals(self):
         """シグナル接続"""
         self.controller.pattern_updated.connect(self.update_preview)
@@ -102,22 +102,22 @@ from abc import ABC, abstractmethod
 
 class BasePlugin(ABC):
     """プラグイン基底クラス"""
-    
+
     @abstractmethod
     def get_name(self) -> str:
         """プラグイン名を取得"""
         pass
-    
+
     @abstractmethod
     def get_version(self) -> str:
         """バージョンを取得"""
         pass
-    
+
     @abstractmethod
     def initialize(self, app_context: Dict[str, Any]) -> bool:
         """プラグイン初期化"""
         pass
-    
+
     @abstractmethod
     def create_widget(self) -> QtWidgets.QWidget:
         """プラグインウィジェットを作成"""
@@ -129,18 +129,18 @@ class BasePlugin(ABC):
 # qt_theme_studio/services/plugin_manager.py
 class PluginManager:
     """プラグイン管理"""
-    
+
     def __init__(self):
         self.plugins: Dict[str, BasePlugin] = {}
         self.plugin_dir = Path("plugins")
-    
+
     def load_plugins(self):
         """プラグイン読み込み"""
         for plugin_file in self.plugin_dir.glob("*.py"):
             plugin = self._load_plugin_from_file(plugin_file)
             if plugin:
                 self.plugins[plugin.get_name()] = plugin
-    
+
     def get_plugin_widgets(self) -> List[QtWidgets.QWidget]:
         """プラグインウィジェット取得"""
         return [plugin.create_widget() for plugin in self.plugins.values()]
@@ -216,18 +216,18 @@ import pytest
 from qt_theme_studio.services.zebra_service import ZebraPatternService
 
 class TestZebraPatternService:
-    
+
     def setup_method(self):
         self.service = ZebraPatternService()
-    
+
     def test_generate_zebra_colors_aa_level(self):
         """AA レベルのゼブラパターン生成テスト"""
         result = self.service.generate_zebra_colors("#ffffff", "AA")
-        
+
         assert "primary" in result
         assert "alternate" in result
         assert self._check_contrast_ratio(result["primary"], result["alternate"]) >= 4.5
-    
+
     def _check_contrast_ratio(self, color1: str, color2: str) -> float:
         """コントラスト比チェック"""
         # 実装
@@ -242,20 +242,20 @@ from qt_theme_studio.controllers.zebra_controller import ZebraPatternController
 from qt_theme_studio.services.zebra_service import ZebraPatternService
 
 class TestZebraIntegration:
-    
+
     def setup_method(self):
         self.service = ZebraPatternService()
         self.controller = ZebraPatternController(self.service)
-    
+
     def test_pattern_update_flow(self):
         """パターン更新フローテスト"""
         # シグナル受信をテスト
         received_data = []
         self.controller.pattern_updated.connect(received_data.append)
-        
+
         # パターン更新実行
         self.controller.update_pattern("#ffffff", "AA")
-        
+
         # 結果検証
         assert len(received_data) == 1
         assert "primary" in received_data[0]
@@ -270,16 +270,16 @@ from PySide6.QtCore import Qt
 from qt_theme_studio.views.zebra_pattern_editor import ZebraPatternEditor
 
 class TestZebraPatternEditor:
-    
+
     def test_color_selection(self, qtbot):
         """色選択テスト"""
         editor = ZebraPatternEditor(mock_controller)
         qtbot.addWidget(editor)
-        
+
         # 色選択ボタンクリック
         color_button = editor.findChild(QPushButton, "color_button")
         qtbot.mouseClick(color_button, Qt.LeftButton)
-        
+
         # 結果検証
         assert editor.selected_color == "#ffffff"
 ```
@@ -290,10 +290,10 @@ class TestZebraPatternEditor:
 ```python
 class LazyThemeLoader:
     """遅延テーマ読み込み"""
-    
+
     def __init__(self):
         self._themes_cache = {}
-    
+
     def get_theme(self, theme_id: str) -> Dict[str, Any]:
         """テーマ取得（キャッシュ付き）"""
         if theme_id not in self._themes_cache:
@@ -307,10 +307,10 @@ from PySide6.QtCore import QThread, QObject, Signal
 
 class ThemeProcessorWorker(QObject):
     """テーマ処理ワーカー"""
-    
+
     finished = Signal(dict)
     error = Signal(str)
-    
+
     def process_theme(self, theme_data: Dict[str, Any]):
         """テーマ処理（別スレッド）"""
         try:
@@ -321,12 +321,12 @@ class ThemeProcessorWorker(QObject):
 
 class ThemeProcessor:
     """テーマ処理管理"""
-    
+
     def __init__(self):
         self.thread = QThread()
         self.worker = ThemeProcessorWorker()
         self.worker.moveToThread(self.thread)
-    
+
     def start_processing(self, theme_data: Dict[str, Any]):
         """処理開始"""
         self.worker.process_theme(theme_data)

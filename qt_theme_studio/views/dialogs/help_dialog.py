@@ -5,7 +5,6 @@ Qt-Theme-Studioのアプリケーション内ヘルプシステムを提供し�
 日本語でのヘルプコンテンツ表示と機能説明を行います。
 """
 
-
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
 
 # Qt モジュールの動的インポート

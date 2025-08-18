@@ -38,7 +38,7 @@ def main():
         "qt_theme_studio/services/export_service.py",
         "qt_theme_studio/services/import_service.py",
         "qt_theme_studio/services/theme_service.py",
-        "qt_theme_studio/utilities/accessibility_manager.py"
+        "qt_theme_studio/utilities/accessibility_manager.py",
     ]
 
     print(f"修正対象ファイル数: {len(problem_files)}")

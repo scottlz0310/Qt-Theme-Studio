@@ -25,7 +25,7 @@ def _apply_theme_to_individual_widgets(self, theme_data: dict[str, Any]) -> None
     display_stylesheet = self._generate_display_stylesheet(colors)
     container_stylesheet = self._generate_container_stylesheet(colors)
     progress_stylesheet = self._generate_progress_stylesheet(colors)
-    
+
     # 各ウィジェットに個別のスタイルシートを適用
     for widget_name, widget in self.widgets.items():
         if "button" in widget_name.lower():
@@ -45,7 +45,7 @@ def _generate_button_stylesheet(self, colors: dict[str, str]) -> str:
     button_bg = colors.get("button_background", primary)
     button_text = colors.get("button_text", "#ffffff")
     button_hover = colors.get("button_hover", colors.get("accent", primary))
-    
+
     return f"""
     QPushButton {{
         background-color: {button_bg};
@@ -70,7 +70,7 @@ def _generate_input_stylesheet(self, colors: dict[str, str]) -> str:
     input_bg = colors.get("input_background", colors.get("background", "#ffffff"))
     input_text = colors.get("input_text", colors.get("text", "#333333"))
     input_border = colors.get("input_border", colors.get("primary", "#007acc"))
-    
+
     return f"""
     QLineEdit, QTextEdit, QPlainTextEdit {{
         background-color: {input_bg};

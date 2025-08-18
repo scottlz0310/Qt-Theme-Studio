@@ -24,45 +24,29 @@ def replace_prints_in_file(file_path: Path) -> int:
 
         # 成功メッセージ（✓）→ info
         content = re.sub(
-            r'print\(f?"✓\s*([^"]+)"\)',
-            r'self.logger.info(f"\1")',
-            content
+            r'print\(f?"✓\s*([^"]+)"\)', r'self.logger.info(f"\1")', content
         )
 
         # 警告メッセージ（⚠）→ warning
         content = re.sub(
-            r'print\(f?"⚠\s*([^"]+)"\)',
-            r'self.logger.warning(f"\1")',
-            content
+            r'print\(f?"⚠\s*([^"]+)"\)', r'self.logger.warning(f"\1")', content
         )
 
         # エラーメッセージ（❌）→ error
         content = re.sub(
-            r'print\(f?"❌\s*([^"]+)"\)',
-            r'self.logger.error(f"\1")',
-            content
+            r'print\(f?"❌\s*([^"]+)"\)', r'self.logger.error(f"\1")', content
         )
 
         # デバッグメッセージ（数字.）→ debug
         content = re.sub(
-            r'print\(f?"(\d+\.\s*[^"]+)"\)',
-            r'self.logger.debug(f"\1")',
-            content
+            r'print\(f?"(\d+\.\s*[^"]+)"\)', r'self.logger.debug(f"\1")', content
         )
 
         # その他のprint文→ info
-        content = re.sub(
-            r'print\(f?"([^"]+)"\)',
-            r'self.logger.info(f"\1")',
-            content
-        )
+        content = re.sub(r'print\(f?"([^"]+)"\)', r'self.logger.info(f"\1")', content)
 
         # 変数を含むprint文→ info
-        content = re.sub(
-            r'print\(f"([^"]+)"\)',
-            r'self.logger.info(f"\1")',
-            content
-        )
+        content = re.sub(r'print\(f"([^"]+)"\)', r'self.logger.info(f"\1")', content)
 
         if content != original_content:
             with open(file_path, "w", encoding="utf-8") as f:
@@ -72,6 +56,7 @@ def replace_prints_in_file(file_path: Path) -> int:
     except Exception as e:
         self.logger.info(f"エラー: {file_path} - {e}")
         return 0
+
 
 def main():
     """メイン処理"""
@@ -90,6 +75,7 @@ def main():
             fixed_count += 1
 
     self.logger.info(f"\n修正完了: {fixed_count}ファイル")
+
 
 if __name__ == "__main__":
     main()

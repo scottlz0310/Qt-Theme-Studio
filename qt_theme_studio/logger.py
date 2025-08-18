@@ -17,6 +17,7 @@ from typing import Any, Optional, Union
 
 class LogLevel(Enum):
     """ログレベルの定義"""
+
     DEBUG = auto()
     INFO = auto()
     WARNING = auto()
@@ -26,6 +27,7 @@ class LogLevel(Enum):
 
 class LogCategory(Enum):
     """ログカテゴリの定義"""
+
     GENERAL = auto()
     UI = auto()
     THEME = auto()
@@ -55,7 +57,7 @@ class LogContext:
         return {
             "session_id": self.session_id,
             "timestamp": self.timestamp.isoformat(),
-            **self.context
+            **self.context,
         }
 
 
@@ -76,10 +78,18 @@ class StructuredFormatter(logging.Formatter):
 
         # カスタム属性を追加
         if hasattr(record, "category"):
-            log_entry["category"] = record.category.value if hasattr(record.category, "value") else str(record.category)
+            log_entry["category"] = (
+                record.category.value
+                if hasattr(record.category, "value")
+                else str(record.category)
+            )
 
         if hasattr(record, "context"):
-            log_entry["context"] = record.context.to_dict() if hasattr(record.context, "to_dict") else record.context
+            log_entry["context"] = (
+                record.context.to_dict()
+                if hasattr(record.context, "to_dict")
+                else record.context
+            )
 
         if hasattr(record, "performance_data"):
             log_entry["performance"] = record.performance_data
@@ -117,7 +127,7 @@ class QtThemeStudioLogger:
 
         file_handler = logging.FileHandler(
             log_dir / f"{self.name}_{datetime.now().strftime('%Y%m%d')}.log",
-            encoding="utf-8"
+            encoding="utf-8",
         )
         file_handler.setLevel(logging.DEBUG)
         structured_formatter = StructuredFormatter()
@@ -127,8 +137,14 @@ class QtThemeStudioLogger:
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
 
-    def _log_with_category(self, level: int, message: str, category: LogCategory,
-                          context: Optional[LogContext] = None, **kwargs):
+    def _log_with_category(
+        self,
+        level: int,
+        message: str,
+        category: LogCategory,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """カテゴリ付きでログを出力"""
         extra = {"category": category}
         if context:
@@ -140,49 +156,94 @@ class QtThemeStudioLogger:
 
         self.logger.log(level, message, extra=extra)
 
-    def debug(self, message: str, category: LogCategory = LogCategory.GENERAL,
-              context: Optional[LogContext] = None, **kwargs):
+    def debug(
+        self,
+        message: str,
+        category: LogCategory = LogCategory.GENERAL,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """デバッグログ"""
         self._log_with_category(logging.DEBUG, message, category, context, **kwargs)
 
-    def info(self, message: str, category: LogCategory = LogCategory.GENERAL,
-             context: Optional[LogContext] = None, **kwargs):
+    def info(
+        self,
+        message: str,
+        category: LogCategory = LogCategory.GENERAL,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """情報ログ"""
         self._log_with_category(logging.INFO, message, category, context, **kwargs)
 
-    def warning(self, message: str, category: LogCategory = LogCategory.GENERAL,
-                context: Optional[LogContext] = None, **kwargs):
+    def warning(
+        self,
+        message: str,
+        category: LogCategory = LogCategory.GENERAL,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """警告ログ"""
         self._log_with_category(logging.WARNING, message, category, context, **kwargs)
 
-    def error(self, message: str, category: LogCategory = LogCategory.ERROR,
-              context: Optional[LogContext] = None, **kwargs):
+    def error(
+        self,
+        message: str,
+        category: LogCategory = LogCategory.ERROR,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """エラーログ"""
         self._log_with_category(logging.ERROR, message, category, context, **kwargs)
 
-    def critical(self, message: str, category: LogCategory = LogCategory.ERROR,
-                 context: Optional[LogContext] = None, **kwargs):
+    def critical(
+        self,
+        message: str,
+        category: LogCategory = LogCategory.ERROR,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """重大エラーログ"""
         self._log_with_category(logging.CRITICAL, message, category, context, **kwargs)
 
-    def log_theme_operation(self, operation: str, theme_name: str,
-                           context: Optional[LogContext] = None, **kwargs):
+    def log_theme_operation(
+        self,
+        operation: str,
+        theme_name: str,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """テーマ操作のログ"""
         message = f"テーマ操作: {operation} - {theme_name}"
         self.info(message, LogCategory.THEME, context, **kwargs)
 
-    def log_ui_operation(self, operation: str, widget_name: str,
-                         context: Optional[LogContext] = None, **kwargs):
+    def log_ui_operation(
+        self,
+        operation: str,
+        widget_name: str,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """UI操作のログ"""
         message = f"UI操作: {operation} - {widget_name}"
         self.info(message, LogCategory.UI, context, **kwargs)
 
-    def log_performance(self, operation: str, duration: float,
-                        context: Optional[LogContext] = None, **kwargs):
+    def log_performance(
+        self,
+        operation: str,
+        duration: float,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """パフォーマンスログ"""
         message = f"パフォーマンス: {operation} - {duration:.3f}秒"
-        self.info(message, LogCategory.PERFORMANCE, context,
-                 performance_data={"operation": operation, "duration": duration}, **kwargs)
+        self.info(
+            message,
+            LogCategory.PERFORMANCE,
+            context,
+            performance_data={"operation": operation, "duration": duration},
+            **kwargs,
+        )
 
     @contextmanager
     def performance_timer(self, operation: str, context: Optional[LogContext] = None):
@@ -194,17 +255,27 @@ class QtThemeStudioLogger:
             duration = time.time() - start_time
             self.log_performance(operation, duration, context)
 
-    def log_exception(self, message: str, exception: Exception,
-                      context: Optional[LogContext] = None, **kwargs):
+    def log_exception(
+        self,
+        message: str,
+        exception: Exception,
+        context: Optional[LogContext] = None,
+        **kwargs,
+    ):
         """例外ログ"""
         error_details = {
             "exception_type": type(exception).__name__,
             "exception_message": str(exception),
-            "traceback": traceback.format_exc()
+            "traceback": traceback.format_exc(),
         }
 
-        self.error(f"{message}: {exception!s}", LogCategory.ERROR, context,
-                  performance_data=error_details, **kwargs)
+        self.error(
+            f"{message}: {exception!s}",
+            LogCategory.ERROR,
+            context,
+            performance_data=error_details,
+            **kwargs,
+        )
 
 
 # グローバルロガーインスタンス
@@ -219,8 +290,9 @@ def get_logger(name: str = "qt_theme_studio") -> QtThemeStudioLogger:
     return _global_logger
 
 
-def setup_logging(log_level: LogLevel = LogLevel.INFO,
-                  log_file: Optional[Union[str, Path]] = None):
+def setup_logging(
+    log_level: LogLevel = LogLevel.INFO, log_file: Optional[Union[str, Path]] = None
+):
     """ログ設定を初期化"""
     logger = get_logger()
 
@@ -267,7 +339,9 @@ def log_file_operation(operation: str, file_path: str, **kwargs):
     """ファイル操作のログ"""
     logger = get_logger()
     context = LogContext(operation=operation, file_path=file_path, **kwargs)
-    logger.info(f"ファイル操作: {operation} - {file_path}", LogCategory.GENERAL, context)
+    logger.info(
+        f"ファイル操作: {operation} - {file_path}", LogCategory.GENERAL, context
+    )
 
 
 def log_application_startup():
@@ -282,4 +356,3 @@ def log_application_shutdown():
     logger = get_logger()
     context = LogContext(event="application_shutdown")
     logger.info("アプリケーション終了", LogCategory.GENERAL, context)
-

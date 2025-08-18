@@ -97,7 +97,9 @@ def fix_undefined_names(file_path):
 
     # LogCategory の未定義を修正
     if "LogCategory" in content and "from ..logger import LogCategory" not in content:
-        content = re.sub(r"(from \.\. import.*)", r"\1\nfrom ..logger import LogCategory", content)
+        content = re.sub(
+            r"(from \.\. import.*)", r"\1\nfrom ..logger import LogCategory", content
+        )
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)

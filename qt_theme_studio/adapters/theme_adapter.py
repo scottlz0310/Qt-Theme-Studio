@@ -76,7 +76,7 @@ class ThemeAdapter:
             self.logger.error(f"{error_msg}\n詳細: {e!s}")
             raise ThemeManagerError(error_msg) from e
         except Exception as e:
-            error_msg = "qt-theme-managerライブラリの初期化に失敗しました: " "{str(e)}"
+            error_msg = "qt-theme-managerライブラリの初期化に失敗しました: {str(e)}"
             self.logger.error(error_msg)
             raise ThemeManagerError(error_msg) from e
 
@@ -454,7 +454,7 @@ class ThemeAdapter:
         hex_matches = re.findall(hex_pattern, qss_content)
 
         for _i, color in enumerate(set(hex_matches)):
-            colors[f"color_{_i+1}"] = color
+            colors[f"color_{_i + 1}"] = color
 
         return colors
 

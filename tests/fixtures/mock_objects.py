@@ -42,10 +42,7 @@ def create_mock_theme_data() -> dict[str, Any]:
     return {
         "name": "Mock Theme",
         "version": "1.0.0",
-        "colors": {
-            "primary": "#007acc",
-            "background": "#ffffff"
-        }
+        "colors": {"primary": "#007acc", "background": "#ffffff"},
     }
 
 

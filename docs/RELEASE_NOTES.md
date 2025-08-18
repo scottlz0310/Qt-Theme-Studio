@@ -141,6 +141,6 @@ Qt-Theme-Studioの開発にあたり、以下のプロジェクトに感謝い�
 
 ---
 
-**ダウンロード**: [GitHub Releases](https://github.com/your-org/Qt-Theme-Studio/releases)  
-**ドキュメント**: [ユーザーマニュアル](docs/USER_MANUAL.md)  
+**ダウンロード**: [GitHub Releases](https://github.com/your-org/Qt-Theme-Studio/releases)
+**ドキュメント**: [ユーザーマニュアル](docs/USER_MANUAL.md)
 **サポート**: [GitHub Issues](https://github.com/your-org/Qt-Theme-Studio/issues)

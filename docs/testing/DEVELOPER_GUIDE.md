@@ -57,7 +57,7 @@ testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = 
+addopts =
     --strict-markers
     --strict-config
     --cov=qt_theme_studio
@@ -167,16 +167,16 @@ from unittest.mock import Mock
 
 class TestNewFeature:
     """新機能のテスト"""
-    
+
     def setup_method(self):
         """各テストメソッドの前処理"""
         self.mock_dependency = Mock()
-        
+
     def test_new_feature_basic(self):
         """新機能の基本テスト"""
         # テストの実装
         assert True
-        
+
     def test_new_feature_edge_case(self):
         """新機能のエッジケーステスト"""
         # エッジケースのテスト
@@ -240,10 +240,10 @@ def test_feature_behavior():
     # Arrange (準備)
     input_data = "test input"
     expected_output = "expected result"
-    
+
     # Act (実行)
     actual_output = process_data(input_data)
-    
+
     # Assert (検証)
     assert actual_output == expected_output
 ```
@@ -257,10 +257,10 @@ def test_with_mock():
     # 依存関係のモック化
     mock_service = Mock()
     mock_service.get_data.return_value = {"result": "success"}
-    
+
     # テスト対象の実行
     result = process_with_service(mock_service)
-    
+
     # モックの呼び出し確認
     mock_service.get_data.assert_called_once()
     assert result == "success"

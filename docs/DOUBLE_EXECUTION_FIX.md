@@ -76,11 +76,11 @@ def _connect_theme_actions(self) -> None:
     # 新規テーマ作成
     if 'new_theme' in self.actions:
         self.actions['new_theme'].triggered.connect(self._new_theme)
-    
+
     # テーマを開く
     if 'open_theme' in self.actions:
         self.actions['open_theme'].triggered.connect(self._open_theme)
-    
+
     # テーマを保存
     if 'save_theme' in self.actions:
         self.actions['save_theme'].triggered.connect(self._save_theme)
@@ -90,9 +90,9 @@ def _connect_theme_actions(self) -> None:
 ```python
 def _connect_theme_actions(self) -> None:
     # 新規テーマ作成アクションは_connect_menu_actions()で既に接続済みなのでここでは接続しない
-    
+
     # 開くアクションは_connect_menu_actions()で既に接続済みなのでここでは接続しない
-    
+
     # 保存アクションは_connect_menu_actions()で既に接続済みなのでここでは接続しない
 ```
 
@@ -104,13 +104,13 @@ def _connect_menu_actions(self) -> None:
     # ファイルメニューのアクション接続
     if 'new_theme' in self.actions:
         self.actions['new_theme'].triggered.connect(self._on_new_theme)
-    
+
     if 'open_theme' in self.actions:
         self.actions['open_theme'].triggered.connect(self._on_open_theme)
-    
+
     if 'save_theme' in self.actions:
         self.actions['save_theme'].triggered.connect(self._on_save_theme)
-    
+
     if 'save_as_theme' in self.actions:
         self.actions['save_as_theme'].triggered.connect(self._on_save_as_theme)
 ```
@@ -153,7 +153,7 @@ def _connect_menu_actions(self) -> None:
   - 重複アクション接続の削除
 
 ### ユーザーへの影響
-- **正の影響**: 
+- **正の影響**:
   - ボタンクリック時の2重実行が解消
   - 未保存確認ダイアログが2回表示される問題が解消
   - ファイルダイアログが2回開く問題が解消

@@ -46,7 +46,7 @@ if 'save_theme' in self.actions:
 ```python
 def set_theme_data(self, theme_data: Dict[str, Any]) -> None:
     # ... 既存の処理 ...
-    
+
     # テーマが変更されたので未保存状態に設定
     self._set_theme_saved_state(False)
 ```
@@ -56,7 +56,7 @@ def set_theme_data(self, theme_data: Dict[str, Any]) -> None:
 ```python
 def _apply_loaded_theme(self, theme_data: dict, file_path: str) -> None:
     # ... 既存の処理 ...
-    
+
     # テーマを読み込んだので保存済み状態に設定
     self._set_theme_saved_state(True)
 ```
@@ -66,7 +66,7 @@ def _apply_loaded_theme(self, theme_data: dict, file_path: str) -> None:
 ```python
 def _save_theme_to_file(self, file_path: str) -> None:
     # ... 保存処理 ...
-    
+
     # テーマを保存したので保存済み状態に設定
     self._set_theme_saved_state(True)
 ```
@@ -78,7 +78,7 @@ def _save_theme_to_file(self, file_path: str) -> None:
 ```python
 def _on_color_changed(self, color: str, style: str) -> None:
     # ... 既存の処理 ...
-    
+
     # テーマが変更されたので未保存状態に設定
     if hasattr(main_window, '_set_theme_saved_state'):
         main_window._set_theme_saved_state(False)

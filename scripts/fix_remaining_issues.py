@@ -42,7 +42,13 @@ def fix_long_lines(file_path):
                 # コメントがある場合はコメントの前で分割
                 comment_start = line.find("#")
                 if comment_start > 70:  # コメントが長すぎる場合
-                    lines[i] = line[:70] + "\\\n    " + line[70:comment_start] + "\\\n    " + line[comment_start:]
+                    lines[i] = (
+                        line[:70]
+                        + "\\\n    "
+                        + line[70:comment_start]
+                        + "\\\n    "
+                        + line[comment_start:]
+                    )
                     modified = True
             elif len(line) > 88 and not line.strip().startswith("#"):
                 # 長い行を適切な位置で分割
@@ -50,7 +56,9 @@ def fix_long_lines(file_path):
                     # 括弧が開いている場合は括弧の後で分割
                     last_open = line.rfind("(")
                     if last_open > 70:
-                        lines[i] = line[:last_open+1] + "\\\n    " + line[last_open+1:]
+                        lines[i] = (
+                            line[: last_open + 1] + "\\\n    " + line[last_open + 1 :]
+                        )
                         modified = True
 
     if modified:

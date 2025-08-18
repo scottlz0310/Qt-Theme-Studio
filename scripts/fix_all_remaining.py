@@ -14,7 +14,9 @@ def fix_all_remaining(file_path):
 
     # 空の変数名を修正
     content = re.sub(r", ext =", "name, ext =", content)
-    content = re.sub(r"ColorUtils\.rgb_to_hex\(, , \)", "ColorUtils.rgb_to_hex(r, g, b)", content)
+    content = re.sub(
+        r"ColorUtils\.rgb_to_hex\(, , \)", "ColorUtils.rgb_to_hex(r, g, b)", content
+    )
     content = re.sub(r"setValue\(\)", "setValue(value)", content)
 
     # その他の構文エラーを修正
@@ -37,7 +39,7 @@ def main():
         "qt_theme_studio/views/zebra_editor.py",
         "qt_theme_studio/services/import_service.py",
         "qt_theme_studio/utilities/accessibility_manager.py",
-        "qt_theme_studio/views/theme_gallery.py"
+        "qt_theme_studio/views/theme_gallery.py",
     ]
 
     print(f"修正対象ファイル数: {len(problem_files)}")

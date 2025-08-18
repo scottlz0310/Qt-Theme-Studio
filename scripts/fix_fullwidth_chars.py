@@ -26,6 +26,7 @@ def fix_fullwidth_chars_in_file(file_path: Path) -> int:
         print(f"エラー: {file_path} - {e}")
         return 0
 
+
 def main():
     """メイン処理"""
     project_root = Path(__file__).parent.parent
@@ -43,6 +44,7 @@ def main():
             fixed_count += 1
 
     print(f"\n修正完了: {fixed_count}ファイル")
+
 
 if __name__ == "__main__":
     main()

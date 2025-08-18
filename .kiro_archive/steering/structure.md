@@ -61,7 +61,7 @@ qt-theme-studio/
 
 **MVCアーキテクチャ**:
 - **Model**: `services/` - データ管理とビジネスロジック
-- **View**: `views/` - UIコンポーネントとユーザーインターフェース  
+- **View**: `views/` - UIコンポーネントとユーザーインターフェース
 - **Controller**: `controllers/` - ユーザー操作とデータ処理の橋渡し
 
 **アダプターパターン**:

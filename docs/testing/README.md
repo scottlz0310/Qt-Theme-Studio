@@ -158,4 +158,3 @@ python tests/run_tests.py --verbose
 - [pytest-cov公式ドキュメント](https://pytest-cov.readthedocs.io/)
 - [Qt for Python Testing](https://doc.qt.io/qtforpython/overviews/qt-testing.html)
 - [Python Testing Best Practices](https://realpython.com/python-testing/)
-

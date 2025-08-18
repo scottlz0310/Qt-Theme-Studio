@@ -73,12 +73,12 @@ def load_theme_data(self, theme_data: Dict[str, Any]) -> None:
     theme_name = theme_data.get('name', '')
     if hasattr(self, 'theme_name_input') and self.theme_name_input:
         self.theme_name_input.setText(theme_name)
-    
+
     # テーマ説明を設定
     theme_desc = theme_data.get('description', '')
     if hasattr(self, 'theme_description_input') and self.theme_description_input:
         self.theme_description_input.setPlainText(theme_desc)
-    
+
     # 色データを設定
     colors = theme_data.get('colors', {})
     if colors:

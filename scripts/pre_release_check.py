@@ -24,13 +24,14 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 os.chdir(PROJECT_ROOT)
 
+
 class PreReleaseChecker:
     def __init__(self):
         self.results = {
             "timestamp": datetime.now().isoformat(),
             "checks": {},
             "overall_status": "UNKNOWN",
-            "summary": {}
+            "summary": {},
         }
 
     def run_command(self, command, check=True, capture_output=True):
@@ -42,11 +43,7 @@ class PreReleaseChecker:
         env["PYTHONPATH"] = str(PROJECT_ROOT)
 
         result = subprocess.run(
-            command,
-            check=check,
-            capture_output=capture_output,
-            text=True,
-            env=env
+            command, check=check, capture_output=capture_output, text=True, env=env
         )
 
         return result
@@ -60,13 +57,20 @@ class PreReleaseChecker:
             logs_dir = Path("logs")
             logs_dir.mkdir(exist_ok=True)
 
-            result = self.run_command([
-                sys.executable, "-m", "pytest",
-                "tests/", "-v", "--tb=short",
-                "--maxfail=5",
-                "--durations=10",
-                "--junit-xml=" + str(logs_dir / "test-results.xml")
-            ], check=False)
+            result = self.run_command(
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    "tests/",
+                    "-v",
+                    "--tb=short",
+                    "--maxfail=5",
+                    "--durations=10",
+                    "--junit-xml=" + str(logs_dir / "test-results.xml"),
+                ],
+                check=False,
+            )
 
             # テストが実行されたかどうかを確認(returncodeは無視)
             if "collected" in result.stdout and "test session starts" in result.stdout:
@@ -74,14 +78,14 @@ class PreReleaseChecker:
                 self.results["checks"]["test_suite"] = {
                     "status": "PASS",
                     "message": "テストスイート実行完了",
-                    "details": result.stdout + result.stderr
+                    "details": result.stdout + result.stderr,
                 }
                 return True
             print("❌ テストスイートの実行に失敗しました")
             self.results["checks"]["test_suite"] = {
                 "status": "FAIL",
                 "message": "テストスイート実行失敗",
-                "details": result.stdout + result.stderr
+                "details": result.stdout + result.stderr,
             }
             return False
 
@@ -90,7 +94,7 @@ class PreReleaseChecker:
             self.results["checks"]["test_suite"] = {
                 "status": "ERROR",
                 "message": f"テスト実行エラー: {e}",
-                "details": str(e)
+                "details": str(e),
             }
             return False
 
@@ -103,10 +107,10 @@ class PreReleaseChecker:
 
         # Black (フォーマット)
         try:
-            result = self.run_command([
-                "black", "--check", "--diff",
-                "qt_theme_studio/", "tests/"
-            ], check=False)
+            result = self.run_command(
+                ["black", "--check", "--diff", "qt_theme_studio/", "tests/"],
+                check=False,
+            )
 
             if result.returncode == 0:
                 print("✅ Black: コードフォーマットOK")
@@ -117,14 +121,17 @@ class PreReleaseChecker:
 
         except FileNotFoundError:
             print("⚠️ Black: インストールされていません")
-            checks["black"] = {"status": "SKIP", "message": "インストールされていません"}
+            checks["black"] = {
+                "status": "SKIP",
+                "message": "インストールされていません",
+            }
 
         # isort (インポート順序)
         try:
-            result = self.run_command([
-                "isort", "--check-only", "--diff",
-                "qt_theme_studio/", "tests/"
-            ], check=False)
+            result = self.run_command(
+                ["isort", "--check-only", "--diff", "qt_theme_studio/", "tests/"],
+                check=False,
+            )
 
             if result.returncode == 0:
                 print("✅ isort: インポート順序OK")
@@ -135,15 +142,23 @@ class PreReleaseChecker:
 
         except FileNotFoundError:
             print("⚠️ isort: インストールされていません")
-            checks["isort"] = {"status": "SKIP", "message": "インストールされていません"}
+            checks["isort"] = {
+                "status": "SKIP",
+                "message": "インストールされていません",
+            }
 
         # flake8 (リンティング)
         try:
-            result = self.run_command([
-                "flake8", "qt_theme_studio/", "tests/",
-                "--max-line-length=88",
-                "--extend-ignore=E203,W503"
-            ], check=False)
+            result = self.run_command(
+                [
+                    "flake8",
+                    "qt_theme_studio/",
+                    "tests/",
+                    "--max-line-length=88",
+                    "--extend-ignore=E203,W503",
+                ],
+                check=False,
+            )
 
             if result.returncode == 0:
                 print("✅ flake8: リンティングOK")
@@ -154,11 +169,14 @@ class PreReleaseChecker:
 
         except FileNotFoundError:
             print("⚠️ flake8: インストールされていません")
-            checks["flake8"] = {"status": "SKIP", "message": "インストールされていません"}
+            checks["flake8"] = {
+                "status": "SKIP",
+                "message": "インストールされていません",
+            }
 
         self.results["checks"]["code_quality"] = {
             "status": "PASS" if overall_pass else "WARN",
-            "checks": checks
+            "checks": checks,
         }
 
         return overall_pass
@@ -175,10 +193,18 @@ class PreReleaseChecker:
             logs_dir = Path("logs")
             logs_dir.mkdir(exist_ok=True)
 
-            result = self.run_command([
-                "bandit", "-r", "qt_theme_studio/",
-                "-f", "json", "-o", str(logs_dir / "bandit-report.json")
-            ], check=False)
+            result = self.run_command(
+                [
+                    "bandit",
+                    "-r",
+                    "qt_theme_studio/",
+                    "-f",
+                    "json",
+                    "-o",
+                    str(logs_dir / "bandit-report.json"),
+                ],
+                check=False,
+            )
 
             if result.returncode == 0:
                 print("✅ Bandit: セキュリティ問題なし")
@@ -189,14 +215,23 @@ class PreReleaseChecker:
 
         except FileNotFoundError:
             print("⚠️ Bandit: インストールされていません")
-            checks["bandit"] = {"status": "SKIP", "message": "インストールされていません"}
+            checks["bandit"] = {
+                "status": "SKIP",
+                "message": "インストールされていません",
+            }
 
         # Safety (依存関係の脆弱性)
         try:
-            result = self.run_command([
-                "safety", "check", "--json",
-                "--output", str(logs_dir / "safety-report.json")
-            ], check=False)
+            result = self.run_command(
+                [
+                    "safety",
+                    "check",
+                    "--json",
+                    "--output",
+                    str(logs_dir / "safety-report.json"),
+                ],
+                check=False,
+            )
 
             if result.returncode == 0:
                 print("✅ Safety: 依存関係の脆弱性なし")
@@ -207,11 +242,14 @@ class PreReleaseChecker:
 
         except FileNotFoundError:
             print("⚠️ Safety: インストールされていません")
-            checks["safety"] = {"status": "SKIP", "message": "インストールされていません"}
+            checks["safety"] = {
+                "status": "SKIP",
+                "message": "インストールされていません",
+            }
 
         self.results["checks"]["security"] = {
             "status": "PASS",  # セキュリティは警告があっても通す
-            "checks": checks
+            "checks": checks,
         }
 
         return True
@@ -236,7 +274,9 @@ class PreReleaseChecker:
             if init_file.exists():
                 with open(init_file, encoding="utf-8") as f:
                     content = f.read()
-                    version_match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
+                    version_match = re.search(
+                        r'__version__\s*=\s*["\']([^"\']+)["\']', content
+                    )
                     if version_match:
                         init_version = version_match.group(1)
                         print(f"🐍 __init__.py バージョン: {init_version}")
@@ -245,7 +285,7 @@ class PreReleaseChecker:
                             print("❌ バージョン不整合")
                             self.results["checks"]["version_consistency"] = {
                                 "status": "FAIL",
-                                "message": f"バージョン不整合: package={package_version}, init={init_version}"
+                                "message": f"バージョン不整合: package={package_version}, init={init_version}",
                             }
                             return False
 
@@ -253,7 +293,7 @@ class PreReleaseChecker:
             self.results["checks"]["version_consistency"] = {
                 "status": "PASS",
                 "message": f"バージョン整合性OK: {package_version}",
-                "version": package_version
+                "version": package_version,
             }
             return True
 
@@ -261,7 +301,7 @@ class PreReleaseChecker:
             print(f"❌ バージョンチェックエラー: {e}")
             self.results["checks"]["version_consistency"] = {
                 "status": "ERROR",
-                "message": f"バージョンチェックエラー: {e}"
+                "message": f"バージョンチェックエラー: {e}",
             }
             return False
 
@@ -269,12 +309,7 @@ class PreReleaseChecker:
         """ドキュメント整合性をチェック"""
         print("\n=== 📚 ドキュメント整合性チェック ===")
 
-        required_docs = [
-            "README.md",
-            "INSTALL.md",
-            "RELEASE_NOTES.md",
-            "CHANGELOG.md"
-        ]
+        required_docs = ["README.md", "INSTALL.md", "RELEASE_NOTES.md", "CHANGELOG.md"]
 
         missing_docs = []
         for doc in required_docs:
@@ -285,13 +320,13 @@ class PreReleaseChecker:
             print(f"⚠️ 不足ドキュメント: {', '.join(missing_docs)}")
             self.results["checks"]["documentation"] = {
                 "status": "WARN",
-                "message": f'不足ドキュメント: {", ".join(missing_docs)}'
+                "message": f"不足ドキュメント: {', '.join(missing_docs)}",
             }
         else:
             print("✅ 必要ドキュメント揃っています")
             self.results["checks"]["documentation"] = {
                 "status": "PASS",
-                "message": "必要ドキュメント揃っています"
+                "message": "必要ドキュメント揃っています",
             }
 
         return True
@@ -336,7 +371,7 @@ class PreReleaseChecker:
             "passed": passed,
             "failed": failed,
             "warnings": warnings,
-            "total": passed + failed + warnings
+            "total": passed + failed + warnings,
         }
 
         # logsディレクトリを作成(存在しない場合)
@@ -372,10 +407,11 @@ class PreReleaseChecker:
                 print(f"💥 {check_name}チェックでエラー: {e}")
                 self.results["checks"][check_name.lower().replace(" ", "_")] = {
                     "status": "ERROR",
-                    "message": f"チェック実行エラー: {e}"
+                    "message": f"チェック実行エラー: {e}",
                 }
 
         return self.generate_report()
+
 
 def main():
     """メイン処理"""
@@ -397,6 +433,7 @@ def main():
     except Exception as e:
         print(f"\n💥 予期しないエラー: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

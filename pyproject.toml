@@ -87,7 +87,7 @@ packages = ["qt_theme_studio"]
 [tool.setuptools.package-data]
 qt_theme_studio = [
     "resources/icons/*",
-    "resources/templates/*", 
+    "resources/templates/*",
     "resources/styles/*",
 ]
 
@@ -268,7 +268,7 @@ strict_equality = true
 module = [
     "qt_theme_manager.*",
     "PySide6.*",
-    "PyQt6.*", 
+    "PyQt6.*",
     "PyQt5.*",
 ]
 ignore_missing_imports = true

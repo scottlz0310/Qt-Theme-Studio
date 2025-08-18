@@ -213,7 +213,7 @@ run_*.py
 tall*
 Reference/
 playground/
-archive/
+*archive/
 
 # PyInstaller関連
 *.spec

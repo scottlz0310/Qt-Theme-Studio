@@ -119,7 +119,7 @@ python -m qt_theme_studio
 エラー: 利用可能なQtフレームワークが見つかりません
 ```
 
-**解決方法**: 
+**解決方法**:
 ```bash
 # PySide6をインストール
 pip install PySide6

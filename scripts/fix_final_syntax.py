@@ -13,7 +13,9 @@ def fix_final_syntax(file_path):
         content = f.read()
 
     # 空の変数名を修正
-    content = re.sub(r"ColorUtils\.rgb_to_hex\(, , \)", "ColorUtils.rgb_to_hex(r, g, b)", content)
+    content = re.sub(
+        r"ColorUtils\.rgb_to_hex\(, , \)", "ColorUtils.rgb_to_hex(r, g, b)", content
+    )
     content = re.sub(r"setValue\(\)", "setValue(value)", content)
 
     # その他の構文エラーを修正
@@ -32,7 +34,7 @@ def main():
         "qt_theme_studio/services/import_service.py",
         "qt_theme_studio/utilities/accessibility_manager.py",
         "qt_theme_studio/utilities/japanese_file_handler.py",
-        "qt_theme_studio/views/theme_gallery.py"
+        "qt_theme_studio/views/theme_gallery.py",
     ]
 
     print(f"修正対象ファイル数: {len(problem_files)}")

@@ -15,21 +15,21 @@ jobs:
   pre-release-check:
     name: Pre-Release Validation
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
         pip install -e .[dev]
-    
+
     - name: Run comprehensive test suite
       run: |
         echo "🧪 Running comprehensive test suite..."
@@ -37,7 +37,7 @@ jobs:
         echo "✅ All tests passed! Ready for release."
       env:
         QT_QPA_PLATFORM: offscreen
-    
+
     - name: Validate version consistency
       run: |
         echo "🔍 Validating version consistency..."
@@ -48,7 +48,7 @@ jobs:
             data = tomllib.load(f)
         version = data['project']['version']
         print(f'Package version: {version}')
-        
+
         # タグバージョンと比較
         import os
         tag_version = os.environ.get('GITHUB_REF_NAME', '').lstrip('v')
@@ -67,21 +67,21 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.9', '3.11', '3.12']
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
         pip install -e .[dev]
-    
+
     - name: Run optimized test suite
       run: |
         # 最適化されたテストスイート（高速実行）
@@ -96,26 +96,26 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.9']
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
         pip install -e .[dev]
         pip install build pyinstaller
-    
+
     - name: Build package
       run: |
         python -m build
-    
+
     - name: Build executable (Windows)
       if: matrix.os == 'windows-latest'
       run: |
@@ -125,7 +125,7 @@ jobs:
         copy README.md dist-exe\
         copy INSTALL.md dist-exe\
         copy RELEASE_NOTES.md dist-exe\
-    
+
     - name: Build executable (macOS)
       if: matrix.os == 'macos-latest'
       run: |
@@ -135,7 +135,7 @@ jobs:
         cp README.md dist-exe/
         cp INSTALL.md dist-exe/
         cp RELEASE_NOTES.md dist-exe/
-    
+
     - name: Build executable (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -145,45 +145,45 @@ jobs:
         cp README.md dist-exe/
         cp INSTALL.md dist-exe/
         cp RELEASE_NOTES.md dist-exe/
-    
+
     - name: Create archive (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd dist-exe
         7z a ../qt-theme-studio-windows.zip *
-    
+
     - name: Create archive (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         cd dist-exe
         tar -czf ../qt-theme-studio-macos.tar.gz *
-    
+
     - name: Create archive (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
         cd dist-exe
         tar -czf ../qt-theme-studio-linux.tar.gz *
-    
+
     - name: Upload wheel artifact
       uses: actions/upload-artifact@v4
       with:
         name: wheel-${{ matrix.os }}
         path: dist/*.whl
-    
+
     - name: Upload executable artifact (Windows)
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
         name: executable-windows
         path: qt-theme-studio-windows.zip
-    
+
     - name: Upload executable artifact (macOS)
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
         name: executable-macos
         path: qt-theme-studio-macos.tar.gz
-    
+
     - name: Upload executable artifact (Linux)
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
@@ -194,17 +194,17 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Download all artifacts
       uses: actions/download-artifact@v4
-    
+
     - name: Get tag name
       id: tag
       run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-    
+
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v2
@@ -224,23 +224,23 @@ jobs:
   publish-pypi:
     needs: test
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.9'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install build twine
-    
+
     - name: Build package
       run: python -m build
-    
+
     - name: Publish to PyPI
       env:
         TWINE_USERNAME: __token__

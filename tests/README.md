@@ -92,11 +92,11 @@ from unittest.mock import Mock
 
 class TestExample:
     """テストクラスの例"""
-    
+
     def setup_method(self) -> None:
         """各テストメソッドの前処理"""
         self.mock_object = Mock()
-    
+
     def test_example_function(self) -> None:
         """テストメソッドの例"""
         # テストの実装

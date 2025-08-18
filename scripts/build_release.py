@@ -22,6 +22,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 os.chdir(PROJECT_ROOT)
 
+
 def run_command(command, check=True, capture_output=False):
     """コマンドを実行する"""
     print(f"実行中: {command}")
@@ -29,15 +30,13 @@ def run_command(command, check=True, capture_output=False):
         command = command.split()
 
     result = subprocess.run(
-        command,
-        check=check,
-        capture_output=capture_output,
-        text=True
+        command, check=check, capture_output=capture_output, text=True
     )
 
     if capture_output:
         return result.stdout.strip()
     return result
+
 
 def check_dependencies():
     """依存関係を確認する"""
@@ -45,18 +44,15 @@ def check_dependencies():
 
     # Python バージョン確認
     python_version = sys.version_info
-    print(f"Python バージョン: {python_version.major}.{python_version.minor}.{python_version.micro}")
+    print(
+        f"Python バージョン: {python_version.major}.{python_version.minor}.{python_version.micro}"
+    )
 
     if python_version < (3, 8):
         raise RuntimeError("Python 3.8 以上が必要です")
 
     # 必要なパッケージの確認
-    required_packages = [
-        "build",
-        "pyinstaller",
-        "pytest",
-        "qt_theme_studio"
-    ]
+    required_packages = ["build", "pyinstaller", "pytest", "qt_theme_studio"]
 
     for package in required_packages:
         try:
@@ -64,7 +60,10 @@ def check_dependencies():
             print(f"✓ {package} インストール済み")
         except ImportError:
             print(f"✗ {package} が見つかりません")
-            raise RuntimeError(f"{package} をインストールしてください: pip install {package}")
+            raise RuntimeError(
+                f"{package} をインストールしてください: pip install {package}"
+            )
+
 
 def run_tests():
     """テストを実行する"""
@@ -77,13 +76,22 @@ def run_tests():
 
     try:
         # 全テストを実行(高速モード)
-        result = subprocess.run([
-            sys.executable, "-m", "pytest",
-            "tests/", "-v", "--tb=short",
-            "--maxfail=1",  # 1個でも失敗したら停止(品質保証)
-            "--durations=10",  # 遅いテストトップ10を表示
-            "-x"  # 最初の失敗で停止
-        ], env=env, capture_output=True, text=True)
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/",
+                "-v",
+                "--tb=short",
+                "--maxfail=1",  # 1個でも失敗したら停止(品質保証)
+                "--durations=10",  # 遅いテストトップ10を表示
+                "-x",  # 最初の失敗で停止
+            ],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
 
         if result.returncode == 0:
             print("✅ 全テストが成功しました！")
@@ -98,6 +106,7 @@ def run_tests():
         print(f"❌ テスト実行エラー (終了コード: {e.returncode})")
         raise RuntimeError("テストの実行に失敗しました。リリースを中止します。")
 
+
 def build_package():
     """Python パッケージをビルドする"""
     print("=== Python パッケージのビルド ===")
@@ -111,6 +120,7 @@ def build_package():
 
     print("✓ Python パッケージのビルド完了")
 
+
 def build_executable():
     """実行ファイルをビルドする"""
     print("=== 実行ファイルのビルド ===")
@@ -121,15 +131,19 @@ def build_executable():
         run_command(["pyinstaller", spec_file, "--clean"])
     else:
         # specファイルがない場合は基本的なビルド
-        run_command([
-            "pyinstaller",
-            "--onefile",
-            "--windowed" if platform.system() == "Windows" else "--onefile",
-            "--name", "qt-theme-studio",
-            "launch_theme_studio.py"
-        ])
+        run_command(
+            [
+                "pyinstaller",
+                "--onefile",
+                "--windowed" if platform.system() == "Windows" else "--onefile",
+                "--name",
+                "qt-theme-studio",
+                "launch_theme_studio.py",
+            ]
+        )
 
     print("✓ 実行ファイルのビルド完了")
+
 
 def create_distribution():
     """配布用アーカイブを作成する"""
@@ -142,7 +156,7 @@ def create_distribution():
             # 簡単なバージョン抽出(本来はtomlライブラリを使用すべき)
             for line in content.split("\n"):
                 if line.strip().startswith("version"):
-                    version = line.split("=")[1].strip().strip('"\'')
+                    version = line.split("=")[1].strip().strip("\"'")
                     break
             else:
                 version = "1.0.0"
@@ -181,18 +195,12 @@ def create_distribution():
     if system == "windows":
         archive_name = f"{dist_name}.zip"
         shutil.make_archive(
-            str(Path("dist") / dist_name),
-            "zip",
-            str(dist_dir.parent),
-            dist_name
+            str(Path("dist") / dist_name), "zip", str(dist_dir.parent), dist_name
         )
     else:
         archive_name = f"{dist_name}.tar.gz"
         shutil.make_archive(
-            str(Path("dist") / dist_name),
-            "gztar",
-            str(dist_dir.parent),
-            dist_name
+            str(Path("dist") / dist_name), "gztar", str(dist_dir.parent), dist_name
         )
 
     print(f"✓ 配布用アーカイブを作成しました: {archive_name}")
@@ -202,6 +210,7 @@ def create_distribution():
     if archive_path.exists():
         size_mb = archive_path.stat().st_size / (1024 * 1024)
         print(f"  ファイルサイズ: {size_mb:.2f} MB")
+
 
 def create_checksums():
     """チェックサムファイルを作成する"""
@@ -229,12 +238,17 @@ def create_checksums():
 
     print(f"✓ チェックサムファイルを作成しました: {checksum_file}")
 
+
 def main():
     """メイン処理"""
     parser = argparse.ArgumentParser(description="Qt-Theme-Studio リリースビルド")
     parser.add_argument("--skip-tests", action="store_true", help="テストをスキップ")
-    parser.add_argument("--skip-executable", action="store_true", help="実行ファイルビルドをスキップ")
-    parser.add_argument("--package-only", action="store_true", help="Pythonパッケージのみビルド")
+    parser.add_argument(
+        "--skip-executable", action="store_true", help="実行ファイルビルドをスキップ"
+    )
+    parser.add_argument(
+        "--package-only", action="store_true", help="Pythonパッケージのみビルド"
+    )
 
     args = parser.parse_args()
 
@@ -281,6 +295,7 @@ def main():
     except Exception as e:
         print(f"エラー: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

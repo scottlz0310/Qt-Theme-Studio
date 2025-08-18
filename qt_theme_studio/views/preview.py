@@ -350,21 +350,38 @@ class WidgetShowcase:
                 try:
                     if "button" in widget_name.lower():
                         widget.setStyleSheet(button_stylesheet)
-                    elif any(keyword in widget_name.lower() for keyword in ["input", "edit", "line"]):
+                    elif any(
+                        keyword in widget_name.lower()
+                        for keyword in ["input", "edit", "line"]
+                    ):
                         widget.setStyleSheet(input_stylesheet)
-                    elif any(keyword in widget_name.lower() for keyword in ["combo", "list", "table"]):
+                    elif any(
+                        keyword in widget_name.lower()
+                        for keyword in ["combo", "list", "table"]
+                    ):
                         widget.setStyleSheet(selection_stylesheet)
-                    elif any(keyword in widget_name.lower() for keyword in ["label", "text", "group"]):
+                    elif any(
+                        keyword in widget_name.lower()
+                        for keyword in ["label", "text", "group"]
+                    ):
                         widget.setStyleSheet(display_stylesheet)
-                    elif any(keyword in widget_name.lower() for keyword in ["frame", "widget", "area"]):
+                    elif any(
+                        keyword in widget_name.lower()
+                        for keyword in ["frame", "widget", "area"]
+                    ):
                         widget.setStyleSheet(container_stylesheet)
-                    elif any(keyword in widget_name.lower() for keyword in ["progress", "bar", "slider"]):
+                    elif any(
+                        keyword in widget_name.lower()
+                        for keyword in ["progress", "bar", "slider"]
+                    ):
                         widget.setStyleSheet(progress_stylesheet)
                     else:
                         # デフォルトスタイル
                         widget.setStyleSheet(self._generate_default_stylesheet(colors))
                 except Exception as e:
-                    self.logger.debug(f"ウィジェット {widget_name} へのスタイル適用エラー: {e}")
+                    self.logger.debug(
+                        f"ウィジェット {widget_name} へのスタイル適用エラー: {e}"
+                    )
 
             self.logger.info("個別ウィジェットにテーマを適用しました")
 
@@ -377,7 +394,7 @@ class WidgetShowcase:
         button_bg = colors.get("button_background", primary)
         button_text = colors.get("button_text", "#ffffff")
         button_hover = colors.get("button_hover", colors.get("accent", primary))
-        
+
         return f"""
         QPushButton {{
             background-color: {button_bg};
@@ -407,7 +424,7 @@ class WidgetShowcase:
         input_bg = colors.get("input_background", colors.get("background", "#ffffff"))
         input_text = colors.get("input_text", colors.get("text", "#333333"))
         input_border = colors.get("input_border", colors.get("primary", "#007acc"))
-        
+
         return f"""
         QLineEdit, QTextEdit, QPlainTextEdit {{
             background-color: {input_bg};
@@ -425,9 +442,11 @@ class WidgetShowcase:
 
     def _generate_selection_stylesheet(self, colors: dict[str, str]) -> str:
         """選択ウィジェット用のスタイルシートを生成"""
-        selection_bg = colors.get("selection_background", colors.get("primary", "#007acc"))
+        selection_bg = colors.get(
+            "selection_background", colors.get("primary", "#007acc")
+        )
         selection_text = colors.get("selection_text", "#ffffff")
-        
+
         return f"""
         QComboBox, QListWidget, QTableWidget {{
             background-color: {colors.get("input_background", colors.get("background", "#ffffff"))};
@@ -676,7 +695,9 @@ class WidgetShowcase:
                     child.update()
                     child.repaint()
 
-            self.logger.info("パレットを直接操作してテーマを適用し、強制再描画を実行しました")
+            self.logger.info(
+                "パレットを直接操作してテーマを適用し、強制再描画を実行しました"
+            )
 
         except Exception as e:
             self.logger.info(f"パレット操作でエラー: {e}")
@@ -716,7 +737,9 @@ class WidgetShowcase:
 
             # ボタンテキスト色
             button_text_color = palette.color(palette.ColorRole.ButtonText)
-            self.logger.info(f"ボタンテキスト色 (ButtonText): {button_text_color.name()}")
+            self.logger.info(
+                f"ボタンテキスト色 (ButtonText): {button_text_color.name()}"
+            )
 
             # スタイルシートの状態
             stylesheet = self.widget.styleSheet()
@@ -729,20 +752,32 @@ class WidgetShowcase:
 
             # ウィジェットのスタイル状態
             self.logger.info(f"ウィジェットのスタイル: {self.widget.style()}")
-            self.logger.info(f"ウィジェットのスタイルオブジェクト: {self.widget.style().objectName()}")
+            self.logger.info(
+                f"ウィジェットのスタイルオブジェクト: {self.widget.style().objectName()}"
+            )
 
             # スタイルシートが無効化されていないか
-            self.logger.info(f"スタイルシートが無効: {self.widget.property('styleSheetDisabled')}")
+            self.logger.info(
+                f"スタイルシートが無効: {self.widget.property('styleSheetDisabled')}"
+            )
 
             # ウィジェットのプロパティ
-            self.logger.info(f"ウィジェットのプロパティ: {self.widget.dynamicPropertyNames()}")
+            self.logger.info(
+                f"ウィジェットのプロパティ: {self.widget.dynamicPropertyNames()}"
+            )
 
             # Qtのスタイルエンジンの状態
             self.logger.info("\n--- Qtスタイルエンジンの状態 ---")
-            self.logger.info(f"QApplicationのスタイル: {self.QtWidgets.QApplication.instance().style().objectName()}")
-            self.logger.info(f"ウィジェットのスタイルシートプロパティ: "
-                  f"{self.widget.property('styleSheet')}")
-            self.logger.info(f"ウィジェットのスタイルシートが空: {not bool(self.widget.styleSheet())}")
+            self.logger.info(
+                f"QApplicationのスタイル: {self.QtWidgets.QApplication.instance().style().objectName()}"
+            )
+            self.logger.info(
+                f"ウィジェットのスタイルシートプロパティ: "
+                f"{self.widget.property('styleSheet')}"
+            )
+            self.logger.info(
+                f"ウィジェットのスタイルシートが空: {not bool(self.widget.styleSheet())}"
+            )
 
             # 強制的にスタイルシートを再適用
             self.logger.info("\n--- スタイルシートの強制再適用 ---")
@@ -751,7 +786,9 @@ class WidgetShowcase:
             self.logger.info("スタイルシートを強制再適用しました")
 
             # 再適用後の状態を確認
-            self.logger.info(f"再適用後のスタイルシート: {self.widget.styleSheet()[:100]}...")
+            self.logger.info(
+                f"再適用後のスタイルシート: {self.widget.styleSheet()[:100]}..."
+            )
 
             # 子ウィジェットの色も確認
             self.logger.info("\n--- 子ウィジェットの色 ---")
@@ -770,19 +807,25 @@ class WidgetShowcase:
                     child_enabled = child.isEnabled()
                     child_geometry = child.geometry()
 
-                    self.logger.info(f"子ウィジェット {type(child).__name__}: "
-                          f"背景={child_bg.name()}, テキスト={child_text.name()}, "
-                          f"カスタムスタイル={has_custom_style}, "
-                          f"表示={child_visible}, 有効={child_enabled}, "
-                          f"位置=({child_geometry.x()},{child_geometry.y()}) "
-                          f"サイズ=({child_geometry.width()}x{child_geometry.height()})")
+                    self.logger.info(
+                        f"子ウィジェット {type(child).__name__}: "
+                        f"背景={child_bg.name()}, テキスト={child_text.name()}, "
+                        f"カスタムスタイル={has_custom_style}, "
+                        f"表示={child_visible}, 有効={child_enabled}, "
+                        f"位置=({child_geometry.x()},{child_geometry.y()}) "
+                        f"サイズ=({child_geometry.width()}x{child_geometry.height()})"
+                    )
 
                     # カスタムスタイルがある場合は詳細を表示
                     if has_custom_style:
-                        self.logger.info(f"  → カスタムスタイルシート: {child_stylesheet[:100]}...")
+                        self.logger.info(
+                            f"  → カスタムスタイルシート: {child_stylesheet[:100]}..."
+                        )
 
                 except Exception as e:
-                    self.logger.info(f"子ウィジェット {type(child).__name__}: エラー - {e}")
+                    self.logger.info(
+                        f"子ウィジェット {type(child).__name__}: エラー - {e}"
+                    )
 
             self.logger.info("=" * 40)
 
@@ -805,45 +848,58 @@ class WidgetShowcase:
             # 基本モードでスタイルシート生成(プレビュー用)
             generator = qt_theme_manager.StylesheetGenerator(
                 self._convert_to_qt_theme_manager_format(theme_data),
-                advanced_mode=False
+                advanced_mode=False,
             )
             stylesheet = generator.generate_qss()
 
-            self.logger.debug("qt-theme-managerでスタイルシートを生成しました", LogCategory.UI)
+            self.logger.debug(
+                "qt-theme-managerでスタイルシートを生成しました", LogCategory.UI
+            )
             return stylesheet
 
         except Exception as e:
             self.logger.error(
-                f"qt-theme-managerでのスタイルシート生成に失敗: {e}",
-                LogCategory.UI
+                f"qt-theme-managerでのスタイルシート生成に失敗: {e}", LogCategory.UI
             )
             # エラーの場合は空のスタイルシートを返す
             return ""
 
-    def _convert_to_qt_theme_manager_format(self, theme_data: dict[str, Any]) -> dict[str, Any]:
+    def _convert_to_qt_theme_manager_format(
+        self, theme_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Qt-Theme-Studio形式をqt-theme-manager形式に変換"""
         try:
             colors = theme_data.get("colors", {})
 
             return {
                 "name": theme_data.get("name", "Unknown"),
-                "display_name": theme_data.get("display_name", theme_data.get("name", "Unknown")),
+                "display_name": theme_data.get(
+                    "display_name", theme_data.get("name", "Unknown")
+                ),
                 "description": theme_data.get("description", ""),
                 "primaryColor": colors.get("primary", "#007acc"),
                 "accentColor": colors.get("accent", colors.get("primary", "#007acc")),
                 "backgroundColor": colors.get("background", "#ffffff"),
                 "textColor": colors.get("text", "#333333"),
                 "button": {
-                    "background": colors.get("button_background", colors.get("primary", "#007acc")),
+                    "background": colors.get(
+                        "button_background", colors.get("primary", "#007acc")
+                    ),
                     "text": colors.get("button_text", colors.get("text", "#ffffff")),
                 },
                 "input": {
-                    "background": colors.get("input_background", colors.get("background", "#ffffff")),
+                    "background": colors.get(
+                        "input_background", colors.get("background", "#ffffff")
+                    ),
                     "text": colors.get("input_text", colors.get("text", "#333333")),
-                    "border": colors.get("input_border", colors.get("primary", "#007acc")),
+                    "border": colors.get(
+                        "input_border", colors.get("primary", "#007acc")
+                    ),
                 },
                 "status": {
-                    "background": colors.get("status_background", colors.get("background", "#ffffff")),
+                    "background": colors.get(
+                        "status_background", colors.get("background", "#ffffff")
+                    ),
                     "text": colors.get("status_text", colors.get("text", "#333333")),
                     "border": colors.get("status_border", "#dee2e6"),
                 },
@@ -858,7 +914,7 @@ class WidgetShowcase:
                 "description": "エラー時のフォールバックテーマ",
                 "primaryColor": "#007acc",
                 "backgroundColor": "#ffffff",
-                "textColor": "#333333"
+                "textColor": "#333333",
             }
 
 
@@ -1010,18 +1066,20 @@ class PreviewWindow:
             dialog.setNameFilter("PNG画像 (*.png);;すべてのファイル (*)")
             dialog.setViewMode(self.QtWidgets.QFileDialog.ViewMode.List)
             dialog.setDefaultSuffix("png")
-            
+
             # WSL2環境でのフォーカス問題を解決するための設定
             dialog.setWindowModality(self.QtCore.Qt.WindowModality.ApplicationModal)
-            dialog.setAttribute(self.QtCore.Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
+            dialog.setAttribute(
+                self.QtCore.Qt.WidgetAttribute.WA_ShowWithoutActivating, False
+            )
             dialog.setAttribute(self.QtCore.Qt.WidgetAttribute.WA_NativeWindow, True)
-            
+
             # フォーカス設定を最適化
             dialog.setFocusPolicy(self.QtCore.Qt.FocusPolicy.StrongFocus)
-            
+
             dialog.setOptions(
-                self.QtWidgets.QFileDialog.Option.DontUseNativeDialog |  # ネイティブダイアログを無効化
-                self.QtWidgets.QFileDialog.Option.DontResolveSymlinks    # シンボリックリンクの解決を無効化
+                self.QtWidgets.QFileDialog.Option.DontUseNativeDialog  # ネイティブダイアログを無効化
+                | self.QtWidgets.QFileDialog.Option.DontResolveSymlinks  # シンボリックリンクの解決を無効化
             )
 
             if dialog.exec() == self.QtWidgets.QFileDialog.DialogCode.Accepted:
@@ -1086,7 +1144,9 @@ class PreviewWindow:
         """
         return self.widget
 
-    def test_responsive_layout(self, sizes: Optional[list[tuple]] = None) -> dict[str, Any]:
+    def test_responsive_layout(
+        self, sizes: Optional[list[tuple]] = None
+    ) -> dict[str, Any]:
         """レスポンシブレイアウトテストを実行します
 
         Args:
