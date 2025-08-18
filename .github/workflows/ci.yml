@@ -104,13 +104,13 @@ jobs:
       if: matrix.python-version == '3.11'
       run: |
         echo "📊 包括的カバレッジレポートを生成中..."
-        
+
         # 最終的なカバレッジレポートを生成
         coverage combine || true
         coverage report --show-missing --fail-under=80
         coverage html -d htmlcov
         coverage xml
-        
+
         # カバレッジサマリーを生成
         python scripts/coverage_manager.py --ci-mode || true
 
@@ -118,7 +118,7 @@ jobs:
       if: matrix.python-version == '3.11'
       run: |
         echo "🔍 カバレッジ閾値チェックを実行中..."
-        
+
         # カバレッジサマリーファイルから情報を取得
         if [ -f logs/coverage_summary.json ]; then
           COVERAGE=$(python -c "
@@ -133,15 +133,15 @@ jobs:
             data = json.load(f)
             print('true' if data['threshold_met'] else 'false')
         ")
-          
+
           echo "現在のカバレッジ: ${COVERAGE}%"
-          
+
           if [ "$THRESHOLD_MET" = "true" ]; then
             echo "✅ テストカバレッジが閾値を満たしています: ${COVERAGE}% >= 80%"
           else
             echo "⚠️  警告: テストカバレッジが80%を下回っています (${COVERAGE}%)"
             echo "::warning::テストカバレッジが閾値を下回っています: ${COVERAGE}% < 80%"
-            
+
             # 低カバレッジファイルの詳細を表示
             python -c "
         import json

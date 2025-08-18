@@ -10,7 +10,7 @@ import json
 import subprocess
 from pathlib import Path
 from datetime import datetime
-from typing import , Any
+from typing import Any
 
 # プロジェクトルートをパスに追加
 project_root = Path(__file__).parent.parent

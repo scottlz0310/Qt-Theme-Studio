@@ -62,7 +62,7 @@ jobs:
             import tomllib
         except ImportError:
             import tomli as tomllib
-        
+
         # pyproject.tomlのバージョンを確認
         with open('pyproject.toml', 'rb') as f:
             data = tomllib.load(f)
@@ -137,24 +137,24 @@ jobs:
         python -c "
         import hashlib
         from pathlib import Path
-        
+
         dist_dir = Path('dist')
         checksum_file = dist_dir / 'checksums-${{ matrix.os }}.txt'
-        
+
         with open(checksum_file, 'w', encoding='utf-8') as f:
             f.write('# Qt-Theme-Studio チェックサム (${{ matrix.os }})\n')
             f.write('# SHA256ハッシュ値\n\n')
-            
+
             for file_path in sorted(dist_dir.glob('*')):
                 if file_path.is_file() and not file_path.name.startswith('checksums'):
                     sha256_hash = hashlib.sha256()
                     with open(file_path, 'rb') as file:
                         for chunk in iter(lambda: file.read(4096), b''):
                             sha256_hash.update(chunk)
-                    
+
                     hash_value = sha256_hash.hexdigest()
                     f.write(f'{hash_value}  {file_path.name}\n')
-        
+
         print(f'チェックサムファイルを生成しました: {checksum_file}')
         "
 
@@ -185,29 +185,29 @@ jobs:
     - name: Generate changelog
       run: |
         echo "📝 変更履歴を生成中..."
-        
+
         # 前回のタグを取得
         PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
         CURRENT_TAG=${GITHUB_REF#refs/tags/}
-        
+
         echo "前回のタグ: $PREVIOUS_TAG"
         echo "現在のタグ: $CURRENT_TAG"
-        
+
         # 変更履歴を生成
         cat > GENERATED_CHANGELOG.md << EOF
         # Qt-Theme-Studio $CURRENT_TAG リリースノート
-        
+
         ## 変更内容
-        
+
         EOF
-        
+
         if [ -n "$PREVIOUS_TAG" ]; then
           echo "### コミット履歴" >> GENERATED_CHANGELOG.md
           git log --pretty=format:"- %s (%an)" $PREVIOUS_TAG..HEAD >> GENERATED_CHANGELOG.md
           echo "" >> GENERATED_CHANGELOG.md
           echo "" >> GENERATED_CHANGELOG.md
         fi
-        
+
         # 既存のリリースノートがあれば追加
         if [ -f "RELEASE_NOTES.md" ]; then
           echo "### 詳細なリリースノート" >> GENERATED_CHANGELOG.md
@@ -239,18 +239,18 @@ jobs:
     - name: Prepare release assets
       run: |
         echo "📦 リリース成果物を準備中..."
-        
+
         # 成果物を整理
         mkdir -p release-assets
-        
+
         # 各プラットフォームの成果物を収集
         find . -name "*.zip" -o -name "*.tar.gz" -o -name "*.whl" | while read file; do
           cp "$file" release-assets/
         done
-        
+
         # チェックサムファイルを統合
         cat build-artifacts-*/checksums-*.txt > release-assets/checksums.txt 2>/dev/null || true
-        
+
         # 成果物一覧を表示
         echo "リリース成果物:"
         ls -la release-assets/
@@ -319,13 +319,13 @@ jobs:
         echo "GitHub Release: ${{ needs.create-release.result }}"
         echo "PyPI Publish: ${{ needs.publish-pypi.result }}"
         echo "=========================="
-        
+
         if [[ "${{ needs.create-release.result }}" == "success" ]]; then
           echo "✅ GitHubリリースが正常に作成されました"
         else
           echo "❌ GitHubリリースの作成に失敗しました"
         fi
-        
+
         if [[ "${{ needs.publish-pypi.result }}" == "success" ]]; then
           echo "✅ PyPIへの公開が正常に完了しました"
         elif [[ "${{ needs.publish-pypi.result }}" == "skipped" ]]; then
