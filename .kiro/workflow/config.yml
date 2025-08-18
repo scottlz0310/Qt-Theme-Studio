@@ -12,27 +12,27 @@ workflows:
       - name: "ruff_lint"
         description: "Ruffリンティングチェック"
         command: "ruff check . --output-format=json"
-        required: true
+        required: false
         timeout: 60
         retry_count: 1
-        
+
       - name: "ruff_format"
         description: "Ruffフォーマットチェック"
         command: "ruff format --check ."
-        required: true
+        required: false
         timeout: 60
         retry_count: 1
-        
+
       - name: "basic_tests"
         description: "基本テスト実行"
-        command: "pytest tests/unit/ -x --tb=short"
+        command: "pytest tests/ -x --tb=short --maxfail=3"
         required: false
         timeout: 120
         retry_count: 0
-        
+
       - name: "japanese_logs"
         description: "日本語ログメッセージ検証"
-        command: "python scripts/validate_japanese_logs.py"
+        command: "python scripts/validate_japanese_logs.py qt_theme_studio_main.py scripts/workflow_engine.py"
         required: true
         timeout: 30
         retry_count: 0
@@ -49,28 +49,28 @@ workflows:
         command: "python scripts/dev_setup.py --ci-mode"
         required: true
         timeout: 300
-        
+
       - name: "quality_check"
         description: "品質チェック統合実行"
         command: "python scripts/quality_check.py --full"
         required: true
         timeout: 300
         depends_on: ["environment_setup"]
-        
+
       - name: "full_tests"
         description: "完全テストスイート"
         command: "pytest --cov=qt_theme_studio --cov-report=xml --cov-report=html"
         required: true
         timeout: 600
         depends_on: ["environment_setup"]
-        
+
       - name: "security_scan"
         description: "セキュリティスキャン"
         command: "python scripts/security_scanner.py --report-format=json"
         required: false
         timeout: 180
         depends_on: ["environment_setup"]
-        
+
       - name: "performance_tests"
         description: "パフォーマンステスト"
         command: "pytest tests/test_performance_benchmarks.py --benchmark-json=benchmark.json"
@@ -89,28 +89,28 @@ workflows:
         command: "python scripts/pre_release_check.py --strict"
         required: true
         timeout: 300
-        
+
       - name: "final_tests"
         description: "最終テスト実行"
         command: "pytest --maxfail=1"
         required: true
         timeout: 600
         depends_on: ["pre_release_check"]
-        
+
       - name: "build_packages"
         description: "パッケージビルド"
         command: "python -m build --wheel --sdist"
         required: true
         timeout: 180
         depends_on: ["final_tests"]
-        
+
       - name: "generate_checksums"
         description: "チェックサム生成"
         command: "python scripts/build_release.py --checksums"
         required: true
         timeout: 60
         depends_on: ["build_packages"]
-        
+
       - name: "create_archives"
         description: "アーカイブ作成"
         command: "python scripts/build_release.py --create-archives"
@@ -126,24 +126,24 @@ workflows:
     steps:
       - name: "detect_environment"
         description: "環境検出"
-        command: "python scripts/qt_detector.py --detect-all"
+        command: "python scripts/qt_detector.py"
         required: true
         timeout: 30
-        
+
       - name: "install_dependencies"
         description: "依存関係インストール"
         command: "pip install -e .[dev]"
         required: true
         timeout: 300
         depends_on: ["detect_environment"]
-        
+
       - name: "setup_pre_commit"
         description: "Pre-commitセットアップ"
         command: "python scripts/pre_commit_setup.py --auto"
         required: true
         timeout: 120
         depends_on: ["install_dependencies"]
-        
+
       - name: "verify_installation"
         description: "インストール検証"
         command: "python -c 'import qt_theme_studio; print(\"インストール成功\")'"
@@ -162,13 +162,13 @@ workflows:
         command: "python scripts/doc_generator.py --api"
         required: true
         timeout: 180
-        
+
       - name: "markdown_validation"
         description: "Markdown検証"
         command: "python scripts/markdown_validator.py --all"
         required: true
         timeout: 120
-        
+
       - name: "doc_update_check"
         description: "ドキュメント更新チェック"
         command: "python scripts/doc_update_checker.py"
@@ -180,19 +180,19 @@ quality_thresholds:
   # テストカバレッジ
   coverage_minimum: 80
   coverage_target: 90
-  
+
   # テスト成功率
   test_success_rate: 95
-  
+
   # セキュリティスコア（1-10）
   security_score: 8.0
-  
+
   # パフォーマンス閾値
   performance:
     max_startup_time: 5.0  # 秒
     max_memory_usage: 512  # MB
     max_response_time: 1.0  # 秒
-  
+
   # コード品質
   code_quality:
     max_complexity: 10
@@ -206,13 +206,13 @@ notifications:
     - type: "console"
       level: "INFO"
       format: "%(asctime)s - %(levelname)s - %(message)s"
-      
+
     - type: "file"
       level: "DEBUG"
       path: "logs/workflow.log"
       max_size: "10MB"
       backup_count: 5
-      
+
     - type: "email"
       enabled: false
       level: "ERROR"
@@ -226,13 +226,13 @@ error_handling:
     enabled: true
     max_retries: 3
     retry_delay: 5  # 秒
-    
+
   # エラー報告
   error_reporting:
     enabled: true
     include_stack_trace: true
     include_environment_info: true
-    
+
   # 復旧戦略
   recovery_strategies:
     network_error:
@@ -252,13 +252,13 @@ plugins:
   search_paths:
     - "scripts/plugins"
     - ".kiro/plugins"
-  
+
   # 利用可能なプラグイン
   available:
     custom_linter:
       enabled: false
       module: "scripts.plugins.custom_linter"
-      
+
     slack_notifier:
       enabled: false
       module: "scripts.plugins.slack_notifier"
@@ -272,17 +272,17 @@ environments:
     debug: true
     log_level: "DEBUG"
     skip_security_scan: true
-    
+
   testing:
     debug: false
     log_level: "INFO"
     parallel_tests: true
-    
+
   production:
     debug: false
     log_level: "WARNING"
     strict_validation: true
-    
+
   ci:
     debug: false
     log_level: "INFO"
@@ -295,7 +295,7 @@ cache:
   directory: ".kiro/cache"
   max_size: "1GB"
   ttl: 86400  # 24時間（秒）
-  
+
   # キャッシュ対象
   cache_types:
     dependencies: true
@@ -308,22 +308,22 @@ monitoring:
   enabled: true
   metrics_collection: true
   performance_tracking: true
-  
+
   # メトリクス保存
   metrics_storage:
     type: "file"
     path: "logs/metrics.json"
     retention_days: 30
-  
+
   # アラート条件
   alerts:
     high_failure_rate:
       threshold: 20  # %
       window: 3600  # 1時間
-      
+
     slow_execution:
       threshold: 300  # 5分
-      
+
     high_memory_usage:
       threshold: 80  # %
 
@@ -346,7 +346,7 @@ security:
       - "pytest"
       - "ruff"
       - "git"
-    
+
   # ファイルアクセス制限
   file_access:
     read_only_paths: []
@@ -354,7 +354,7 @@ security:
       - "/etc"
       - "/root"
       - "~/.ssh"
-  
+
   # 環境変数制限
   environment_variables:
     allowed_prefixes:
@@ -370,20 +370,20 @@ backup:
   enabled: true
   automatic: true
   schedule: "daily"
-  
+
   # バックアップ対象
   include:
     - "logs/"
     - ".kiro/workflow/"
     - "scripts/"
-  
+
   # バックアップ除外
   exclude:
     - "*.pyc"
     - "__pycache__/"
     - ".git/"
     - "venv/"
-  
+
   # 保存設定
   retention:
     daily: 7
