@@ -81,13 +81,13 @@ repos:
         types: [python]
         pass_filenames: false
 
-      # print文の検出と警告
+      # print文の検出と警告（統合システム）
       - id: check-print-statements
         name: "print文チェック"
-        entry: python scripts/check_print_statements.py
+        entry: python scripts/print_statement_manager.py --pre-commit
         language: system
         types: [python]
-        pass_filenames: true
+        pass_filenames: false
 
       # 日本語ログメッセージの検証
       - id: validate-japanese-logs

@@ -1,0 +1,99 @@
+{
+  "generated_at": "2025-08-18T23:16:17.925464",
+  "dashboard_version": "2.0.0",
+  "project_root": "/home/hiro/Projects/Qt-Theme-Studio",
+  "workflow_engine_available": true,
+  "matplotlib_available": false,
+  "results": {
+    "test_statistics": {
+      "total_tests": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 0,
+      "success_rate": 0
+    },
+    "coverage_data": {
+      "TOTAL": {
+        "statements": 1658,
+        "missed": 1086,
+        "coverage": 34.0
+      }
+    },
+    "file_statistics": {
+      "source_files": 11,
+      "source_lines": 5743,
+      "test_files": 21,
+      "test_lines": 5865,
+      "test_ratio": 1.0212432526554065
+    },
+    "workflow_statistics": {
+      "available_workflows": [
+        "pre_commit",
+        "ci_pipeline",
+        "release",
+        "dev_setup",
+        "docs_generation"
+      ],
+      "workflow_configs": {
+        "pre_commit": {
+          "enabled": true,
+          "step_count": 4,
+          "description": "コミット前の自動品質チェック"
+        },
+        "ci_pipeline": {
+          "enabled": true,
+          "step_count": 5,
+          "description": "継続的インテグレーション"
+        },
+        "release": {
+          "enabled": true,
+          "step_count": 5,
+          "description": "リリース自動化プロセス"
+        },
+        "dev_setup": {
+          "enabled": true,
+          "step_count": 4,
+          "description": "開発環境自動セットアップ"
+        },
+        "docs_generation": {
+          "enabled": true,
+          "step_count": 3,
+          "description": "ドキュメント自動生成"
+        }
+      },
+      "recent_executions": [],
+      "success_rates": {
+        "pre_commit": 0,
+        "ci_pipeline": 0,
+        "release": 0,
+        "dev_setup": 0,
+        "docs_generation": 0
+      },
+      "total_workflows": 5,
+      "enabled_workflows": 5
+    },
+    "system_metrics": {
+      "cpu_percent": 1.0,
+      "memory_percent": 17.2,
+      "disk_percent": 4.473209035042517,
+      "process_memory_mb": 54.58984375,
+      "timestamp": "2025-08-18T23:16:17.913867"
+    },
+    "security_metrics": {
+      "total_issues": 0,
+      "severity_counts": {
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0
+      },
+      "files_scanned": 4166,
+      "security_score": 10.0,
+      "last_scan": "2025-08-18T23:16:17.925077"
+    },
+    "performance_metrics": {
+      "error": "ベンチマーク結果が見つかりません"
+    },
+    "quality_score": "D"
+  },
+  "metrics_history_count": 0
+}

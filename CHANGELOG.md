@@ -6,22 +6,32 @@ Qt-Theme-Studioの変更履歴を記録します。
 
 ## [未リリース]
 
-### 追加
-- プロジェクト基盤とコア構造の構築
-- MVCアーキテクチャに基づくディレクトリ構造
-- pyproject.toml設定ファイル
-- 統合ランチャー（launch_theme_studio.py）
-- 基本的なパッケージ構造と__init__.pyファイル
-
 ### 変更
-- なし
+
+- Integration CI-CD System Task5 Completed (83d6f36)
+- Integration CI-CD System Task3 Completed (0fe7903)
+- Integration CI-CD System Task2 Completed (5f77b72)
+- Integration CI-CD System Task1 Completed (8ef9b4e)
 
 ### 修正
+
+- Integration CI-CD System Task3 Completed(auto fix) (ad1f40c)
+
+### 追加
+
 - なし
 
 ### 削除
+
 - なし
 
+### 非推奨
+
+- なし
+
+### セキュリティ
+
+- なし
 ## [0.1.0] - 未リリース
 
 ### 追加

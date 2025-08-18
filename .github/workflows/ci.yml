@@ -318,7 +318,7 @@ jobs:
         python -c "from qt_theme_studio.adapters.theme_adapter import ThemeAdapter; print('✅ Theme adapter import successful')"
 
   performance:
-    name: Performance Tests
+    name: Performance Tests & Regression Detection
     runs-on: ubuntu-latest
 
     steps:
@@ -330,6 +330,13 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Setup virtual display for GUI tests
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb x11-utils libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        sleep 3
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -337,25 +344,177 @@ jobs:
         pip install -e .[dev]
         pip install pytest-benchmark
 
-    - name: Run performance benchmarks
+    - name: Create performance data directory
       run: |
-        # パフォーマンステストを実行（ベンチマーク付き）
-        pytest tests/ -k "performance or benchmark" --benchmark-only --benchmark-json=benchmark.json || echo "No performance tests found"
+        mkdir -p logs/performance
+
+    - name: Download previous performance data
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: performance-history
+        path: logs/performance/
+
+    - name: Run performance benchmarks with monitoring
+      run: |
+        echo "🚀 パフォーマンスベンチマークと回帰検出を実行中..."
+        python scripts/performance_monitor.py \
+          --run-benchmarks \
+          --test-pattern "benchmark" \
+          --data-dir logs/performance \
+          --verbose
       env:
         QT_QPA_PLATFORM: offscreen
+        DISPLAY: ":99"
+
+    - name: Run memory profiling tests
+      run: |
+        echo "🧠 メモリプロファイリングテストを実行中..."
+        python scripts/performance_monitor.py \
+          --memory-profile 2 \
+          --data-dir logs/performance \
+          --verbose
+      env:
+        QT_QPA_PLATFORM: offscreen
+        DISPLAY: ":99"
+
+    - name: Generate performance report
+      run: |
+        echo "📊 パフォーマンスレポートを生成中..."
+        python scripts/performance_monitor.py \
+          --generate-report 30 \
+          --data-dir logs/performance \
+          --verbose
+
+    - name: Check for performance regressions
+      id: regression-check
+      run: |
+        echo "🔍 パフォーマンス回帰をチェック中..."
+        
+        # 回帰アラートファイルが存在するかチェック
+        if [ -f logs/performance/regression_alerts.json ]; then
+          ALERT_COUNT=$(python -c "
+        import json
+        try:
+            with open('logs/performance/regression_alerts.json', 'r') as f:
+                alerts = json.load(f)
+                print(len(alerts))
+        except:
+            print(0)
+        ")
+          
+          CRITICAL_COUNT=$(python -c "
+        import json
+        try:
+            with open('logs/performance/regression_alerts.json', 'r') as f:
+                alerts = json.load(f)
+                critical = [a for a in alerts if a.get('severity') in ['HIGH', 'CRITICAL']]
+                print(len(critical))
+        except:
+            print(0)
+        ")
+          
+          echo "alert_count=$ALERT_COUNT" >> $GITHUB_OUTPUT
+          echo "critical_count=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$ALERT_COUNT" -gt 0 ]; then
+            echo "⚠️ $ALERT_COUNT 個のパフォーマンス回帰を検出しました"
+            
+            # アラート詳細を表示
+            python -c "
+        import json
+        try:
+            with open('logs/performance/regression_alerts.json', 'r') as f:
+                alerts = json.load(f)
+                for alert in alerts[:5]:  # 最大5件表示
+                    print(f\"  - {alert['benchmark_name']}: {alert['regression_percentage']:.1f}% 低下 ({alert['severity']})\")
+                    print(f\"    分析: {alert['analysis']}\")
+        except Exception as e:
+            print(f'アラート詳細の表示に失敗: {e}')
+        "
+            
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "::error::重要なパフォーマンス回帰が検出されました ($CRITICAL_COUNT 件)"
+              echo "regression_severity=critical" >> $GITHUB_OUTPUT
+            else
+              echo "::warning::パフォーマンス回帰が検出されました ($ALERT_COUNT 件)"
+              echo "regression_severity=warning" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "✅ パフォーマンス回帰は検出されませんでした"
+            echo "regression_severity=none" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "ℹ️ 回帰検出用のベースラインデータがありません"
+          echo "alert_count=0" >> $GITHUB_OUTPUT
+          echo "critical_count=0" >> $GITHUB_OUTPUT
+          echo "regression_severity=none" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create performance summary
+      run: |
+        echo "📋 パフォーマンス概要を作成中..."
+        
+        # パフォーマンス概要をGitHub Summaryに追加
+        echo "## 🚀 パフォーマンステスト結果" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f logs/performance/benchmark_results.json ]; then
+          BENCHMARK_COUNT=$(python -c "
+        import json
+        try:
+            with open('logs/performance/benchmark_results.json', 'r') as f:
+                results = json.load(f)
+                print(len(results))
+        except:
+            print(0)
+        ")
+          echo "- 実行されたベンチマーク数: $BENCHMARK_COUNT" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "- 回帰アラート数: ${{ steps.regression-check.outputs.alert_count }}" >> $GITHUB_STEP_SUMMARY
+        echo "- 重要な回帰数: ${{ steps.regression-check.outputs.critical_count }}" >> $GITHUB_STEP_SUMMARY
+        
+        case "${{ steps.regression-check.outputs.regression_severity }}" in
+          "critical")
+            echo "- ステータス: ❌ 重要な回帰あり" >> $GITHUB_STEP_SUMMARY
+            ;;
+          "warning")
+            echo "- ステータス: ⚠️ 軽微な回帰あり" >> $GITHUB_STEP_SUMMARY
+            ;;
+          "none")
+            echo "- ステータス: ✅ 回帰なし" >> $GITHUB_STEP_SUMMARY
+            ;;
+        esac
+
+    - name: Upload performance data
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-history
+        path: logs/performance/
+        retention-days: 90
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: benchmark-results
-        path: benchmark.json
+        name: benchmark-results-${{ github.run_number }}
+        path: |
+          benchmark_results.json
+          logs/performance_monitor.log
         retention-days: 30
+
+    - name: Fail on critical performance regression
+      if: steps.regression-check.outputs.regression_severity == 'critical'
+      run: |
+        echo "❌ 重要なパフォーマンス回帰が検出されたため、ビルドを失敗させます"
+        exit 1
 
   build-test:
     name: Build Test
     runs-on: ubuntu-latest
-    needs: [test, lint]
+    needs: [test, quality]
 
     steps:
     - name: Checkout code
@@ -390,10 +549,67 @@ jobs:
         path: dist/
         retention-days: 30
 
+  pre-release-check:
+    name: Pre-Release Validation
+    runs-on: ubuntu-latest
+    needs: [test, quality, security, integration, build-test]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+        pip install -e .[dev]
+
+    - name: Run comprehensive pre-release check
+      run: |
+        echo "🚀 包括的リリース前チェックを実行中..."
+        python scripts/pre_release_check.py --verbose
+      env:
+        QT_QPA_PLATFORM: offscreen
+
+    - name: Generate changelog for release
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo "📝 リリース用変更履歴を生成中..."
+        # タグ名からバージョンを抽出
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "リリースバージョン: $VERSION"
+        
+        # 前のタグを取得
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+        
+        if [ -n "$PREV_TAG" ]; then
+          echo "前のタグ: $PREV_TAG"
+          python scripts/changelog_generator.py --since "$PREV_TAG" --version "$VERSION"
+        else
+          echo "初回リリースのため、全履歴を生成"
+          python scripts/changelog_generator.py --version "$VERSION"
+        fi
+
+    - name: Upload pre-release reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: pre-release-reports
+        path: |
+          logs/pre-release-report.json
+          logs/pre-release-detailed-report.txt
+          CHANGELOG.md
+        retention-days: 90
+
   status-check:
     name: CI Status Summary
     runs-on: ubuntu-latest
-    needs: [test, quality, security, integration, performance, build-test]
+    needs: [test, quality, security, integration, performance, build-test, pre-release-check]
     if: always()
 
     steps:
@@ -406,17 +622,55 @@ jobs:
         echo "統合テスト: ${{ needs.integration.result }}"
         echo "パフォーマンステスト: ${{ needs.performance.result }}"
         echo "ビルドテスト: ${{ needs.build-test.result }}"
+        echo "リリース前検証: ${{ needs.pre-release-check.result }}"
         echo "=========================="
 
-        # すべてのジョブが成功した場合のみ成功とする
-        if [[ "${{ needs.test.result }}" == "success" && \
-              "${{ needs.quality.result }}" == "success" && \
-              "${{ needs.security.result }}" == "success" && \
-              "${{ needs.integration.result }}" == "success" && \
-              "${{ needs.build-test.result }}" == "success" ]]; then
-          echo "✅ すべてのCIチェックが通過しました！リリース準備完了です。"
+        # 必須ジョブの成功チェック
+        REQUIRED_SUCCESS=true
+        
+        if [[ "${{ needs.test.result }}" != "success" ]]; then
+          echo "❌ テストスイートが失敗しました"
+          REQUIRED_SUCCESS=false
+        fi
+        
+        if [[ "${{ needs.quality.result }}" != "success" ]]; then
+          echo "❌ コード品質チェックが失敗しました"
+          REQUIRED_SUCCESS=false
+        fi
+        
+        if [[ "${{ needs.security.result }}" != "success" ]]; then
+          echo "❌ セキュリティスキャンが失敗しました"
+          REQUIRED_SUCCESS=false
+        fi
+        
+        if [[ "${{ needs.integration.result }}" != "success" ]]; then
+          echo "❌ 統合テストが失敗しました"
+          REQUIRED_SUCCESS=false
+        fi
+        
+        if [[ "${{ needs.build-test.result }}" != "success" ]]; then
+          echo "❌ ビルドテストが失敗しました"
+          REQUIRED_SUCCESS=false
+        fi
+        
+        # リリース前検証は条件付きなので、スキップまたは成功の場合はOK
+        if [[ "${{ needs.pre-release-check.result }}" == "failure" ]]; then
+          echo "❌ リリース前検証が失敗しました"
+          REQUIRED_SUCCESS=false
+        fi
+        
+        # パフォーマンステストは警告のみ
+        if [[ "${{ needs.performance.result }}" != "success" ]]; then
+          echo "⚠️ パフォーマンステストに問題がありますが、継続します"
+        fi
+
+        if [[ "$REQUIRED_SUCCESS" == "true" ]]; then
+          echo "✅ すべての必須CIチェックが通過しました！"
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "🎉 リリース準備完了です。"
+          fi
           exit 0
         else
-          echo "❌ 一部のCIチェックが失敗しました。結果を確認してください。"
+          echo "❌ 必須CIチェックが失敗しました。結果を確認してください。"
           exit 1
         fi

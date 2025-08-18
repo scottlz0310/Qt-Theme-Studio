@@ -47,10 +47,38 @@ jobs:
         pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
         pip install -e .[dev]
 
-    - name: Run pre-release checks
+    - name: Run comprehensive pre-release checks
       run: |
-        echo "🔍 リリース前検証を実行中..."
-        python scripts/pre_release_check.py --comprehensive
+        echo "🔍 包括的リリース前検証を実行中..."
+        python scripts/pre_release_check.py --verbose
+
+    - name: Generate release changelog
+      run: |
+        echo "📝 リリース用変更履歴を生成中..."
+        # タグ名からバージョンを抽出
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "リリースバージョン: $VERSION"
+        
+        # 前のタグを取得
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+        
+        if [ -n "$PREV_TAG" ]; then
+          echo "前のタグ: $PREV_TAG"
+          python scripts/changelog_generator.py --since "$PREV_TAG" --version "$VERSION"
+        else
+          echo "初回リリースのため、全履歴を生成"
+          python scripts/changelog_generator.py --version "$VERSION"
+        fi
+
+    - name: Upload pre-release validation reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: pre-release-validation-reports
+        path: |
+          logs/pre-release-report.json
+          logs/pre-release-detailed-report.txt
+          CHANGELOG.md
+        retention-days: 90
 
     - name: Validate version consistency
       run: |
