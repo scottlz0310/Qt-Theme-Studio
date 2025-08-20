@@ -208,8 +208,7 @@ htmlcov/
 .pytest_cache/
 
 # 開発・テスト用スクリプト（ルートレベル）
-test_*.py
-run_*.py
+# test_*.py と run_*.py は削除 - 専用フォルダに移動
 tall*
 Reference/
 playground/
