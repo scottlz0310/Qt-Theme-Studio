@@ -77,9 +77,9 @@ jobs:
 
     - name: Run quality checks
       run: |
-        ruff check qt_theme_studio/ tests/ --exit-zero
-        ruff format --check qt_theme_studio/ tests/ || true
-        mypy qt_theme_studio/ --ignore-missing-imports || true
+        ruff check qt_theme_studio/ tests/ --fix
+        ruff format qt_theme_studio/ tests/
+        mypy qt_theme_studio/ --ignore-missing-imports
 
   security:
     name: Security Scan
@@ -101,8 +101,8 @@ jobs:
 
     - name: Run security checks
       run: |
-        bandit -r qt_theme_studio/ || true
-        safety check || true
+        bandit -r qt_theme_studio/ -ll
+        safety check
 
   build:
     name: Build Test
