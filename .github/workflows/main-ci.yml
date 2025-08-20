@@ -31,10 +31,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Setup virtual display
+    - name: Setup virtual display and Qt dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y xvfb x11-utils libxkbcommon-x11-0
+        sudo apt-get install -y xvfb x11-utils libxkbcommon-x11-0 libegl1-mesa libgl1-mesa-glx libglib2.0-0 libxrandr2 libxss1 libxcursor1 libxcomposite1 libasound2 libxi6 libxtst6
         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
         sleep 3
 
@@ -47,6 +47,9 @@ jobs:
     - name: Run tests with coverage
       run: |
         pytest tests/ --cov=qt_theme_studio --cov-report=xml --cov-report=term-missing --tb=short
+      env:
+        QT_QPA_PLATFORM: offscreen
+        DISPLAY: ":99"
 
     - name: Upload coverage
       if: matrix.python-version == '3.11'
