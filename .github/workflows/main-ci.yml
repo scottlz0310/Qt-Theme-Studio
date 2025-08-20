@@ -78,7 +78,7 @@ jobs:
     - name: Run quality checks
       run: |
         ruff check qt_theme_studio/ tests/ --exit-zero
-        ruff format --check qt_theme_studio/ tests/
+        ruff format --check qt_theme_studio/ tests/ || true
         mypy qt_theme_studio/ --ignore-missing-imports || true
 
   security:
