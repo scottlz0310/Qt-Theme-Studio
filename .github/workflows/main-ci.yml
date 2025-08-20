@@ -34,7 +34,7 @@ jobs:
     - name: Setup virtual display and Qt dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y xvfb x11-utils libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
+        sudo apt-get install -y xvfb x11-utils libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0 libegl1 libgl1-mesa-dri
         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
         sleep 3
 
@@ -46,7 +46,7 @@ jobs:
 
     - name: Run tests with coverage
       run: |
-        pytest tests/ --cov=qt_theme_studio --cov-report=xml --cov-report=term-missing --tb=short
+        pytest tests/ --cov=qt_theme_studio --cov-report=xml --cov-report=term-missing --tb=short -p no:qt
       env:
         QT_QPA_PLATFORM: offscreen
         DISPLAY: ":99"
