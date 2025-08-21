@@ -5,6 +5,7 @@ Qt-Theme-Studioのアプリケーション内ヘルプシステムを提供し�
 日本語でのヘルプコンテンツ表示と機能説明を行います。
 """
 
+from typing import Any
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
 
 # Qt モジュールの動的インポート
@@ -35,7 +36,7 @@ class HelpDialog(QDialog):
     日本語でのヘルプコンテンツを提供し、機能説明とガイドを統合します。
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Any = None) -> None:
         """
         ヘルプダイアログを初期化
 
@@ -192,7 +193,7 @@ class HelpDialog(QDialog):
             column: カラム番号
         """
         item_text = item.text(0)
-        if item_text in self.help_content:
+        if isinstance(item_text, str) and item_text in self.help_content:
             self.content_browser.setHtml(self.help_content[item_text])
 
     def _get_welcome_content(self) -> str:

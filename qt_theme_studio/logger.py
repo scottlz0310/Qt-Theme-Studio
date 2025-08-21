@@ -16,7 +16,7 @@ from contextlib import contextmanager, suppress
 from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, TextIO
 
 
 class LogLevel(Enum):
@@ -43,7 +43,7 @@ class LogCategory(Enum):
 class LogContext:
     """ログコンテキスト情報"""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self.context = kwargs
         self.timestamp = datetime.now()
         self.session_id = self._generate_session_id()
@@ -52,7 +52,7 @@ class LogContext:
         """セッションIDを生成"""
         return f"session_{int(time.time())}"
 
-    def add_context(self, **kwargs) -> None:
+    def add_context(self, **kwargs: Any) -> None:
         """コンテキスト情報を追加"""
         self.context.update(kwargs)
 
@@ -124,16 +124,18 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
 
     def __init__(
         self,
-        filename,
-        mode="a",
-        maxBytes=0,
-        backupCount=0,
-        encoding=None,
-        delay=False,
-        compress_backups=True,
+        filename: str,
+        mode: str = "a",
+        maxBytes: int = 0,
+        backupCount: int = 0,
+        encoding: Optional[str] = None,
+        delay: bool = False,
+        compress_backups: bool = True,
     ) -> None:
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
         self.compress_backups = compress_backups
+        # streamの型を明示的に指定
+        self.stream: Optional[TextIO] = None
 
     def doRollover(self) -> None:
         """ローテーション実行時の処理をオーバーライド"""
@@ -234,11 +236,11 @@ class LogArchiveManager:
 
     def get_archive_stats(self) -> dict[str, Any]:
         """アーカイブ統計情報を取得"""
-        stats = {
+        stats: dict[str, Any] = {
             "total_files": 0,
-            "total_size_mb": 0,
-            "oldest_file": None,
-            "newest_file": None,
+            "total_size_mb": 0.0,
+            "oldest_file": "",
+            "newest_file": "",
         }
 
         archive_files = list(self.archive_dir.glob("*"))
@@ -378,7 +380,7 @@ class QtThemeStudioLogger:
         self.logger.addHandler(error_handler)
         self.logger.addHandler(perf_handler)
 
-    def _performance_filter(self, record) -> bool:
+    def _performance_filter(self, record: logging.LogRecord) -> bool:
         """パフォーマンスログ用フィルター"""
         return (
             hasattr(record, "category") and record.category == LogCategory.PERFORMANCE
@@ -390,10 +392,10 @@ class QtThemeStudioLogger:
         message: str,
         category: LogCategory,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """カテゴリ付きでログを出力"""
-        extra = {"category": category}
+        extra: dict[str, Any] = {"category": category}
         if context:
             extra["context"] = context
 
@@ -414,7 +416,7 @@ class QtThemeStudioLogger:
         message: str,
         category: LogCategory = LogCategory.GENERAL,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """デバッグログ"""
         self._log_with_category(logging.DEBUG, message, category, context, **kwargs)
@@ -424,7 +426,7 @@ class QtThemeStudioLogger:
         message: str,
         category: LogCategory = LogCategory.GENERAL,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """情報ログ"""
         self._log_with_category(logging.INFO, message, category, context, **kwargs)
@@ -434,7 +436,7 @@ class QtThemeStudioLogger:
         message: str,
         category: LogCategory = LogCategory.GENERAL,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """警告ログ"""
         self._log_with_category(logging.WARNING, message, category, context, **kwargs)
@@ -444,7 +446,7 @@ class QtThemeStudioLogger:
         message: str,
         category: LogCategory = LogCategory.ERROR,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """エラーログ"""
         self._log_with_category(logging.ERROR, message, category, context, **kwargs)
@@ -454,7 +456,7 @@ class QtThemeStudioLogger:
         message: str,
         category: LogCategory = LogCategory.ERROR,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """重大エラーログ"""
         self._log_with_category(logging.CRITICAL, message, category, context, **kwargs)
@@ -464,7 +466,7 @@ class QtThemeStudioLogger:
         operation: str,
         theme_name: str,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """テーマ操作のログ"""
         message = f"テーマ操作: {operation} - {theme_name}"
@@ -475,7 +477,7 @@ class QtThemeStudioLogger:
         operation: str,
         widget_name: str,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """UI操作のログ"""
         message = f"UI操作: {operation} - {widget_name}"
@@ -486,7 +488,7 @@ class QtThemeStudioLogger:
         operation: str,
         duration: float,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """パフォーマンスログ"""
         message = f"パフォーマンス: {operation} - {duration:.3f}秒"
@@ -499,7 +501,7 @@ class QtThemeStudioLogger:
         )
 
     @contextmanager
-    def performance_timer(self, operation: str, context: Optional[LogContext] = None):
+    def performance_timer(self, operation: str, context: Optional[LogContext] = None) -> Any:
         """パフォーマンス測定用コンテキストマネージャー"""
         start_time = time.time()
         try:
@@ -513,7 +515,7 @@ class QtThemeStudioLogger:
         message: str,
         exception: Exception,
         context: Optional[LogContext] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """例外ログ"""
         error_details = {
@@ -565,7 +567,7 @@ class QtThemeStudioLogger:
 
     def get_log_statistics(self) -> dict[str, Any]:
         """ログ統計情報を取得"""
-        stats = {
+        stats: dict[str, Any] = {
             "log_directory": str(self.log_dir),
             "rotation_config": {
                 "max_bytes_mb": self.rotation_config.max_bytes / (1024 * 1024),
@@ -575,7 +577,7 @@ class QtThemeStudioLogger:
                 "cleanup_after_days": self.rotation_config.cleanup_after_days,
             },
             "current_logs": [],
-            "total_size_mb": 0,
+            "total_size_mb": 0.0,
             "archive_stats": self.archive_manager.get_archive_stats(),
         }
 
@@ -592,7 +594,7 @@ class QtThemeStudioLogger:
                         ).isoformat(),
                     }
                 )
-                stats["total_size_mb"] += file_stats.st_size / (1024 * 1024)
+                stats["total_size_mb"] += float(file_stats.st_size) / (1024 * 1024)
 
         stats["total_size_mb"] = round(stats["total_size_mb"], 2)
         return stats
@@ -758,21 +760,21 @@ def setup_logging(
 
 
 # 便利な関数
-def log_function_call(func_name: str, **kwargs) -> None:
+def log_function_call(func_name: str, **kwargs: Any) -> None:
     """関数呼び出しのログ"""
     logger = get_logger()
     context = LogContext(function=func_name, **kwargs)
     logger.debug(f"関数呼び出し: {func_name}", LogCategory.GENERAL, context)
 
 
-def log_user_action(action: str, user_id: Optional[str] = None, **kwargs) -> None:
+def log_user_action(action: str, user_id: Optional[str] = None, **kwargs: Any) -> None:
     """ユーザーアクションのログ"""
     logger = get_logger()
     context = LogContext(action=action, user_id=user_id, **kwargs)
     logger.info(f"ユーザーアクション: {action}", LogCategory.UI, context)
 
 
-def log_file_operation(operation: str, file_path: str, **kwargs) -> None:
+def log_file_operation(operation: str, file_path: str, **kwargs: Any) -> None:
     """ファイル操作のログ"""
     logger = get_logger()
     context = LogContext(operation=operation, file_path=file_path, **kwargs)

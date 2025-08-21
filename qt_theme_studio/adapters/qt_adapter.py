@@ -85,11 +85,14 @@ class QtAdapter:
 
         try:
             if framework == "PySide6":
-                from PySide6 import QtCore, QtGui, QtWidgets
+                from PySide6 import QtCore as PySide6_QtCore, QtGui as PySide6_QtGui, QtWidgets as PySide6_QtWidgets
+                QtCore, QtGui, QtWidgets = PySide6_QtCore, PySide6_QtGui, PySide6_QtWidgets
             elif framework == "PyQt6":
-                from PyQt6 import QtCore, QtGui, QtWidgets
+                from PyQt6 import QtCore as PyQt6_QtCore, QtGui as PyQt6_QtGui, QtWidgets as PyQt6_QtWidgets
+                QtCore, QtGui, QtWidgets = PyQt6_QtCore, PyQt6_QtGui, PyQt6_QtWidgets
             elif framework == "PyQt5":
-                from PyQt5 import QtCore, QtGui, QtWidgets
+                from PyQt5 import QtCore as PyQt5_QtCore, QtGui as PyQt5_QtGui, QtWidgets as PyQt5_QtWidgets
+                QtCore, QtGui, QtWidgets = PyQt5_QtCore, PyQt5_QtGui, PyQt5_QtWidgets
             else:
                 raise QtFrameworkNotFoundError(
                     f"サポートされていないフレームワーク: {framework}"

@@ -18,7 +18,7 @@ class WidgetShowcase:
     包括的なQtウィジェットセット(QPushButton、QLineEdit、QComboBox等)のプレビュー表示を提供します。
     """
 
-    def __init__(self, qt_modules: dict[str, Any], parent=None):
+    def __init__(self, qt_modules: dict[str, Any], parent: Any = None) -> None:
         """ウィジェットショーケースを初期化します
 
         Args:
@@ -294,6 +294,18 @@ class WidgetShowcase:
         Returns: dict[str, Any]: ウィジェット辞書
         """
         return self.widgets.copy()
+
+    def apply_theme(self, theme_data: dict[str, Any]) -> None:
+        """テーマを適用します
+
+        Args:
+            theme_data: 適用するテーマデータ
+        """
+        try:
+            self.apply_theme_to_widgets(theme_data)
+            self.logger.info("ウィジェットショーケースにテーマを適用しました", LogCategory.UI)
+        except Exception as e:
+            self.logger.error(f"ウィジェットショーケースへのテーマ適用エラー: {e}", LogCategory.UI)
 
     def apply_theme_to_widgets(self, theme_data: dict[str, Any]) -> None:
         """ウィジェットにテーマを適用します
@@ -702,7 +714,7 @@ class WidgetShowcase:
         except Exception as e:
             self.logger.info(f"パレット操作でエラー: {e}")
 
-    def _debug_widget_colors(self):
+    def _debug_widget_colors(self) -> None:
         """ウィジェットの実際の色をデバッグ出力"""
         if not self.widget:
             return
@@ -855,7 +867,10 @@ class WidgetShowcase:
             self.logger.debug(
                 "qt-theme-managerでスタイルシートを生成しました", LogCategory.UI
             )
-            return stylesheet
+            if isinstance(stylesheet, str):
+                return stylesheet
+            # スタイルシートが文字列でない場合は空文字列を返す
+            return ""
 
         except Exception as e:
             self.logger.error(
@@ -869,39 +884,40 @@ class WidgetShowcase:
     ) -> dict[str, Any]:
         """Qt-Theme-Studio形式をqt-theme-manager形式に変換"""
         try:
-            colors = theme_data.get("colors", {})
+            colors_raw = theme_data.get("colors", {})
+            colors = colors_raw if isinstance(colors_raw, dict) else {}
 
             return {
-                "name": theme_data.get("name", "Unknown"),
-                "display_name": theme_data.get(
+                "name": str(theme_data.get("name", "Unknown")),
+                "display_name": str(theme_data.get(
                     "display_name", theme_data.get("name", "Unknown")
-                ),
-                "description": theme_data.get("description", ""),
-                "primaryColor": colors.get("primary", "#007acc"),
-                "accentColor": colors.get("accent", colors.get("primary", "#007acc")),
-                "backgroundColor": colors.get("background", "#ffffff"),
-                "textColor": colors.get("text", "#333333"),
+                )),
+                "description": str(theme_data.get("description", "")),
+                "primaryColor": str(colors.get("primary", "#007acc")),
+                "accentColor": str(colors.get("accent", colors.get("primary", "#007acc"))),
+                "backgroundColor": str(colors.get("background", "#ffffff")),
+                "textColor": str(colors.get("text", "#333333")),
                 "button": {
-                    "background": colors.get(
+                    "background": str(colors.get(
                         "button_background", colors.get("primary", "#007acc")
-                    ),
-                    "text": colors.get("button_text", colors.get("text", "#ffffff")),
+                    )),
+                    "text": str(colors.get("button_text", colors.get("text", "#ffffff"))),
                 },
                 "input": {
-                    "background": colors.get(
+                    "background": str(colors.get(
                         "input_background", colors.get("background", "#ffffff")
-                    ),
-                    "text": colors.get("input_text", colors.get("text", "#333333")),
-                    "border": colors.get(
+                    )),
+                    "text": str(colors.get("input_text", colors.get("text", "#333333"))),
+                    "border": str(colors.get(
                         "input_border", colors.get("primary", "#007acc")
-                    ),
+                    )),
                 },
                 "status": {
-                    "background": colors.get(
+                    "background": str(colors.get(
                         "status_background", colors.get("background", "#ffffff")
-                    ),
-                    "text": colors.get("status_text", colors.get("text", "#333333")),
-                    "border": colors.get("status_border", "#dee2e6"),
+                    )),
+                    "text": str(colors.get("status_text", colors.get("text", "#333333"))),
+                    "border": str(colors.get("status_border", "#dee2e6")),
                 },
             }
 
@@ -953,6 +969,21 @@ class PreviewWindow:
         self.theme_applied_callback: Optional[Callable[[dict[str, Any]], None]] = None
 
         self.logger.info("プレビューウィンドウを初期化しました", LogCategory.UI)
+
+    def apply_theme(self, theme_data: dict[str, Any]) -> None:
+        """テーマを適用します
+
+        Args:
+            theme_data: 適用するテーマデータ
+        """
+        try:
+            if self.widget_showcase:
+                self.widget_showcase.apply_theme(theme_data)
+                self.logger.info("プレビューウィンドウにテーマを適用しました", LogCategory.UI)
+            else:
+                self.logger.warning("ウィジェットショーケースが作成されていません", LogCategory.UI)
+        except Exception as e:
+            self.logger.error(f"プレビューウィンドウへのテーマ適用エラー: {e}", LogCategory.UI)
 
     def create_widget(self) -> Any:
         """プレビューウィンドウウィジェットを作成します
@@ -1160,7 +1191,11 @@ class PreviewWindow:
         if sizes is None:
             sizes = [(800, 600), (1024, 768), (1280, 1024), (1920, 1080)]
 
-        results = {"tested_sizes": [], "layout_issues": [], "performance_data": []}
+        results: dict[str, Any] = {
+            "tested_sizes": [],
+            "layout_issues": [],
+            "performance_data": []
+        }
 
         original_size = self.widget.size()
 
