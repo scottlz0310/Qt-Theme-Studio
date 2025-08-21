@@ -12,7 +12,7 @@ import logging.handlers
 import shutil
 import time
 import traceback
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
@@ -231,8 +231,11 @@ class LogArchiveManager:
                 archive_file.is_file()
                 and archive_file.stat().st_mtime < cutoff_date.timestamp()
             ):
-                with suppress(Exception):
+                try:
                     archive_file.unlink()
+                except (OSError, PermissionError):
+                    # ファイルが使用中または権限不足の場合はスキップ
+                    continue
 
     def get_archive_stats(self) -> dict[str, Any]:
         """アーカイブ統計情報を取得"""

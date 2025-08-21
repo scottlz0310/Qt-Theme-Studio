@@ -4,7 +4,6 @@
 このモジュールは、Qt-Theme-Studioアプリケーションのプレビュー機能を提供します。
 """
 
-from contextlib import suppress
 from typing import Any, Callable, Optional
 
 from qt_theme_studio.adapters.qt_adapter import QtAdapter
@@ -698,8 +697,11 @@ class WidgetShowcase:
 
             # 子ウィジェットにもパレットを適用
             for child in self.widget.findChildren(self.QtWidgets.QWidget):
-                with suppress(Exception):
+                try:
                     child.setPalette(palette)
+                except (RuntimeError, AttributeError):
+                    # ウィジェットが削除済みまたは無効な場合はスキップ
+                    continue
 
             # 強制的に再描画を実行
             self.widget.update()
@@ -707,9 +709,12 @@ class WidgetShowcase:
 
             # 子ウィジェットも再描画
             for child in self.widget.findChildren(self.QtWidgets.QWidget):
-                with suppress(Exception):
+                try:
                     child.update()
                     child.repaint()
+                except (RuntimeError, AttributeError):
+                    # ウィジェットが削除済みまたは無効な場合はスキップ
+                    continue
 
             self.logger.info(
                 "パレットを直接操作してテーマを適用し、強制再描画を実行しました"
