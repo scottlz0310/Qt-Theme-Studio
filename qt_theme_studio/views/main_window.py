@@ -11,15 +11,16 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QColorDialog,
-    QComboBox,
     QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QPushButton,
     QTextEdit,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -44,10 +45,8 @@ class QtThemeStudioMainWindow(QMainWindow):
         self.setWindowTitle("Qt-Theme-Studio - 高度なテーマ管理・生成・編集")
         self.setGeometry(100, 100, 1800, 1200)
 
-        # WSL2環境でのフォーカス問題を解決するための設定
-        self.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
+        # ウィンドウ設定を最適化
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self.setWindowModality(Qt.WindowModality.NonModal)
 
         self.logger.debug("ウィンドウ基本設定完了")
 
@@ -76,6 +75,7 @@ class QtThemeStudioMainWindow(QMainWindow):
             self.logger.debug("テーマ管理初期化完了")
 
             self.logger.debug("UIセットアップ中...")
+            self.setup_menu_bar()
             self.setup_ui()
             self.logger.debug("UIセットアップ完了")
 
@@ -87,6 +87,56 @@ class QtThemeStudioMainWindow(QMainWindow):
             import traceback
 
             traceback.print_exc()
+
+    def setup_menu_bar(self) -> None:
+        """メニューバーをセットアップ"""
+        menubar = self.menuBar()
+
+        # ファイルメニュー
+        file_menu = menubar.addMenu("ファイル(&F)")
+
+        # テーマ読み込み
+        load_action = file_menu.addAction("テーマファイル読み込み(&L)")
+        load_action.setShortcut("Ctrl+O")
+        load_action.triggered.connect(self.load_custom_theme_file)
+
+        # テーマ保存
+        save_action = file_menu.addAction("テーマ保存(&S)")
+        save_action.setShortcut("Ctrl+S")
+        save_action.triggered.connect(self.save_current_theme)
+
+        file_menu.addSeparator()
+
+        # 全テーマエクスポート
+        export_action = file_menu.addAction("全テーマエクスポート(&E)")
+        export_action.triggered.connect(self.export_all_themes)
+
+        file_menu.addSeparator()
+
+        # 終了
+        exit_action = file_menu.addAction("終了(&X)")
+        exit_action.setShortcut("Ctrl+Q")
+        exit_action.triggered.connect(self.close)
+
+        # テーマメニュー
+        theme_menu = menubar.addMenu("テーマ(&T)")
+
+        # テーマ適用
+        apply_action = theme_menu.addAction("テーマ適用(&A)")
+        apply_action.setShortcut("Ctrl+T")
+        apply_action.triggered.connect(self.apply_current_theme)
+
+        # ワンクリック生成
+        generate_action = theme_menu.addAction("ワンクリック生成(&G)")
+        generate_action.setShortcut("Ctrl+G")
+        generate_action.triggered.connect(self.generate_theme_from_background)
+
+        # ヘルプメニュー
+        help_menu = menubar.addMenu("ヘルプ(&H)")
+
+        # バージョン情報
+        about_action = help_menu.addAction("Qt-Theme-Studioについて(&A)")
+        about_action.triggered.connect(self.show_about)
 
     def setup_ui(self) -> None:
         """UIをセットアップ"""
@@ -104,11 +154,14 @@ class QtThemeStudioMainWindow(QMainWindow):
         load_btn.clicked.connect(self.load_custom_theme_file)
         theme_layout.addWidget(load_btn)
 
-        # テーマ選択コンボボックス
-        self.theme_combo = QComboBox()
-        self.theme_combo.currentTextChanged.connect(self.on_theme_changed)
+        # テーマ選択ボタン
+        self.theme_button = QToolButton()
+        self.theme_button.setText("テーマを選択")
+        self.theme_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.theme_menu = QMenu()
+        self.theme_button.setMenu(self.theme_menu)
         theme_layout.addWidget(QLabel("テーマ選択:"))
-        theme_layout.addWidget(self.theme_combo)
+        theme_layout.addWidget(self.theme_button)
 
         # テーマ適用ボタン
         apply_btn = QPushButton("テーマ適用")
@@ -182,7 +235,9 @@ class QtThemeStudioMainWindow(QMainWindow):
                 f"color: {'white' if is_dark else 'black'}; "
                 f"padding: 5px;"
             )
-            preset_btn.clicked.connect(lambda c=color: self.apply_preset_color(c))
+            preset_btn.clicked.connect(
+                lambda _checked, c=color: self.apply_preset_color(c)
+            )
             preset_layout.addWidget(preset_btn)
 
         quick_layout.addLayout(preset_layout)
@@ -207,25 +262,7 @@ class QtThemeStudioMainWindow(QMainWindow):
         # 色選択ダイアログをインスタンス化して適切な親子関係を設定
         color_dialog = QColorDialog(current_color, self)
 
-        # WSL2環境でのフォーカス問題を解決するための設定
-        color_dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-        color_dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
-        color_dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
-        color_dialog.setAttribute(Qt.WidgetAttribute.WA_AlwaysStackOnTop, True)
-
-        # フォーカス設定を最適化
-        color_dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
         # ダイアログを表示
-        color_dialog.show()
-
-        # フォーカスを強制的に取得
-        color_dialog.raise_()
-        color_dialog.activateWindow()
-        color_dialog.setFocus()
-
-        # ダイアログを表示してフォーカスを確実に取得
-        # exec()の代わりにshow()とevent loopを使用
         if color_dialog.exec() == QColorDialog.DialogCode.Accepted:
             color = color_dialog.currentColor()
             if color.isValid():
@@ -250,9 +287,15 @@ class QtThemeStudioMainWindow(QMainWindow):
 
     def apply_preset_color(self, color: str) -> None:
         """プリセット色を適用"""
+        self.logger.info(f"プリセット色適用: {color}")
+
+        # 背景色ボタンの色を更新
         self.set_color_button("background", QColor(color))
+
         # 自動的にテーマを生成
         self.generate_theme_from_background()
+
+        self.logger.info(f"プリセット色 {color} からテーマ生成完了")
 
     def generate_theme_from_background(self) -> None:
         """背景色から自動的にテーマを生成"""
@@ -268,11 +311,11 @@ class QtThemeStudioMainWindow(QMainWindow):
             theme_data["name"] = theme_name
 
             self.themes[theme_name] = theme_data
-            self.theme_combo.addItem(theme_data["display_name"])
+            self.add_theme_to_menu(theme_name, theme_data["display_name"])
 
             # 生成されたテーマを選択
             self.current_theme_name = theme_name
-            self.theme_combo.setCurrentText(theme_data["display_name"])
+            self.theme_button.setText(theme_data["display_name"])
 
             # テーマを適用
             self.apply_current_theme()
@@ -319,32 +362,7 @@ class QtThemeStudioMainWindow(QMainWindow):
             dialog.setNameFilter("JSON Files (*.json)")
             dialog.setViewMode(QFileDialog.ViewMode.List)
 
-            # WSL2環境でのフォーカス問題を解決するための設定
-            dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-            dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
-            dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
-            dialog.setAttribute(Qt.WidgetAttribute.WA_AlwaysStackOnTop, True)
-
-            # フォーカス設定を最適化
-            dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
-            # ダイアログを表示
-            dialog.show()
-
-            # フォーカスを強制的に取得
-            dialog.raise_()
-            dialog.activateWindow()
-            dialog.setFocus()
-
-            # ネイティブダイアログを使用してフォーカス問題を解決
-            dialog.setOptions(
-                QFileDialog.Option.DontResolveSymlinks  # シンボリックリンクの解決を無効化
-                | QFileDialog.Option.DontConfirmOverwrite  # 上書き確認を無効化
-                | QFileDialog.Option.DontUseCustomDirectoryIcons  # カスタムディレクトリアイコンを無効化
-                | QFileDialog.Option.ReadOnly  # 読み取り専用モード
-            )
-
-            # 同期的にファイルダイアログを表示(フォーカス問題を解決)
+            # ファイルダイアログを表示
             if dialog.exec() == QFileDialog.DialogCode.Accepted:
                 file_path = dialog.selectedFiles()[0]
                 self._load_theme_from_file(file_path)
@@ -370,15 +388,17 @@ class QtThemeStudioMainWindow(QMainWindow):
                 for theme_name, theme_config in available_themes.items():
                     if theme_name not in self.themes:
                         self.themes[theme_name] = theme_config
-                        self.theme_combo.addItem(
-                            theme_config.get("display_name", theme_name)
+                        self.add_theme_to_menu(
+                            theme_name, theme_config.get("display_name", theme_name)
                         )
             else:
                 # 単一テーマファイル
                 theme_name = theme_data.get("name", f"custom_{len(self.themes)}")
                 if theme_name not in self.themes:
                     self.themes[theme_name] = theme_data
-                    self.theme_combo.addItem(theme_data.get("display_name", theme_name))
+                    self.add_theme_to_menu(
+                        theme_name, theme_data.get("display_name", theme_name)
+                    )
 
             self.logger.info(f"カスタムテーマを読み込みました: {file_path}")
 
@@ -400,20 +420,20 @@ class QtThemeStudioMainWindow(QMainWindow):
                 self, "読み込みエラー", f"ファイルの読み込みに失敗しました:\n{e!s}"
             )
 
-    def on_theme_changed(self, display_name: str) -> None:
-        """テーマ選択が変更された時の処理"""
-        # display_nameからtheme_nameを逆引き
-        for theme_name, theme_config in self.themes.items():
-            if theme_config.get("display_name", theme_name) == display_name:
-                self.current_theme_name = theme_name
-                break
+    def add_theme_to_menu(self, theme_name: str, display_name: str) -> None:
+        """テーマをメニューに追加"""
+        action = self.theme_menu.addAction(display_name)
+        action.triggered.connect(
+            lambda: self.on_theme_selected(theme_name, display_name)
+        )
 
-        # テーマ選択時に自動的にプレビューに適用
-        if self.current_theme_name:
-            self.logger.info(
-                f"テーマ選択変更: {display_name} -> {self.current_theme_name}"
-            )
-            self.apply_current_theme()
+    def on_theme_selected(self, theme_name: str, display_name: str) -> None:
+        """テーマが選択された時の処理"""
+        self.current_theme_name = theme_name
+        self.theme_button.setText(display_name)
+
+        self.logger.info(f"テーマ選択: {display_name} -> {theme_name}")
+        self.apply_current_theme()
 
     def apply_current_theme(self) -> None:
         """現在選択されているテーマを適用"""
@@ -582,18 +602,7 @@ class QtThemeStudioMainWindow(QMainWindow):
                 dialog.setViewMode(QFileDialog.ViewMode.List)
                 dialog.setDefaultSuffix("json")
 
-                # WSL2環境でのフォーカス問題を解決するための設定
-                dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-                dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
-                dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
-
-                # フォーカス設定を最適化
-                dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
-                # ネイティブダイアログを使用してフォーカス問題を解決
-                dialog.setOptions(
-                    QFileDialog.Option.DontResolveSymlinks  # シンボリックリンクの解決を無効化
-                )
+                # ファイル保存ダイアログを表示
 
                 if dialog.exec() == QFileDialog.DialogCode.Accepted:
                     file_path = dialog.selectedFiles()[0]
@@ -641,19 +650,8 @@ class QtThemeStudioMainWindow(QMainWindow):
             dialog.setFileMode(QFileDialog.FileMode.Directory)
             dialog.setViewMode(QFileDialog.ViewMode.List)
 
-            # WSL2環境でのフォーカス問題を解決するための設定
-            dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-            dialog.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, False)
-            dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
-
-            # フォーカス設定を最適化
-            dialog.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
-            # ネイティブダイアログを使用してフォーカス問題を解決
-            dialog.setOptions(
-                QFileDialog.Option.DontResolveSymlinks  # シンボリックリンクの解決を無効化
-                | QFileDialog.Option.ShowDirsOnly  # ディレクトリのみ表示
-            )
+            # フォルダ選択ダイアログを表示
+            dialog.setOptions(QFileDialog.Option.ShowDirsOnly)
 
             if dialog.exec() == QFileDialog.DialogCode.Accepted:
                 folder_path = dialog.selectedFiles()[0]
@@ -691,3 +689,23 @@ class QtThemeStudioMainWindow(QMainWindow):
                 "エクスポートエラー",
                 f"テーマのエクスポートに失敗しました:\n{e!s}",
             )
+
+    def show_about(self) -> None:
+        """バージョン情報を表示"""
+        QMessageBox.about(
+            self,
+            "Qt-Theme-Studioについて",
+            "<h3>Qt-Theme-Studio v0.1.0</h3>"
+            "<p>統合テーマエディターGUIアプリケーション</p>"
+            "<p>Qtアプリケーション(PyQt5/PyQt6/PySide6)向けの<br>"
+            "直感的なビジュアルインターフェースでテーマの作成・編集・管理を行います。</p>"
+            "<p><b>主要機能:</b></p>"
+            "<ul>"
+            "<li>統合テーマエディター</li>"
+            "<li>ゼブラパターンエディター</li>"
+            "<li>ライブプレビューシステム</li>"
+            "<li>スマートテーマ管理</li>"
+            "<li>アクセシビリティ対応</li>"
+            "</ul>"
+            "<p>© 2024 Qt-Theme-Studio Team</p>",
+        )

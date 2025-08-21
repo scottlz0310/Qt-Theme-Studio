@@ -38,7 +38,7 @@ def quality_check(theme_file: str) -> int:
         return 1
 
 
-def test_theme(theme_file: str) -> int:
+def test_theme(theme_file: str = "test_theme.json") -> int:
     """テーマ統合テスト"""
     try:
         with Path(theme_file).open(encoding="utf-8") as f:

@@ -14,8 +14,12 @@ def main() -> None:
     main_script = Path(__file__).parent.parent / "main.py"
 
     if main_script.exists():
+        # 必要なモジュールをグローバル名前空間に追加
+        import os
+
+        globals_dict = {"__name__": "__main__", "os": os, "sys": sys, "Path": Path}
         # main.pyを実行
-        exec(main_script.read_text(encoding="utf-8"))
+        exec(main_script.read_text(encoding="utf-8"), globals_dict)
     else:
         print("❌ main.pyが見つかりません")
         sys.exit(1)

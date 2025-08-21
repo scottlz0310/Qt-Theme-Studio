@@ -1,0 +1,9 @@
+{
+  "name": "Test Theme",
+  "version": "1.0.0",
+  "colors": {
+    "primary": "#007acc",
+    "background": "#ffffff",
+    "text": "#333333"
+  }
+}

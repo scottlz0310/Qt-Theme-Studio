@@ -204,6 +204,7 @@ class WidgetShowcase:
         list_widget.addItems(["アイテム1", "アイテム2", "アイテム3", "アイテム4"])
         list_widget.setCurrentRow(1)
         list_widget.setMaximumHeight(100)
+        list_widget.setAlternatingRowColors(True)
         group_layout.addWidget(list_widget)
         self.widgets["list_widget"] = list_widget
 
@@ -319,28 +320,55 @@ class WidgetShowcase:
         if not self.widget or not theme_data:
             return
 
-        # 基本的なスタイルシートを生成
-        stylesheet = self._generate_stylesheet_from_theme(theme_data)
+        try:
+            colors = theme_data.get("colors", {})
+            if not colors:
+                return
 
-        # デバッグ情報を出力
-        self.logger.info("生成されたスタイルシート:")
-        self.logger.info(stylesheet)
-        self.logger.info(f"ウィジェット: {self.widget}")
-        self.logger.info(f"ウィジェットのクラス: {type(self.widget)}")
+            # シンプルなスタイルシート生成
+            bg = colors.get("background", "#ffffff")
+            text = colors.get("text", "#333333")
+            primary = colors.get("primary", "#007acc")
 
-        # ウィジェット全体にスタイルシートを適用
-        self.widget.setStyleSheet(stylesheet)
+            stylesheet = f"""
+            QWidget {{
+                background-color: {bg};
+                color: {text};
+            }}
+            QPushButton {{
+                background-color: {primary};
+                color: #ffffff;
+                border: 2px solid {primary};
+                border-radius: 6px;
+                padding: 8px 16px;
+            }}
+            QLineEdit, QTextEdit {{
+                background-color: {bg};
+                color: {text};
+                border: 2px solid {primary};
+                border-radius: 4px;
+                padding: 6px;
+            }}
+            QGroupBox {{
+                color: {text};
+                border: 2px solid {primary};
+                border-radius: 6px;
+                margin-top: 10px;
+                padding-top: 10px;
+            }}
+            """
 
-        # 個別のウィジェットにテーマを適用
-        self._apply_theme_to_individual_widgets(theme_data)
+            # ウィジェット全体にスタイルシートを適用
+            self.widget.setStyleSheet(stylesheet)
 
-        # スタイルシートが効かない場合の代替手段: パレットを直接操作
-        self._apply_theme_via_palette(theme_data)
+            # 強制的に再描画
+            self.widget.update()
+            self.widget.repaint()
 
-        # デバッグ: 実際のウィジェットの色を確認
-        self._debug_widget_colors()
+            self.logger.debug("ウィジェットにテーマを適用しました", LogCategory.UI)
 
-        self.logger.debug("ウィジェットにテーマを適用しました", LogCategory.UI)
+        except Exception as e:
+            self.logger.error(f"テーマ適用エラー: {e}", LogCategory.UI)
 
     def _apply_theme_to_individual_widgets(self, theme_data: dict[str, Any]) -> None:
         """個別のウィジェットにテーマを適用"""
@@ -1227,10 +1255,21 @@ class PreviewWindow:
             theme_data: 適用するテーマデータ
         """
         try:
-            if self.widget_showcase:
-                self.widget_showcase.apply_theme(theme_data)
+            if self.widget_showcase and self.widget:
+                # シンプルなスタイルシート生成
+                colors = theme_data.get("colors", {})
+                stylesheet = self._generate_simple_stylesheet(colors)
+
+                # プレビューウィジェット全体にスタイルシートを適用
+                self.widget.setStyleSheet(stylesheet)
+
+                # 強制的に再描画
+                self.widget.update()
+                self.widget.repaint()
+
                 self.logger.info(
-                    "プレビューウィンドウにテーマを適用しました", LogCategory.UI
+                    f"プレビューウィンドウにテーマを適用しました: {theme_data.get('name', 'Unknown')}",
+                    LogCategory.UI,
                 )
             else:
                 self.logger.warning(
@@ -1240,6 +1279,125 @@ class PreviewWindow:
             self.logger.error(
                 f"プレビューウィンドウへのテーマ適用エラー: {e}", LogCategory.UI
             )
+
+    def _generate_simple_stylesheet(self, colors: dict[str, str]) -> str:
+        """シンプルなスタイルシートを生成"""
+        bg = colors.get("background", "#ffffff")
+        text = colors.get("text", "#333333")
+        primary = colors.get("primary", "#007acc")
+        accent = colors.get("accent", primary)
+
+        return f"""
+        QWidget {{
+            background-color: {bg};
+            color: {text};
+        }}
+        QPushButton {{
+            background-color: {primary};
+            color: #ffffff;
+            border: 2px solid {primary};
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: bold;
+        }}
+        QPushButton:hover {{
+            background-color: {accent};
+            border-color: {accent};
+        }}
+        QPushButton:disabled {{
+            background-color: #cccccc;
+            color: #666666;
+        }}
+        QLineEdit, QTextEdit, QSpinBox {{
+            background-color: {bg};
+            color: {text};
+            border: 2px solid {primary};
+            border-radius: 4px;
+            padding: 6px;
+        }}
+        QComboBox {{
+            background-color: {bg};
+            color: {text};
+            border: 2px solid {primary};
+            border-radius: 4px;
+            padding: 4px;
+        }}
+        QGroupBox {{
+            color: {text};
+            border: 2px solid {primary};
+            border-radius: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-weight: bold;
+        }}
+        QGroupBox::title {{
+            subcontrol-origin: margin;
+            left: 10px;
+            padding: 0 5px 0 5px;
+            background-color: {bg};
+            color: {text};
+        }}
+        QLabel {{
+            color: {text};
+            background-color: transparent;
+        }}
+        QCheckBox, QRadioButton {{
+            color: {text};
+        }}
+        QListWidget, QTreeWidget {{
+            background-color: {bg};
+            color: {text};
+            border: 2px solid {primary};
+            border-radius: 4px;
+            alternate-background-color: {colors.get("zebra_even", "#f8f9fa")};
+        }}
+        QListWidget::item:alternate, QTreeWidget::item:alternate {{
+            background-color: {colors.get("zebra_even", "#f8f9fa")};
+        }}
+        QListWidget::item:selected, QTreeWidget::item:selected {{
+            background-color: {primary};
+            color: #ffffff;
+        }}
+        QProgressBar {{
+            background-color: #f0f0f0;
+            border: 1px solid {primary};
+            border-radius: 4px;
+        }}
+        QProgressBar::chunk {{
+            background-color: {primary};
+            border-radius: 3px;
+        }}
+        QSlider::groove:horizontal {{
+            background-color: #f0f0f0;
+            border: 1px solid {primary};
+            border-radius: 2px;
+            height: 8px;
+        }}
+        QSlider::handle:horizontal {{
+            background-color: {primary};
+            border: 2px solid {primary};
+            border-radius: 8px;
+            width: 16px;
+            margin: -4px 0;
+        }}
+        QTabWidget::pane {{
+            border: 1px solid {primary};
+            background-color: {bg};
+        }}
+        QTabBar::tab {{
+            background-color: #f0f0f0;
+            color: {text};
+            border: 1px solid {primary};
+            border-bottom: none;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            padding: 8px 16px;
+        }}
+        QTabBar::tab:selected {{
+            background-color: {bg};
+            color: {text};
+        }}
+        """
 
     def create_widget(self) -> Any:
         """プレビューウィンドウウィジェットを作成します

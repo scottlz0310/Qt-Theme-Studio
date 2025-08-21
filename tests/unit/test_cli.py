@@ -5,8 +5,6 @@ Qt-Theme-StudioのCLI機能のテストを行います
 """
 
 import json
-import tempfile
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -23,10 +21,7 @@ class TestQualityCheck:
         theme_file = tmp_path / "valid_theme.json"
         theme_data = {
             "name": "Test Theme",
-            "colors": {
-                "primary": "#007acc",
-                "background": "#ffffff"
-            }
+            "colors": {"primary": "#007acc", "background": "#ffffff"},
         }
         theme_file.write_text(json.dumps(theme_data))
 
@@ -67,15 +62,12 @@ class TestTestTheme:
         theme_file = tmp_path / "test_theme.json"
         theme_data = {
             "name": "Test Theme",
-            "colors": {
-                "primary": "#007acc",
-                "background": "#ffffff"
-            }
+            "colors": {"primary": "#007acc", "background": "#ffffff"},
         }
         theme_file.write_text(json.dumps(theme_data))
 
         # qt_theme_managerのモック化
-        with patch('qt_theme_studio.cli.qt_theme_manager') as mock_qtm:
+        with patch("qt_theme_studio.cli.qt_theme_manager") as mock_qtm:
             mock_qtm.ThemeLoader.return_value = Mock()
             mock_qtm.StylesheetGenerator.return_value = Mock()
 
@@ -85,16 +77,11 @@ class TestTestTheme:
     def test_test_theme_qt_manager_error(self, tmp_path):
         """qt-theme-managerエラー時のテスト"""
         theme_file = tmp_path / "test_theme.json"
-        theme_data = {
-            "name": "Test Theme",
-            "colors": {
-                "primary": "#007acc"
-            }
-        }
+        theme_data = {"name": "Test Theme", "colors": {"primary": "#007acc"}}
         theme_file.write_text(json.dumps(theme_data))
 
         # qt_theme_managerでエラーが発生する場合
-        with patch('qt_theme_studio.cli.qt_theme_manager') as mock_qtm:
+        with patch("qt_theme_studio.cli.qt_theme_manager") as mock_qtm:
             mock_qtm.ThemeLoader.side_effect = Exception("Qt error")
 
             result = test_theme(str(theme_file))
@@ -122,14 +109,10 @@ class TestCiReport:
                 "background": "#ffffff",
                 "text": "#000000",
                 "accent": "#0078d4",
-                "surface": "#f8f9fa"
+                "surface": "#f8f9fa",
             },
-            "fonts": {
-                "default": {"family": "Arial", "size": 12}
-            },
-            "metadata": {
-                "author": "Test Author"
-            }
+            "fonts": {"default": {"family": "Arial", "size": 12}},
+            "metadata": {"author": "Test Author"},
         }
         theme_file.write_text(json.dumps(theme_data))
 
@@ -177,7 +160,7 @@ class TestMain:
 
     def test_main_no_args(self):
         """引数なしでの実行"""
-        with patch('sys.argv', ['cli.py']):
+        with patch("sys.argv", ["cli.py"]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 1
@@ -188,7 +171,7 @@ class TestMain:
         theme_data = {"name": "Test", "colors": {"primary": "#007acc"}}
         theme_file.write_text(json.dumps(theme_data))
 
-        with patch('sys.argv', ['cli.py', 'quality-check', str(theme_file)]):
+        with patch("sys.argv", ["cli.py", "quality-check", str(theme_file)]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 0
@@ -199,8 +182,8 @@ class TestMain:
         theme_data = {"name": "Test", "colors": {"primary": "#007acc"}}
         theme_file.write_text(json.dumps(theme_data))
 
-        with patch('sys.argv', ['cli.py', 'test', str(theme_file)]):
-            with patch('qt_theme_studio.cli.qt_theme_manager'):
+        with patch("sys.argv", ["cli.py", "test", str(theme_file)]):
+            with patch("qt_theme_studio.cli.qt_theme_manager"):
                 with pytest.raises(SystemExit) as exc_info:
                     main()
                 assert exc_info.value.code == 0
@@ -211,7 +194,7 @@ class TestMain:
         theme_data = {"name": "Test", "colors": {"primary": "#007acc"}}
         theme_file.write_text(json.dumps(theme_data))
 
-        with patch('sys.argv', ['cli.py', 'ci-report', str(theme_file)]):
+        with patch("sys.argv", ["cli.py", "ci-report", str(theme_file)]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 0
@@ -224,21 +207,24 @@ class TestMain:
 
         output_file = tmp_path / "custom_report.json"
 
-        with patch('sys.argv', ['cli.py', 'ci-report', str(theme_file), '--output', str(output_file)]):
+        with patch(
+            "sys.argv",
+            ["cli.py", "ci-report", str(theme_file), "--output", str(output_file)],
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 0
 
     def test_main_unknown_command(self):
         """不明なコマンドのテスト"""
-        with patch('sys.argv', ['cli.py', 'unknown-command']):
+        with patch("sys.argv", ["cli.py", "unknown-command"]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 1
 
     def test_main_insufficient_args(self):
         """引数不足のテスト"""
-        with patch('sys.argv', ['cli.py', 'quality-check']):
+        with patch("sys.argv", ["cli.py", "quality-check"]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 1
@@ -260,15 +246,13 @@ class TestIntegration:
                 "background": "#ffffff",
                 "text": "#000000",
                 "accent": "#0078d4",
-                "surface": "#f8f9fa"
+                "surface": "#f8f9fa",
             },
-            "fonts": {
-                "default": {"family": "Arial", "size": 12}
-            },
+            "fonts": {"default": {"family": "Arial", "size": 12}},
             "metadata": {
                 "author": "Test Author",
-                "description": "Test theme for workflow"
-            }
+                "description": "Test theme for workflow",
+            },
         }
         theme_file.write_text(json.dumps(theme_data))
 
@@ -276,7 +260,7 @@ class TestIntegration:
         assert quality_check(str(theme_file)) == 0
 
         # 2. テーマテスト
-        with patch('qt_theme_studio.cli.qt_theme_manager'):
+        with patch("qt_theme_studio.cli.qt_theme_manager"):
             assert test_theme(str(theme_file)) == 0
 
         # 3. CI/CDレポート生成
