@@ -40,7 +40,7 @@ from .logger import (
 
 
 # ジェネレーターのインポート(遅延読み込み)
-def _get_theme_generator():
+def _get_theme_generator() -> type:
     """ThemeGeneratorを遅延読み込み"""
     from .generators.theme_generator import ThemeGenerator
 
@@ -52,14 +52,14 @@ ThemeGenerator = None
 
 
 # ビューのインポート(遅延読み込み)
-def _get_main_window():
+def _get_main_window() -> type:
     """QtThemeStudioMainWindowを遅延読み込み"""
     from .views.main_window import QtThemeStudioMainWindow
 
     return QtThemeStudioMainWindow
 
 
-def _get_preview_components():
+def _get_preview_components() -> tuple[type, type]:
     """PreviewWindow, WidgetShowcaseを遅延読み込み"""
     from .views.preview import PreviewWindow, WidgetShowcase
 
@@ -73,7 +73,7 @@ WidgetShowcase = None
 
 
 # 動的インポート関数
-def __getattr__(name: str):
+def __getattr__(name: str) -> type:
     """動的インポートによる遅延読み込み"""
     if name == "ThemeGenerator":
         return _get_theme_generator()
