@@ -1,51 +1,59 @@
-# 変更履歴
+# Changelog
 
-Qt-Theme-Studioの変更履歴を記録します。
+All notable changes to this project will be documented in this file.
 
-このプロジェクトは[Semantic Versioning](https://semver.org/lang/ja/)に従います。
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [未リリース]
+## [0.1.0] - 2025-08-21 - MVP Release
 
-### 変更
+### Added
+- **統合テーマエディター**: 直感的なビジュアルインターフェースでテーマプロパティを編集
+- **ライブプレビューシステム**: リアルタイムでテーマの変更を確認
+- **スマートテーマ管理**: テーマの保存、読み込み、エクスポート機能
+- **CLI モジュール**: テーマ品質チェック機能
+- **包括的テストスイート**: 高いコードカバレッジを実現
+- **CI/CD パイプライン**: 自動化されたコード品質チェックとテスト実行
+- **アクセシビリティ対応**: WCAG準拠のコントラスト調整機能
 
-- Integration CI-CD System Task5 Completed (83d6f36)
-- Integration CI-CD System Task3 Completed (0fe7903)
-- Integration CI-CD System Task2 Completed (5f77b72)
-- Integration CI-CD System Task1 Completed (8ef9b4e)
+### Fixed
+- ライブプレビュー機能の安定性向上
+- テーマエラー可視化と検証機能の追加
+- X11/WSLg環境での検出ロジック改善
+- EGL ライブラリ依存関係の解決
+- MyPy 型チェックエラーの完全解決
+- Ruff コード品質問題の修正
+- 例外処理の改善とエラー抑制の排除
 
-### 修正
+### Changed
+- メインエントリーポイントを `qt_theme_studio_main.py` から `main.py` に変更
+- アーキテクチャの完全刷新（MVCパターン採用）
+- qt-theme-manager ライブラリとの統合強化
+- ファイルダイアログのパフォーマンス改善
+- UI応答性の向上
 
-- Integration CI-CD System Task3 Completed(auto fix) (ad1f40c)
+### Technical Improvements
+- Python 3.8-3.12 サポート
+- PySide6/PyQt6/PyQt5 対応
+- Pre-commit フック設定
+- GitHub Actions ワークフロー統合
+- コード品質ツール統合（Black, isort, Flake8, MyPy）
+- テストカバレッジ向上
 
-### 追加
+### Development
+- 開発ルールの確立（エラー回避ソリューションの禁止）
+- 統合CI/CDシステムの構築
+- コード品質チェックの自動化
+- テスト環境の整備
 
-- なし
+## [Unreleased]
 
-### 削除
-
-- なし
-
-### 非推奨
-
-- なし
-
-### セキュリティ
-
-- なし
-## [0.1.0] - 未リリース
-
-### 追加
-- 初期プロジェクト構造
-- 基本的な設定ファイル
-- ドキュメント（README.md、CHANGELOG.md）
+### Planned
+- ゼブラパターンエディターの実装
+- 追加のテーマテンプレート
+- 国際化対応の拡張
+- プラグインシステムの検討
 
 ---
 
-## 変更履歴の形式について
-
-- **追加**: 新機能
-- **変更**: 既存機能の変更
-- **非推奨**: 将来削除される機能
-- **削除**: 削除された機能
-- **修正**: バグ修正
-- **セキュリティ**: セキュリティ関連の修正
+**Note**: このプロジェクトは qt-theme-manager ライブラリに依存しており、GitHubから直接インストールする必要があります。

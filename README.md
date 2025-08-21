@@ -1,18 +1,23 @@
 # Qt-Theme-Studio
 
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/your-org/qt-theme-studio/releases)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Qt-Theme-Studioは、Qtアプリケーション（PyQt5/PyQt6/PySide6）向けの統合テーマエディターGUIアプリケーションです。qt-theme-managerライブラリを基盤として、直感的なビジュアルインターフェースでテーマの作成・編集・管理を行います。
 
 ## 主要機能
 
 - **統合テーマエディター**: 直感的なビジュアルインターフェースでテーマプロパティを編集
-- **ゼブラパターンエディター**: WCAG準拠のコントラスト調整機能
+- **CLI モジュール**: テーマ品質チェック機能
 - **ライブプレビューシステム**: リアルタイムでテーマの変更を確認
 - **スマートテーマ管理**: テーマの保存、読み込み、エクスポート機能
-- **アクセシビリティ対応**: 科学的色計算に基づくコントラスト比検証
+- **アクセシビリティ対応**: WCAG準拠のコントラスト調整機能
+- **CI/CD パイプライン**: 自動化されたコード品質チェックとテスト実行
 
 ## システム要件
 
-- Python 3.8以上
+- Python 3.9以上
 - Qt フレームワーク（PySide6推奨、PyQt6/PyQt5対応）
 - qt-theme-managerライブラリ
 
@@ -53,30 +58,14 @@ pip install -e .[qt5]
 ### 基本的な起動
 
 ```bash
-# 統合ランチャーを使用
-python launch_theme_studio.py
+# メインランチャーを使用
+python main.py
 
 # または、モジュールとして実行
 python -m qt_theme_studio
 
 # または、インストール後のコマンド
 qt-theme-studio
-```
-
-### コマンドラインオプション
-
-```bash
-# デバッグモードで起動
-python launch_theme_studio.py --debug
-
-# 特定のテーマファイルを読み込んで起動
-python launch_theme_studio.py --theme path/to/theme.json
-
-# カスタム設定ファイルを使用
-python launch_theme_studio.py --config path/to/config.json
-
-# バージョン情報を表示
-python launch_theme_studio.py --version
 ```
 
 ## 開発
@@ -89,37 +78,21 @@ pip install -e .[dev]
 
 # Pre-commitフックの設定
 pre-commit install
-
-# 全ファイルに対してコード品質チェック実行
-pre-commit run --all-files
 ```
 
 ### コード品質チェック
 
 ```bash
-# コード整形
-black .
-isort .
-autoflake --remove-all-unused-imports --in-place --recursive .
-
-# リンティング
-flake8 .
-
-# 型チェック
-mypy qt_theme_studio/
+# Ruffによるリンティングとフォーマット
+ruff check qt_theme_studio/
+ruff format qt_theme_studio/
 ```
 
 ### テスト実行
 
 ```bash
-# 全テスト実行
-pytest
-
-# カバレッジ付きテスト実行
-pytest --cov=qt_theme_studio --cov-report=html
-
-# GUIテストのみ実行
-pytest -m gui
+# 基本テスト実行
+pytest tests/unit/ -v
 ```
 
 ## プロジェクト構造
@@ -159,4 +132,8 @@ MIT License
 
 - qt-theme-managerライブラリは必ずGitHubリポジトリから直接インストールしてください
 - PyPIからのqt-theme-managerインストールは使用しないでください
-- 日本語ファイル名・パスに対応していますが、文字化けを避けるためUTF-8エンコーディングを推奨します# テスト用コメント
+- 日本語ファイル名・パスに対応していますが、文字化けを避けるためUTF-8エンコーディングを推奨します
+
+## 更新履歴
+
+詳細な変更履歴については [CHANGELOG.md](CHANGELOG.md) を参照してください。

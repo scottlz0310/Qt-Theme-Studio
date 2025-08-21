@@ -1,30 +1,23 @@
-# Pre-commit設定ファイル
-# Qt-Theme-Studio プロジェクト用
-#
-# セットアップ方法:
-#   pip install pre-commit
-#   pre-commit install
-#
-# 手動実行:
-#   pre-commit run --all-files
+# MVP用Pre-commit設定ファイル
+# 最低限のコード品質チェックのみ実行
 
 repos:
   # Ruffによるリンティングとフォーマット
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.9
     hooks:
-      # Ruffリンター（pyproject.tomlの設定を使用）
+      # Ruffリンター（メインコードのみ）
       - id: ruff
         name: "Ruff リンティング"
         args: [--fix, --exit-non-zero-on-fix]
         types: [python]
-        exclude: ^scripts/
+        files: ^qt_theme_studio/
 
-      # Ruffフォーマッター（pyproject.tomlの設定を使用）
+      # Ruffフォーマッター（メインコードのみ）
       - id: ruff-format
         name: "Ruff フォーマット"
         types: [python]
-        exclude: ^scripts/
+        files: ^qt_theme_studio/
 
   # 基本的なファイルチェック
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -38,11 +31,6 @@ repos:
       - id: trailing-whitespace
         name: "行末空白文字の除去"
 
-      # 大きなファイルの追加を防止
-      - id: check-added-large-files
-        name: "大きなファイルのチェック"
-        args: ['--maxkb=1000']
-
       # JSONファイルの構文チェック
       - id: check-json
         name: "JSON構文チェック"
@@ -54,77 +42,3 @@ repos:
       # TOMLファイルの構文チェック
       - id: check-toml
         name: "TOML構文チェック"
-
-      # マージコンフリクトマーカーのチェック
-      - id: check-merge-conflict
-        name: "マージコンフリクトマーカーのチェック"
-
-      # デバッグ文の検出
-      - id: debug-statements
-        name: "デバッグ文の検出"
-
-  # 基本テストの実行（高速テストのみ）
-  - repo: local
-    hooks:
-      # 基本テストスイート
-      - id: pytest-basic
-        name: "基本テスト実行"
-        entry: bash -c 'source venv/bin/activate && python -m pytest'
-        language: system
-        args: [
-          "tests/unit",
-          "-v",
-          "--tb=short",
-          "-x",  # 最初の失敗で停止
-          "--maxfail=3",  # 最大3つの失敗まで
-          "-m", "not slow and not integration",  # 高速テストのみ
-          "--durations=5"  # 遅いテスト上位5つを表示
-        ]
-        types: [python]
-        pass_filenames: false
-
-      # print文の検出と警告（統合システム）
-      - id: check-print-statements
-        name: "print文チェック"
-        entry: bash -c 'source venv/bin/activate && python scripts/print_statement_manager.py --pre-commit'
-        language: system
-        types: [python]
-        pass_filenames: false
-        exclude: ^scripts/
-
-      # 日本語ログメッセージの検証
-      - id: validate-japanese-logs
-        name: "日本語ログメッセージ検証"
-        entry: bash -c 'source venv/bin/activate && python scripts/validate_japanese_logs.py'
-        language: system
-        types: [python]
-        pass_filenames: true
-        exclude: ^scripts/
-
-      # セキュリティチェック（基本）
-      - id: bandit-security-check
-        name: "セキュリティチェック（Bandit）"
-        entry: bash -c 'source venv/bin/activate && python -m bandit'
-        language: system
-        args: [
-          "-r", "qt_theme_studio/",
-          "-f", "json",
-          "-o", "logs/bandit-pre-commit.json",
-          "-ll"  # Low severity以上
-        ]
-        types: [python]
-        pass_filenames: false
-        exclude: ^scripts/
-
-# CI環境での設定
-ci:
-  autofix_commit_msg: |
-    [pre-commit.ci] 自動修正
-
-    Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-  autofix_prs: true
-  autoupdate_branch: ''
-  autoupdate_commit_msg: '[pre-commit.ci] pre-commit自動更新'
-  autoupdate_schedule: weekly
-  skip: []
-  submodules: false

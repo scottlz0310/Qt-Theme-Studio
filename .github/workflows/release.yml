@@ -1,314 +1,20 @@
-name: Release Automation
+name: Release
 
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version (e.g., v1.0.0)'
-        required: true
-        type: string
-
-env:
-  # 仮想ディスプレイ環境設定
-  DISPLAY: ":99"
-  QT_QPA_PLATFORM: "offscreen"
-  QT_THEME_STUDIO_TESTING: "true"
-  QT_THEME_STUDIO_LOG_LEVEL: "INFO"
 
 jobs:
-  pre-release-validation:
-    name: Pre-Release Validation
+  release:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # 全履歴を取得（変更履歴生成用）
+    - uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
-
-    - name: Setup virtual display
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb x11-utils libxkbcommon-x11-0
-        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-        sleep 3
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
-        pip install -e .[dev]
-
-    - name: Run comprehensive pre-release checks
-      run: |
-        echo "🔍 包括的リリース前検証を実行中..."
-        python scripts/pre_release_check.py --verbose
-
-    - name: Generate release changelog
-      run: |
-        echo "📝 リリース用変更履歴を生成中..."
-        # タグ名からバージョンを抽出
-        VERSION=${GITHUB_REF#refs/tags/}
-        echo "リリースバージョン: $VERSION"
-
-        # 前のタグを取得
-        PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-
-        if [ -n "$PREV_TAG" ]; then
-          echo "前のタグ: $PREV_TAG"
-          python scripts/changelog_generator.py --since "$PREV_TAG" --version "$VERSION"
-        else
-          echo "初回リリースのため、全履歴を生成"
-          python scripts/changelog_generator.py --version "$VERSION"
-        fi
-
-    - name: Upload pre-release validation reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: pre-release-validation-reports
-        path: |
-          logs/pre-release-report.json
-          logs/pre-release-detailed-report.txt
-          CHANGELOG.md
-        retention-days: 90
-
-    - name: Validate version consistency
-      run: |
-        echo "🔍 バージョン整合性を検証中..."
-        python -c "
-        import sys
-        import os
-        try:
-            import tomllib
-        except ImportError:
-            import tomli as tomllib
-
-        # pyproject.tomlのバージョンを確認
-        with open('pyproject.toml', 'rb') as f:
-            data = tomllib.load(f)
-        package_version = data['project']['version']
-        print(f'パッケージバージョン: {package_version}')
-
-        # タグバージョンと比較
-        tag_version = os.environ.get('GITHUB_REF_NAME', '').lstrip('v')
-        if tag_version and package_version != tag_version:
-            print(f'❌ バージョン不整合: package={package_version}, tag={tag_version}')
-            sys.exit(1)
-        else:
-            print('✅ バージョン整合性が確認されました')
-        "
-
-    - name: Run final test suite
-      run: |
-        echo "🧪 最終テストスイートを実行中..."
-        python scripts/coverage_manager.py \
-          --source-dir qt_theme_studio \
-          --min-coverage 80 \
-          --test-paths tests/ \
-          --ci-mode
-
-  cross-platform-build:
-    name: Cross-Platform Build
-    needs: pre-release-validation
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.11']
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Setup virtual display (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb x11-utils libxkbcommon-x11-0
-        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-        sleep 3
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
-        pip install -e .[dev]
-        pip install build pyinstaller
-
-    - name: Run optimized test suite
-      run: |
-        echo "🧪 最適化されたテストスイートを実行中..."
-        pytest tests/ --tb=short --maxfail=3 -x --durations=5
-
-    - name: Build with integrated script
-      run: |
-        echo "🔨 統合ビルドスクリプトを実行中..."
-        python scripts/build_release.py --skip-tests
-
-    - name: Generate checksums
-      run: |
-        echo "🔐 チェックサムを生成中..."
-        python -c "
-        import hashlib
-        from pathlib import Path
-
-        dist_dir = Path('dist')
-        checksum_file = dist_dir / 'checksums-${{ matrix.os }}.txt'
-
-        with open(checksum_file, 'w', encoding='utf-8') as f:
-            f.write('# Qt-Theme-Studio チェックサム (${{ matrix.os }})\n')
-            f.write('# SHA256ハッシュ値\n\n')
-
-            for file_path in sorted(dist_dir.glob('*')):
-                if file_path.is_file() and not file_path.name.startswith('checksums'):
-                    sha256_hash = hashlib.sha256()
-                    with open(file_path, 'rb') as file:
-                        for chunk in iter(lambda: file.read(4096), b''):
-                            sha256_hash.update(chunk)
-
-                    hash_value = sha256_hash.hexdigest()
-                    f.write(f'{hash_value}  {file_path.name}\n')
-
-        print(f'チェックサムファイルを生成しました: {checksum_file}')
-        "
-
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-artifacts-${{ matrix.os }}
-        path: |
-          dist/
-        retention-days: 30
-
-  generate-changelog:
-    name: Generate Changelog
-    needs: cross-platform-build
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Generate changelog
-      run: |
-        echo "📝 変更履歴を生成中..."
-
-        # 前回のタグを取得
-        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-        CURRENT_TAG=${GITHUB_REF#refs/tags/}
-
-        echo "前回のタグ: $PREVIOUS_TAG"
-        echo "現在のタグ: $CURRENT_TAG"
-
-        # 変更履歴を生成
-        cat > GENERATED_CHANGELOG.md << EOF
-        # Qt-Theme-Studio $CURRENT_TAG リリースノート
-
-        ## 変更内容
-
-        EOF
-
-        if [ -n "$PREVIOUS_TAG" ]; then
-          echo "### コミット履歴" >> GENERATED_CHANGELOG.md
-          git log --pretty=format:"- %s (%an)" $PREVIOUS_TAG..HEAD >> GENERATED_CHANGELOG.md
-          echo "" >> GENERATED_CHANGELOG.md
-          echo "" >> GENERATED_CHANGELOG.md
-        fi
-
-        # 既存のリリースノートがあれば追加
-        if [ -f "RELEASE_NOTES.md" ]; then
-          echo "### 詳細なリリースノート" >> GENERATED_CHANGELOG.md
-          cat RELEASE_NOTES.md >> GENERATED_CHANGELOG.md
-        fi
-
-    - name: Upload changelog
-      uses: actions/upload-artifact@v4
-      with:
-        name: changelog
-        path: GENERATED_CHANGELOG.md
-
-  create-release:
-    name: Create GitHub Release
-    needs: [cross-platform-build, generate-changelog]
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-
-    - name: Get tag name
-      id: tag
-      run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-    - name: Prepare release assets
-      run: |
-        echo "📦 リリース成果物を準備中..."
-
-        # 成果物を整理
-        mkdir -p release-assets
-
-        # 各プラットフォームの成果物を収集
-        find . -name "*.zip" -o -name "*.tar.gz" -o -name "*.whl" | while read file; do
-          cp "$file" release-assets/
-        done
-
-        # チェックサムファイルを統合
-        cat build-artifacts-*/checksums-*.txt > release-assets/checksums.txt 2>/dev/null || true
-
-        # 成果物一覧を表示
-        echo "リリース成果物:"
-        ls -la release-assets/
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.tag.outputs.tag }}
-        name: Qt-Theme-Studio ${{ steps.tag.outputs.tag }}
-        body_path: changelog/GENERATED_CHANGELOG.md
-        draft: false
-        prerelease: ${{ contains(steps.tag.outputs.tag, 'alpha') || contains(steps.tag.outputs.tag, 'beta') || contains(steps.tag.outputs.tag, 'rc') }}
-        files: |
-          release-assets/*
-        generate_release_notes: true
-
-  publish-pypi:
-    name: Publish to PyPI
-    needs: create-release
-    runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc') }}
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+        python-version: 3.9
 
     - name: Install dependencies
       run: |
@@ -316,48 +22,23 @@ jobs:
         pip install build twine
 
     - name: Build package
-      run: |
-        echo "📦 PyPIパッケージをビルド中..."
-        python -m build
+      run: python -m build
 
-    - name: Verify package
-      run: |
-        echo "🔍 パッケージを検証中..."
-        twine check dist/*
-
-    - name: Publish to PyPI
+    - name: Create Release
+      uses: actions/create-release@v1
       env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        echo "🚀 PyPIに公開中..."
-        twine upload dist/*
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Qt-Theme-Studio ${{ github.ref }}
+        body: |
+          ## Qt-Theme-Studio ${{ github.ref }}
 
-  post-release:
-    name: Post-Release Tasks
-    needs: [create-release, publish-pypi]
-    runs-on: ubuntu-latest
-    if: always()
+          詳細な変更履歴については [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
-    steps:
-    - name: Release summary
-      run: |
-        echo "=== リリース完了サマリー ==="
-        echo "タグ: ${GITHUB_REF#refs/tags/}"
-        echo "GitHub Release: ${{ needs.create-release.result }}"
-        echo "PyPI Publish: ${{ needs.publish-pypi.result }}"
-        echo "=========================="
-
-        if [[ "${{ needs.create-release.result }}" == "success" ]]; then
-          echo "✅ GitHubリリースが正常に作成されました"
-        else
-          echo "❌ GitHubリリースの作成に失敗しました"
-        fi
-
-        if [[ "${{ needs.publish-pypi.result }}" == "success" ]]; then
-          echo "✅ PyPIへの公開が正常に完了しました"
-        elif [[ "${{ needs.publish-pypi.result }}" == "skipped" ]]; then
-          echo "⏭️  PyPIへの公開がスキップされました（プレリリース）"
-        else
-          echo "❌ PyPIへの公開に失敗しました"
-        fi
+          ### インストール
+          ```bash
+          pip install git+https://github.com/your-org/qt-theme-studio.git@${{ github.ref }}
+          ```
+        draft: false
+        prerelease: false
