@@ -43,7 +43,7 @@ class LogCategory(Enum):
 class LogContext:
     """ログコンテキスト情報"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         self.context = kwargs
         self.timestamp = datetime.now()
         self.session_id = self._generate_session_id()
@@ -131,7 +131,7 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
         encoding=None,
         delay=False,
         compress_backups=True,
-    ):
+    ) -> None:
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
         self.compress_backups = compress_backups
 
@@ -378,7 +378,7 @@ class QtThemeStudioLogger:
         self.logger.addHandler(error_handler)
         self.logger.addHandler(perf_handler)
 
-    def _performance_filter(self, record):
+    def _performance_filter(self, record) -> bool:
         """パフォーマンスログ用フィルター"""
         return (
             hasattr(record, "category") and record.category == LogCategory.PERFORMANCE
@@ -391,7 +391,7 @@ class QtThemeStudioLogger:
         category: LogCategory,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """カテゴリ付きでログを出力"""
         extra = {"category": category}
         if context:
@@ -597,7 +597,7 @@ class QtThemeStudioLogger:
         stats["total_size_mb"] = round(stats["total_size_mb"], 2)
         return stats
 
-    def cleanup_logs(self, older_than_days: int = 30):
+    def cleanup_logs(self, older_than_days: int = 30) -> list[str]:
         """指定日数より古いログファイルを削除"""
         cutoff_date = datetime.now() - timedelta(days=older_than_days)
         deleted_files = []
@@ -636,7 +636,7 @@ class QtThemeStudioLogger:
         self.logger.setLevel(level_map[level])
         self.info(f"ログレベルを {level.name} に変更しました", LogCategory.GENERAL)
 
-    def rotate_logs_now(self):
+    def rotate_logs_now(self) -> list[str]:
         """手動でログローテーションを実行"""
         rotated_handlers = []
 

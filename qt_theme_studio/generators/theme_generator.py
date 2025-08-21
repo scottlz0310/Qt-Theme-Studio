@@ -12,7 +12,7 @@ from PySide6.QtGui import QColor
 class ThemeGenerator:
     """テーマジェネレータクラス"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """初期化"""
         self.preset_themes = {
             "dark": {

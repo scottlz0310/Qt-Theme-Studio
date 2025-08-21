@@ -22,7 +22,7 @@ class QtAdapter:
     検出されたフレームワークのモジュールとQApplicationインスタンスを提供します。
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Qt Adapterを初期化する"""
         self.logger = logging.getLogger(__name__)
         self._detected_framework: Optional[str] = None

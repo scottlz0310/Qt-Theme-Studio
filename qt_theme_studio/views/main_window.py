@@ -88,7 +88,7 @@ class QtThemeStudioMainWindow(QMainWindow):
 
             traceback.print_exc()
 
-    def setup_ui(self):
+    def setup_ui(self) -> None:
         """UIをセットアップ"""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -138,7 +138,7 @@ class QtThemeStudioMainWindow(QMainWindow):
         content_layout.addWidget(self.preview_widget, 2)
         layout.addLayout(content_layout)
 
-    def create_theme_generator(self):
+    def create_theme_generator(self) -> QGroupBox:
         """テーマジェネレータを作成"""
         group = QGroupBox("🎨 ワンクリックテーマジェネレータ")
         layout = QVBoxLayout(group)
@@ -200,7 +200,7 @@ class QtThemeStudioMainWindow(QMainWindow):
         layout.addStretch()
         return group
 
-    def choose_color(self, color_type):
+    def choose_color(self, color_type: str) -> None:
         """色選択ダイアログを表示"""
         current_color = self.get_current_color(color_type)
 
@@ -231,7 +231,7 @@ class QtThemeStudioMainWindow(QMainWindow):
             if color.isValid():
                 self.set_color_button(color_type, color)
 
-    def get_current_color(self, color_type):
+    def get_current_color(self, color_type: str) -> QColor:
         """現在の色を取得"""
         if color_type == "background":
             btn = self.bg_color_btn
@@ -241,20 +241,20 @@ class QtThemeStudioMainWindow(QMainWindow):
                 return QColor(color_str)
         return QColor("#000000")
 
-    def set_color_button(self, color_type, color):
+    def set_color_button(self, color_type: str, color: QColor) -> None:
         """色ボタンの色を設定"""
         if color_type == "background":
             self.bg_color_btn.setStyleSheet(
                 f"background-color: {color.name()}; border: 2px solid #ccc;"
             )
 
-    def apply_preset_color(self, color):
+    def apply_preset_color(self, color: str) -> None:
         """プリセット色を適用"""
         self.set_color_button("background", QColor(color))
         # 自動的にテーマを生成
         self.generate_theme_from_background()
 
-    def generate_theme_from_background(self):
+    def generate_theme_from_background(self) -> None:
         """背景色から自動的にテーマを生成"""
         try:
             bg_color = self.get_current_color("background")
@@ -301,7 +301,7 @@ class QtThemeStudioMainWindow(QMainWindow):
                 self, "エラー", f"テーマの自動生成に失敗しました:\n{e!s}"
             )
 
-    def update_generated_theme_preview(self):
+    def update_generated_theme_preview(self) -> None:
         """生成テーマのプレビューを更新"""
         if self.current_theme_name and self.current_theme_name in self.themes:
             theme = self.themes[self.current_theme_name]
@@ -310,7 +310,7 @@ class QtThemeStudioMainWindow(QMainWindow):
             theme_json = json.dumps(theme, indent=2, ensure_ascii=False)
             self.generated_theme_preview.setPlainText(theme_json)
 
-    def load_custom_theme_file(self):
+    def load_custom_theme_file(self) -> None:
         """カスタムテーマファイルを読み込み"""
         try:
             # ファイルダイアログを設定
@@ -355,7 +355,7 @@ class QtThemeStudioMainWindow(QMainWindow):
                 self, "エラー", f"ファイルダイアログの作成に失敗しました:\n{e!s}"
             )
 
-    def _load_theme_from_file(self, file_path):
+    def _load_theme_from_file(self, file_path: str) -> None:
         """ファイルからテーマを読み込み"""
         try:
             with Path(file_path).open(encoding="utf-8") as f:
@@ -400,7 +400,7 @@ class QtThemeStudioMainWindow(QMainWindow):
                 self, "読み込みエラー", f"ファイルの読み込みに失敗しました:\n{e!s}"
             )
 
-    def on_theme_changed(self, display_name):
+    def on_theme_changed(self, display_name: str) -> None:
         """テーマ選択が変更された時の処理"""
         # display_nameからtheme_nameを逆引き
         for theme_name, theme_config in self.themes.items():
@@ -415,7 +415,7 @@ class QtThemeStudioMainWindow(QMainWindow):
             )
             self.apply_current_theme()
 
-    def apply_current_theme(self):
+    def apply_current_theme(self) -> None:
         """現在選択されているテーマを適用"""
         if self.current_theme_name and self.current_theme_name in self.themes:
             theme_config = self.themes[self.current_theme_name]
@@ -546,7 +546,7 @@ class QtThemeStudioMainWindow(QMainWindow):
         }}
         """
 
-    def convert_theme_for_preview(self, theme_config):
+    def convert_theme_for_preview(self, theme_config: dict[str, Any]) -> dict[str, Any]:
         """qt-theme-manager形式のテーマをプレビュー用形式に変換"""
         try:
             # プレビュー機能が期待する形式に変換
@@ -571,7 +571,7 @@ class QtThemeStudioMainWindow(QMainWindow):
             # エラーの場合は元のテーマをそのまま返す
             return theme_config
 
-    def save_current_theme(self):
+    def save_current_theme(self) -> None:
         """現在選択されているテーマを保存"""
         if self.current_theme_name and self.current_theme_name in self.themes:
             try:
@@ -628,7 +628,7 @@ class QtThemeStudioMainWindow(QMainWindow):
             self.logger.warning("保存するテーマが選択されていません")
             QMessageBox.warning(self, "警告", "保存するテーマが選択されていません")
 
-    def export_all_themes(self):
+    def export_all_themes(self) -> None:
         """全テーマをエクスポート"""
         if not self.themes:
             self.logger.warning("エクスポートするテーマがありません")
