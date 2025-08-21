@@ -9,15 +9,14 @@ import gzip
 import json
 import logging
 import logging.handlers
-import os
 import shutil
 import time
 import traceback
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 
 class LogLevel(Enum):
@@ -53,7 +52,7 @@ class LogContext:
         """セッションIDを生成"""
         return f"session_{int(time.time())}"
 
-    def add_context(self, **kwargs):
+    def add_context(self, **kwargs) -> None:
         """コンテキスト情報を追加"""
         self.context.update(kwargs)
 
@@ -121,7 +120,7 @@ class LogRotationConfig:
 
 
 class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
-    """拡張ローテーションファイルハンドラー（圧縮・アーカイブ機能付き）"""
+    """拡張ローテーションファイルハンドラー(圧縮・アーカイブ機能付き)"""
 
     def __init__(
         self,
@@ -136,7 +135,7 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
         self.compress_backups = compress_backups
 
-    def doRollover(self):
+    def doRollover(self) -> None:
         """ローテーション実行時の処理をオーバーライド"""
         if self.stream:
             self.stream.close()
@@ -147,18 +146,18 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
                 sfn = self.rotation_filename(f"{self.baseFilename}.{i}")
                 dfn = self.rotation_filename(f"{self.baseFilename}.{i + 1}")
 
-                if os.path.exists(sfn):
-                    if os.path.exists(dfn):
-                        os.remove(dfn)
-                    os.rename(sfn, dfn)
+                if Path(sfn).exists():
+                    if Path(dfn).exists():
+                        Path(dfn).unlink()
+                    Path(sfn).rename(dfn)
 
             dfn = self.rotation_filename(f"{self.baseFilename}.1")
-            if os.path.exists(dfn):
-                os.remove(dfn)
+            if Path(dfn).exists():
+                Path(dfn).unlink()
 
             # 現在のログファイルをバックアップ
-            if os.path.exists(self.baseFilename):
-                os.rename(self.baseFilename, dfn)
+            if Path(self.baseFilename).exists():
+                Path(self.baseFilename).rename(dfn)
 
                 # 圧縮オプションが有効な場合
                 if self.compress_backups:
@@ -167,16 +166,18 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
         if not self.delay:
             self.stream = self._open()
 
-    def _compress_backup(self, backup_file: str):
+    def _compress_backup(self, backup_file: str) -> None:
         """バックアップファイルを圧縮"""
         try:
             compressed_file = f"{backup_file}.gz"
-            with open(backup_file, "rb") as f_in:
-                with gzip.open(compressed_file, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
+            with (
+                Path(backup_file).open("rb") as f_in,
+                gzip.open(compressed_file, "wb") as f_out,
+            ):
+                shutil.copyfileobj(f_in, f_out)
 
             # 元のファイルを削除
-            os.remove(backup_file)
+            Path(backup_file).unlink()
         except Exception:
             # 圧縮に失敗しても処理を続行
             pass
@@ -191,7 +192,7 @@ class LogArchiveManager:
         self.archive_dir = log_dir / "archive"
         self.archive_dir.mkdir(exist_ok=True)
 
-    def archive_old_logs(self):
+    def archive_old_logs(self) -> None:
         """古いログファイルをアーカイブ"""
         cutoff_date = datetime.now() - timedelta(days=self.config.archive_after_days)
 
@@ -208,16 +209,18 @@ class LogArchiveManager:
                         shutil.move(str(log_file), str(archive_path))
                     else:
                         # 圧縮してアーカイブ
-                        with open(log_file, "rb") as f_in:
-                            with gzip.open(f"{archive_path}.gz", "wb") as f_out:
-                                shutil.copyfileobj(f_in, f_out)
+                        with (
+                            Path(log_file).open("rb") as f_in,
+                            gzip.open(f"{archive_path}.gz", "wb") as f_out,
+                        ):
+                            shutil.copyfileobj(f_in, f_out)
                         log_file.unlink()
 
                 except Exception:
                     # アーカイブに失敗しても処理を続行
                     pass
 
-    def cleanup_old_archives(self):
+    def cleanup_old_archives(self) -> None:
         """古いアーカイブファイルを削除"""
         cutoff_date = datetime.now() - timedelta(days=self.config.cleanup_after_days)
 
@@ -226,12 +229,10 @@ class LogArchiveManager:
                 archive_file.is_file()
                 and archive_file.stat().st_mtime < cutoff_date.timestamp()
             ):
-                try:
+                with suppress(Exception):
                     archive_file.unlink()
-                except Exception:
-                    pass
 
-    def get_archive_stats(self) -> Dict[str, Any]:
+    def get_archive_stats(self) -> dict[str, Any]:
         """アーカイブ統計情報を取得"""
         stats = {
             "total_files": 0,
@@ -260,7 +261,7 @@ class LogArchiveManager:
 
 
 class QtThemeStudioLogger:
-    """Qt-Theme-Studio専用ロガー（拡張版）"""
+    """Qt-Theme-Studio専用ロガー(拡張版)"""
 
     def __init__(
         self,
@@ -285,14 +286,14 @@ class QtThemeStudioLogger:
         self._setup_handlers()
 
         # パフォーマンス測定用
-        self._performance_timers = {}
+        self._performance_timers: dict[str, float] = {}
 
         # 定期メンテナンス用のカウンター
         self._maintenance_counter = 0
         self._maintenance_interval = 100  # 100回のログ出力ごとにメンテナンス実行
 
-    def _setup_handlers(self):
-        """ログハンドラーを設定（拡張版）"""
+    def _setup_handlers(self) -> None:
+        """ログハンドラーを設定(拡張版)"""
         # 既存のハンドラーをクリア
         for handler in self.logger.handlers[:]:
             self.logger.removeHandler(handler)
@@ -306,7 +307,7 @@ class QtThemeStudioLogger:
         )
         console_handler.setFormatter(console_formatter)
 
-        # メインログファイルハンドラー（ローテーション付き）
+        # メインログファイルハンドラー(ローテーション付き)
         main_log_file = self.log_dir / f"{self.name}.log"
         main_handler = AdvancedRotatingFileHandler(
             filename=str(main_log_file),
@@ -322,7 +323,7 @@ class QtThemeStudioLogger:
         )
         main_handler.setFormatter(main_formatter)
 
-        # 構造化ログファイルハンドラー（日別）
+        # 構造化ログファイルハンドラー(日別)
         structured_log_file = (
             self.log_dir
             / f"{self.name}_structured_{datetime.now().strftime('%Y%m%d')}.log"
@@ -414,7 +415,7 @@ class QtThemeStudioLogger:
         category: LogCategory = LogCategory.GENERAL,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """デバッグログ"""
         self._log_with_category(logging.DEBUG, message, category, context, **kwargs)
 
@@ -424,7 +425,7 @@ class QtThemeStudioLogger:
         category: LogCategory = LogCategory.GENERAL,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """情報ログ"""
         self._log_with_category(logging.INFO, message, category, context, **kwargs)
 
@@ -434,7 +435,7 @@ class QtThemeStudioLogger:
         category: LogCategory = LogCategory.GENERAL,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """警告ログ"""
         self._log_with_category(logging.WARNING, message, category, context, **kwargs)
 
@@ -444,7 +445,7 @@ class QtThemeStudioLogger:
         category: LogCategory = LogCategory.ERROR,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """エラーログ"""
         self._log_with_category(logging.ERROR, message, category, context, **kwargs)
 
@@ -454,7 +455,7 @@ class QtThemeStudioLogger:
         category: LogCategory = LogCategory.ERROR,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """重大エラーログ"""
         self._log_with_category(logging.CRITICAL, message, category, context, **kwargs)
 
@@ -464,7 +465,7 @@ class QtThemeStudioLogger:
         theme_name: str,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """テーマ操作のログ"""
         message = f"テーマ操作: {operation} - {theme_name}"
         self.info(message, LogCategory.THEME, context, **kwargs)
@@ -475,7 +476,7 @@ class QtThemeStudioLogger:
         widget_name: str,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """UI操作のログ"""
         message = f"UI操作: {operation} - {widget_name}"
         self.info(message, LogCategory.UI, context, **kwargs)
@@ -486,7 +487,7 @@ class QtThemeStudioLogger:
         duration: float,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """パフォーマンスログ"""
         message = f"パフォーマンス: {operation} - {duration:.3f}秒"
         self.info(
@@ -513,7 +514,7 @@ class QtThemeStudioLogger:
         exception: Exception,
         context: Optional[LogContext] = None,
         **kwargs,
-    ):
+    ) -> None:
         """例外ログ"""
         error_details = {
             "exception_type": type(exception).__name__,
@@ -529,7 +530,7 @@ class QtThemeStudioLogger:
             **kwargs,
         )
 
-    def _perform_maintenance(self):
+    def _perform_maintenance(self) -> None:
         """定期メンテナンス処理"""
         try:
             # アーカイブ処理
@@ -545,7 +546,7 @@ class QtThemeStudioLogger:
             # メンテナンス処理でエラーが発生しても本来の処理は継続
             pass
 
-    def _check_disk_usage(self):
+    def _check_disk_usage(self) -> None:
         """ログディスクの使用量をチェック"""
         try:
             total_size = sum(
@@ -562,7 +563,7 @@ class QtThemeStudioLogger:
         except Exception:
             pass
 
-    def get_log_statistics(self) -> Dict[str, Any]:
+    def get_log_statistics(self) -> dict[str, Any]:
         """ログ統計情報を取得"""
         stats = {
             "log_directory": str(self.log_dir),
@@ -622,7 +623,7 @@ class QtThemeStudioLogger:
 
         return deleted_files
 
-    def set_log_level(self, level: LogLevel):
+    def set_log_level(self, level: LogLevel) -> None:
         """ログレベルを動的に変更"""
         level_map = {
             LogLevel.DEBUG: logging.DEBUG,
@@ -663,7 +664,7 @@ class QtThemeStudioLogger:
         output_file: Union[str, Path],
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
-        log_levels: Optional[List[LogLevel]] = None,
+        log_levels: Optional[list[LogLevel]] = None,
     ) -> bool:
         """ログをエクスポート"""
         try:
@@ -677,7 +678,7 @@ class QtThemeStudioLogger:
             for log_file in self.log_dir.glob("*.log"):
                 if log_file.is_file():
                     try:
-                        with open(log_file, encoding="utf-8") as f:
+                        with log_file.open(encoding="utf-8") as f:
                             for line in f:
                                 # 簡単な日付・レベルフィルタリング
                                 if start_date or end_date or level_names:
@@ -688,7 +689,7 @@ class QtThemeStudioLogger:
                         continue
 
             # エクスポートファイルに書き込み
-            with open(output_path, "w", encoding="utf-8") as f:
+            with output_path.open("w", encoding="utf-8") as f:
                 f.write("# Qt-Theme-Studio ログエクスポート\n")
                 f.write(f"# エクスポート日時: {datetime.now().isoformat()}\n")
                 f.write(f"# 総エントリ数: {len(exported_entries)}\n\n")
@@ -723,8 +724,8 @@ def setup_logging(
     log_level: LogLevel = LogLevel.INFO,
     log_file: Optional[Union[str, Path]] = None,
     rotation_config: Optional[LogRotationConfig] = None,
-):
-    """ログ設定を初期化（拡張版）"""
+) -> None:
+    """ログ設定を初期化(拡張版)"""
     global _global_logger
 
     # 新しい設定でロガーを再作成
@@ -757,21 +758,21 @@ def setup_logging(
 
 
 # 便利な関数
-def log_function_call(func_name: str, **kwargs):
+def log_function_call(func_name: str, **kwargs) -> None:
     """関数呼び出しのログ"""
     logger = get_logger()
     context = LogContext(function=func_name, **kwargs)
     logger.debug(f"関数呼び出し: {func_name}", LogCategory.GENERAL, context)
 
 
-def log_user_action(action: str, user_id: Optional[str] = None, **kwargs):
+def log_user_action(action: str, user_id: Optional[str] = None, **kwargs) -> None:
     """ユーザーアクションのログ"""
     logger = get_logger()
     context = LogContext(action=action, user_id=user_id, **kwargs)
     logger.info(f"ユーザーアクション: {action}", LogCategory.UI, context)
 
 
-def log_file_operation(operation: str, file_path: str, **kwargs):
+def log_file_operation(operation: str, file_path: str, **kwargs) -> None:
     """ファイル操作のログ"""
     logger = get_logger()
     context = LogContext(operation=operation, file_path=file_path, **kwargs)
@@ -780,14 +781,14 @@ def log_file_operation(operation: str, file_path: str, **kwargs):
     )
 
 
-def log_application_startup():
+def log_application_startup() -> None:
     """アプリケーション起動のログ"""
     logger = get_logger()
     context = LogContext(event="application_startup")
     logger.info("アプリケーション起動", LogCategory.GENERAL, context)
 
 
-def log_application_shutdown():
+def log_application_shutdown() -> None:
     """アプリケーション終了のログ"""
     logger = get_logger()
     context = LogContext(event="application_shutdown")

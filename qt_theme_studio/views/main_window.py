@@ -344,7 +344,7 @@ class QtThemeStudioMainWindow(QMainWindow):
                 | QFileDialog.Option.ReadOnly  # 読み取り専用モード
             )
 
-            # 同期的にファイルダイアログを表示（フォーカス問題を解決）
+            # 同期的にファイルダイアログを表示(フォーカス問題を解決)
             if dialog.exec() == QFileDialog.DialogCode.Accepted:
                 file_path = dialog.selectedFiles()[0]
                 self._load_theme_from_file(file_path)

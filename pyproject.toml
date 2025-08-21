@@ -220,6 +220,13 @@ ignore = [
     "E203",  # whitespace before ':'
 ]
 
+# ファイル別の無視ルール
+[tool.ruff.lint.per-file-ignores]
+"qt_theme_studio/logger.py" = [
+    "N802",  # Function name should be lowercase (継承元のdoRollover)
+    "N803",  # Argument name should be lowercase (継承元のmaxBytes, backupCount)
+]
+
 # インポート整理設定
 [tool.ruff.lint.isort]
 known-first-party = ["qt_theme_studio"]
