@@ -23,15 +23,6 @@ from .adapters.theme_adapter import (
     ThemeValidationError,
 )
 
-# ジェネレーターのインポート（遅延読み込み）
-def _get_theme_generator():
-    """ThemeGeneratorを遅延読み込み"""
-    from .generators.theme_generator import ThemeGenerator
-    return ThemeGenerator
-
-# 後方互換性のため
-ThemeGenerator = None
-
 # ログシステムのインポート
 from .logger import (
     LogCategory,
@@ -47,34 +38,53 @@ from .logger import (
     setup_logging,
 )
 
-# ビューのインポート（遅延読み込み）
+
+# ジェネレーターのインポート(遅延読み込み)
+def _get_theme_generator():
+    """ThemeGeneratorを遅延読み込み"""
+    from .generators.theme_generator import ThemeGenerator
+
+    return ThemeGenerator
+
+
+# 後方互換性のため
+ThemeGenerator = None
+
+
+# ビューのインポート(遅延読み込み)
 def _get_main_window():
     """QtThemeStudioMainWindowを遅延読み込み"""
     from .views.main_window import QtThemeStudioMainWindow
+
     return QtThemeStudioMainWindow
+
 
 def _get_preview_components():
     """PreviewWindow, WidgetShowcaseを遅延読み込み"""
     from .views.preview import PreviewWindow, WidgetShowcase
+
     return PreviewWindow, WidgetShowcase
+
 
 # 後方互換性のため
 QtThemeStudioMainWindow = None
 PreviewWindow = None
 WidgetShowcase = None
 
+
 # 動的インポート関数
 def __getattr__(name: str):
     """動的インポートによる遅延読み込み"""
     if name == "ThemeGenerator":
         return _get_theme_generator()
-    elif name == "QtThemeStudioMainWindow":
+    if name == "QtThemeStudioMainWindow":
         return _get_main_window()
-    elif name == "PreviewWindow":
+    if name == "PreviewWindow":
         return _get_preview_components()[0]
-    elif name == "WidgetShowcase":
+    if name == "WidgetShowcase":
         return _get_preview_components()[1]
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
 
 __all__ = [
     "LogCategory",
