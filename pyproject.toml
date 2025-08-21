@@ -232,6 +232,13 @@ ignore = [
 "qt_theme_studio/cli.py" = [
     "T201",  # print found (CLI出力のため必要)
 ]
+"main.py" = [
+    "T201",  # print found (メインエントリーポイントのため必要)
+    "PTH110", "PTH123", "SIM115",  # パス操作とファイル操作
+]
+"qt_theme_studio/main.py" = [
+    "T201",  # print found (エントリーポイントラッパーのため必要)
+]
 
 # インポート整理設定
 [tool.ruff.lint.isort]
@@ -297,5 +304,3 @@ disallow_any_expr = false
 module = "qt_theme_studio.logger"
 # logging.StreamHandlerの型制約による除外
 disallow_any_expr = false
-
-

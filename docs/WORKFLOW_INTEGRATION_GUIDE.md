@@ -185,17 +185,17 @@ workflows:
   pre_commit:
     enabled: true
     steps: [...]
-  
+
 # 品質閾値
 quality_thresholds:
   coverage_minimum: 80
   test_success_rate: 95
-  
+
 # 通知設定
 notifications:
   enabled: true
   channels: [...]
-  
+
 # エラーハンドリング
 error_handling:
   auto_recovery:
@@ -323,7 +323,7 @@ workflows:
         command: "echo 'カスタム処理1'"
         required: true
         timeout: 60
-        
+
       - name: "custom_step_2"
         description: "カスタムステップ2"
         command: "python scripts/my_custom_script.py"
@@ -469,14 +469,14 @@ dashboard.stop_realtime_monitoring()
 # scripts/plugins/my_plugin.py
 class MyCustomPlugin:
     """カスタムプラグインの例"""
-    
+
     async def execute(self, step_config, **kwargs):
         """プラグインの実行ロジック"""
         print(f"カスタムプラグインを実行中: {step_config['name']}")
-        
+
         # カスタム処理をここに実装
         # ...
-        
+
         return True  # 成功時はTrue、失敗時はFalse
 
 # プラグインの登録
@@ -495,7 +495,7 @@ from scripts.quality_dashboard import IntegratedQualityDashboard
 
 class CustomDashboard(IntegratedQualityDashboard):
     """カスタムダッシュボード"""
-    
+
     def collect_custom_metrics(self):
         """カスタムメトリクスを収集"""
         return {
@@ -503,12 +503,12 @@ class CustomDashboard(IntegratedQualityDashboard):
             "custom_metric_2": "カスタム値",
             "timestamp": datetime.now().isoformat()
         }
-    
+
     def run_integrated_dashboard(self, **kwargs):
         """統合ダッシュボードを実行（カスタムメトリクス付き）"""
         # 標準メトリクスを収集
         super().run_integrated_dashboard(**kwargs)
-        
+
         # カスタムメトリクスを追加
         self.results["custom_metrics"] = self.collect_custom_metrics()
 ```
@@ -520,19 +520,19 @@ class CustomDashboard(IntegratedQualityDashboard):
 ```python
 class SlackNotifier:
     """Slack通知クラス"""
-    
+
     def __init__(self, webhook_url):
         self.webhook_url = webhook_url
-    
+
     def send_notification(self, message, level="INFO"):
         """Slackに通知を送信"""
         import requests
-        
+
         payload = {
             "text": f"[{level}] {message}",
             "username": "Qt-Theme-Studio Bot"
         }
-        
+
         requests.post(self.webhook_url, json=payload)
 
 # 設定ファイルでの使用
@@ -762,7 +762,7 @@ environments:
   development:
     debug: true
     skip_security_scan: true
-    
+
   production:
     debug: false
     strict_validation: true

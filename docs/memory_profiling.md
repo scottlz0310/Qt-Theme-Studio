@@ -230,7 +230,7 @@ result = monitor.run_memory_profiling_test(duration_minutes=5)
 if result['success']:
     print(f"メモリ変化: {result['memory_change_mb']:+.1f}MB")
     print(f"検出されたリーク数: {result['leaks_detected']}")
-    
+
     if result['summary']['memory_stable']:
         print("✅ メモリ使用量は安定しています")
     else:

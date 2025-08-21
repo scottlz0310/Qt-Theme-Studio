@@ -134,7 +134,7 @@ if defined CONDA_DEFAULT_ENV (
 REM venvディレクトリの存在をチェック
 if exist "venv" (
     call :log_info "既存のvenv環境が見つかりました"
-    
+
     REM アクティベート
     call venv\Scripts\activate.bat
     set "PYTHON_CMD=python"
@@ -152,7 +152,7 @@ if /i "%create_venv%"=="n" (
     set "PYTHON_CMD=python"
 ) else (
     call :log_info "仮想環境を作成中..."
-    
+
     python -m venv venv
     if %errorlevel% neq 0 (
         call :error_exit "仮想環境の作成に失敗しました"
@@ -161,7 +161,7 @@ if /i "%create_venv%"=="n" (
     REM アクティベート
     call venv\Scripts\activate.bat
     set "PYTHON_CMD=python"
-    
+
     call :log_success "仮想環境を作成してアクティベートしました"
     call :log_info "今後は以下のコマンドで仮想環境をアクティベートできます:"
     call :log_info "  venv\Scripts\activate.bat"

@@ -58,10 +58,10 @@ jobs:
         # タグ名からバージョンを抽出
         VERSION=${GITHUB_REF#refs/tags/}
         echo "リリースバージョン: $VERSION"
-        
+
         # 前のタグを取得
         PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-        
+
         if [ -n "$PREV_TAG" ]; then
           echo "前のタグ: $PREV_TAG"
           python scripts/changelog_generator.py --since "$PREV_TAG" --version "$VERSION"

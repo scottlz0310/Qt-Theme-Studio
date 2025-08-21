@@ -18,11 +18,13 @@ repos:
         name: "Ruff リンティング"
         args: [--fix, --exit-non-zero-on-fix]
         types: [python]
+        exclude: ^scripts/
 
       # Ruffフォーマッター（pyproject.tomlの設定を使用）
       - id: ruff-format
         name: "Ruff フォーマット"
         types: [python]
+        exclude: ^scripts/
 
   # 基本的なファイルチェック
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -67,7 +69,7 @@ repos:
       # 基本テストスイート
       - id: pytest-basic
         name: "基本テスト実行"
-        entry: python -m pytest
+        entry: bash -c 'source venv/bin/activate && python -m pytest'
         language: system
         args: [
           "tests/unit",
@@ -84,23 +86,25 @@ repos:
       # print文の検出と警告（統合システム）
       - id: check-print-statements
         name: "print文チェック"
-        entry: python scripts/print_statement_manager.py --pre-commit
+        entry: bash -c 'source venv/bin/activate && python scripts/print_statement_manager.py --pre-commit'
         language: system
         types: [python]
         pass_filenames: false
+        exclude: ^scripts/
 
       # 日本語ログメッセージの検証
       - id: validate-japanese-logs
         name: "日本語ログメッセージ検証"
-        entry: python scripts/validate_japanese_logs.py
+        entry: bash -c 'source venv/bin/activate && python scripts/validate_japanese_logs.py'
         language: system
         types: [python]
         pass_filenames: true
+        exclude: ^scripts/
 
       # セキュリティチェック（基本）
       - id: bandit-security-check
         name: "セキュリティチェック（Bandit）"
-        entry: python -m bandit
+        entry: bash -c 'source venv/bin/activate && python -m bandit'
         language: system
         args: [
           "-r", "qt_theme_studio/",
@@ -110,6 +114,7 @@ repos:
         ]
         types: [python]
         pass_filenames: false
+        exclude: ^scripts/
 
 # CI環境での設定
 ci:

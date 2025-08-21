@@ -137,7 +137,11 @@ def main() -> None:
     elif command == "test" and len(sys.argv) >= 3:
         sys.exit(test_theme(sys.argv[2]))
     elif command == "ci-report" and len(sys.argv) >= 3:
-        output = sys.argv[4] if len(sys.argv) > 4 and sys.argv[3] == "--output" else "ci_report.json"
+        output = (
+            sys.argv[4]
+            if len(sys.argv) > 4 and sys.argv[3] == "--output"
+            else "ci_report.json"
+        )
         sys.exit(ci_report(sys.argv[2], output))
     else:
         print(f"❌ 不明なコマンド: {command}")

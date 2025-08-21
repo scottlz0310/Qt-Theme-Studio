@@ -85,7 +85,7 @@ detect_environment() {
 
     OS=$(uname -s)
     ARCH=$(uname -m)
-    
+
     log_info "OS: $OS"
     log_info "アーキテクチャ: $ARCH"
 
@@ -93,7 +93,7 @@ detect_environment() {
     if [[ -f /proc/version ]] && grep -qi microsoft /proc/version; then
         IS_WSL=true
         log_info "WSL環境が検出されました"
-        
+
         # WSLgの検出
         if [[ -n "$WAYLAND_DISPLAY" ]]; then
             IS_WSLG=true
@@ -110,7 +110,7 @@ detect_environment() {
     # macOSの場合の追加チェック
     if [[ "$OS" == "Darwin" ]]; then
         log_info "macOS環境が検出されました"
-        
+
         # Homebrewの存在確認
         if command -v brew &> /dev/null; then
             log_info "Homebrewが利用可能です"
@@ -143,7 +143,7 @@ setup_virtual_environment() {
     # venvディレクトリの存在をチェック
     if [[ -d "venv" ]]; then
         log_info "既存のvenv環境が見つかりました"
-        
+
         # アクティベート
         source venv/bin/activate
         PYTHON_CMD="python"
@@ -162,7 +162,7 @@ setup_virtual_environment() {
         PYTHON_CMD="python3"
     else
         log_info "仮想環境を作成中..."
-        
+
         if ! python3 -m venv venv; then
             error_exit "仮想環境の作成に失敗しました"
         fi
@@ -170,7 +170,7 @@ setup_virtual_environment() {
         # アクティベート
         source venv/bin/activate
         PYTHON_CMD="python"
-        
+
         log_success "仮想環境を作成してアクティベートしました"
         log_info "今後は以下のコマンドで仮想環境をアクティベートできます:"
         log_info "  source venv/bin/activate"
@@ -186,7 +186,7 @@ run_dev_setup() {
     fi
 
     log_info "Python開発環境セットアップスクリプトを実行します..."
-    
+
     if ! $PYTHON_CMD scripts/dev_setup.py; then
         error_exit "開発環境セットアップスクリプトの実行に失敗しました"
     fi
@@ -305,7 +305,7 @@ show_completion_message() {
     echo "🎉 Qt-Theme-Studio 開発環境のセットアップが完了しました！"
     echo
     echo "📋 次のステップ:"
-    
+
     if [[ -d "venv" ]] && [[ -z "$VIRTUAL_ENV" ]]; then
         echo "  1. 仮想環境をアクティベートしてください:"
         echo "     source venv/bin/activate"
@@ -349,14 +349,14 @@ show_completion_message() {
     echo "  README.md                           # プロジェクト概要"
     echo "  docs/                               # ドキュメント"
     echo "  .pre-commit-config.yaml             # pre-commit設定"
-    
+
     if [[ "$IS_WSL" == true ]]; then
         echo "  .env.wsl                            # WSL環境変数設定"
         if [[ "$IS_WSLG" == true ]]; then
             echo "  .env.wslg                           # WSLg環境変数設定"
         fi
     fi
-    
+
     echo
     echo "問題が発生した場合は、ログを確認するか、issueを作成してください。"
     echo "Happy coding! 🚀"

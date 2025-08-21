@@ -37,7 +37,7 @@ ModuleNotFoundError: No module named 'scripts.workflow_engine'
    ```bash
    # 仮想環境の存在確認
    ls -la venv/
-   
+
    # 仮想環境の有効化
    source venv/bin/activate  # Linux/Mac
    venv\Scripts\activate     # Windows
@@ -77,7 +77,7 @@ PermissionError: [Errno 13] Permission denied: '.kiro/workflow/config.yml'
    ```bash
    # 権限の確認
    ls -la .kiro/workflow/
-   
+
    # 権限の修正
    chmod 644 .kiro/workflow/config.yml
    chmod 755 .kiro/workflow/
@@ -87,7 +87,7 @@ PermissionError: [Errno 13] Permission denied: '.kiro/workflow/config.yml'
    ```bash
    # 所有者の確認
    ls -la .kiro/
-   
+
    # 所有者の修正（必要に応じて）
    sudo chown -R $USER:$USER .kiro/
    ```
@@ -153,7 +153,7 @@ ConfigurationError: 設定ファイルの読み込みエラー: [Errno 2] No suc
    ```bash
    # ディレクトリの作成
    mkdir -p .kiro/workflow
-   
+
    # デフォルト設定の生成
    python scripts/config_manager.py
    ```
@@ -168,7 +168,7 @@ ConfigurationError: 設定ファイルの読み込みエラー: [Errno 2] No suc
    ```bash
    # 現在のディレクトリ確認
    pwd
-   
+
    # 設定ファイルの存在確認
    find . -name "config.yml" -type f
    ```
@@ -213,7 +213,7 @@ ValidationError: 設定に問題があります: 必須セクション 'workflow
    ```bash
    # バックアップ作成
    cp .kiro/workflow/config.yml .kiro/workflow/config.yml.backup
-   
+
    # デフォルト設定で再初期化
    rm .kiro/workflow/config.yml
    python scripts/config_manager.py
@@ -235,7 +235,7 @@ ValidationError: 設定に問題があります: 必須セクション 'workflow
    ```bash
    # 設定されている環境変数の確認
    env | grep WORKFLOW_
-   
+
    # 特定の環境変数の確認
    echo $WORKFLOW_COVERAGE_MIN
    ```
@@ -255,10 +255,10 @@ ValidationError: 設定に問題があります: 必須セクション 'workflow
    ```bash
    # 数値の場合
    export WORKFLOW_COVERAGE_MIN=85
-   
+
    # ブール値の場合
    export WORKFLOW_DEBUG=true
-   
+
    # 文字列の場合
    export WORKFLOW_LOG_LEVEL=DEBUG
    ```
@@ -334,7 +334,7 @@ ExecutionError: ワークフロー 'ci_pipeline' の実行中にエラーが発�
    ```bash
    # 設定ファイルの存在確認
    ls -la .pre-commit-config.yaml
-   
+
    # 設定の検証
    pre-commit validate-config
    ```
@@ -343,7 +343,7 @@ ExecutionError: ワークフロー 'ci_pipeline' の実行中にエラーが発�
    ```bash
    # 全ファイルに対して実行
    pre-commit run --all-files
-   
+
    # 特定のフックのみ実行
    pre-commit run ruff-check
    ```
@@ -364,7 +364,7 @@ ExecutionError: ワークフロー 'ci_pipeline' の実行中にエラーが発�
    ```bash
    # 実行中のプロセス確認
    ps aux | grep python
-   
+
    # プロセスの強制終了
    pkill -f workflow_engine
    ```
@@ -412,7 +412,7 @@ ImportError: No module named 'matplotlib'
    ```bash
    # Xvfbのインストール
    sudo apt-get install xvfb
-   
+
    # 仮想ディスプレイで実行
    xvfb-run -a python scripts/quality_dashboard.py --integrated
    ```
@@ -454,7 +454,7 @@ subprocess.CalledProcessError: Command 'pytest' returned non-zero exit status 1
    ```python
    # テスト用のダッシュボード実行
    from scripts.quality_dashboard import IntegratedQualityDashboard
-   
+
    dashboard = IntegratedQualityDashboard()
    # 実際のテスト実行をスキップしてモックデータを使用
    dashboard.results = {
@@ -610,7 +610,7 @@ OSError: [Errno 28] No space left on device
    ```bash
    # 古いログファイルの削除
    find logs/ -name "*.log" -mtime +7 -delete
-   
+
    # キャッシュのクリア
    rm -rf .kiro/cache/*
    ```
@@ -698,7 +698,7 @@ bandit.core.manager.BanditManager: Unable to find any files to scan
 1. **パスの正規化**
    ```python
    from pathlib import Path
-   
+
    # クロスプラットフォーム対応
    config_path = Path(".kiro") / "workflow" / "config.yml"
    ```
@@ -760,10 +760,10 @@ bandit.core.manager.BanditManager: Unable to find any files to scan
    ```bash
    # Ubuntu/Debian
    sudo apt-get install python3-dev python3-venv
-   
+
    # CentOS/RHEL
    sudo yum install python3-devel
-   
+
    # Arch Linux
    sudo pacman -S python python-pip
    ```
@@ -795,10 +795,10 @@ bandit.core.manager.BanditManager: Unable to find any files to scan
    ```bash
    # 設定マネージャーのテスト
    python scripts/config_manager.py
-   
+
    # ワークフローエンジンのテスト
    python scripts/workflow_engine.py
-   
+
    # ダッシュボードのテスト
    python scripts/quality_dashboard.py
    ```
@@ -816,7 +816,7 @@ bandit.core.manager.BanditManager: Unable to find any files to scan
    ```bash
    # パフォーマンスプロファイリング
    python -m cProfile -o profile.stats scripts/workflow_engine.py
-   
+
    # メモリプロファイリング
    python scripts/memory_profiler.py
    ```
@@ -855,10 +855,10 @@ logs/
    ```bash
    # エラーメッセージの検索
    grep -i error logs/*.log
-   
+
    # 特定の時間範囲のログ
    grep "2024-01-01 12:" logs/workflow.log
-   
+
    # 重要度別のログ
    grep -E "(ERROR|CRITICAL)" logs/*.log
    ```
@@ -867,7 +867,7 @@ logs/
    ```bash
    # 実行時間の分析
    grep "実行時間" logs/*_performance.log
-   
+
    # メモリ使用量の分析
    grep "メモリ" logs/*.log
    ```
@@ -876,7 +876,7 @@ logs/
    ```bash
    # JSONログの解析
    jq '.level == "ERROR"' logs/*_structured_*.log
-   
+
    # 特定のワークフローのログ
    jq '.workflow == "ci_pipeline"' logs/*_structured_*.log
    ```
@@ -909,7 +909,7 @@ notifications:
    ```bash
    # 設定ファイルの復旧
    cp .kiro/workflow/config.yml.backup .kiro/workflow/config.yml
-   
+
    # ログファイルのアーカイブ
    tar -czf logs_backup_$(date +%Y%m%d_%H%M%S).tar.gz logs/
    ```
@@ -918,11 +918,11 @@ notifications:
    ```bash
    # キャッシュのクリア
    rm -rf .kiro/cache/*
-   
+
    # 一時ファイルの削除
    find . -name "*.tmp" -delete
    find . -name "*.pyc" -delete
-   
+
    # システムの再初期化
    python scripts/config_manager.py
    python scripts/workflow_engine.py

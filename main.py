@@ -11,63 +11,67 @@ import sys
 # WSL2環境でのQtダイアログのフォーカス問題を解決するための環境変数設定
 def detect_display_environment():
     """ディスプレイ環境を正確に検出して適切な設定を適用"""
-    
+
     # WSL環境の検出
-    is_wsl = os.path.exists("/proc/version") and "microsoft" in open("/proc/version").read().lower()
-    
+    is_wsl = (
+        os.path.exists("/proc/version")
+        and "microsoft" in open("/proc/version").read().lower()
+    )
+
     # 環境変数の確認
     wayland_display = os.environ.get("WAYLAND_DISPLAY")
     x11_display = os.environ.get("DISPLAY")
-    
+
     # ファイルシステムの確認
-    wayland_socket = os.path.exists("/run/user/1000/wayland-0") or os.path.exists("/tmp/.X11-unix/X0")
+    wayland_socket = os.path.exists("/run/user/1000/wayland-0") or os.path.exists(
+        "/tmp/.X11-unix/X0"
+    )
     x11_socket = os.path.exists("/tmp/.X11-unix/X0")
-    
-    print(f"=== 環境検出 ===")
+
+    print("=== 環境検出 ===")
     print(f"WSL環境: {is_wsl}")
     print(f"WAYLAND_DISPLAY: {wayland_display}")
     print(f"DISPLAY: {x11_display}")
     print(f"Waylandソケット: {wayland_socket}")
     print(f"X11ソケット: {x11_socket}")
-    
+
     # WSLg (Wayland) の優先判定
     if is_wsl and wayland_display and wayland_socket:
         print("=== WSLg (Wayland) 環境を選択 ===")
         os.environ["QT_QPA_PLATFORM"] = "wayland"
         os.environ["XDG_SESSION_TYPE"] = "wayland"
         os.environ["WAYLAND_DISPLAY"] = wayland_display
-        
+
         # Wayland最適化
         os.environ["QT_WAYLAND_DISABLE_WINDOWDECORATION"] = "0"
         os.environ["QT_WAYLAND_FORCE_DPI"] = "96"
-        
+
         return "wslg"
-    
+
     # VcXsrv (X11) の判定
-    elif is_wsl and x11_display and x11_socket:
+    if is_wsl and x11_display and x11_socket:
         print("=== VcXsrv (X11) 環境を選択 ===")
         os.environ["QT_QPA_PLATFORM"] = "xcb"
         os.environ["DISPLAY"] = x11_display
-        
+
         # X11最適化
         os.environ["QT_LOGGING_RULES"] = "qt.qpa.*=false"
         os.environ["QT_ACCESSIBILITY"] = "0"
-        
+
         return "vcxsrv"
-    
+
     # ネイティブLinux環境
-    elif not is_wsl:
+    if not is_wsl:
         print("=== ネイティブLinux環境を検出 ===")
         # デフォルトのプラットフォームを使用
         return "native"
-    
+
     # フォールバック: X11を使用
-    else:
-        print("=== フォールバック: X11を使用 ===")
-        os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
-        os.environ.setdefault("DISPLAY", ":0")
-        
-        return "fallback"
+    print("=== フォールバック: X11を使用 ===")
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+    os.environ.setdefault("DISPLAY", ":0")
+
+    return "fallback"
 
 
 # 環境検出と設定
