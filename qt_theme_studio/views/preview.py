@@ -303,9 +303,13 @@ class WidgetShowcase:
         """
         try:
             self.apply_theme_to_widgets(theme_data)
-            self.logger.info("ウィジェットショーケースにテーマを適用しました", LogCategory.UI)
+            self.logger.info(
+                "ウィジェットショーケースにテーマを適用しました", LogCategory.UI
+            )
         except Exception as e:
-            self.logger.error(f"ウィジェットショーケースへのテーマ適用エラー: {e}", LogCategory.UI)
+            self.logger.error(
+                f"ウィジェットショーケースへのテーマ適用エラー: {e}", LogCategory.UI
+            )
 
     def apply_theme_to_widgets(self, theme_data: dict[str, Any]) -> None:
         """ウィジェットにテーマを適用します
@@ -889,34 +893,48 @@ class WidgetShowcase:
 
             return {
                 "name": str(theme_data.get("name", "Unknown")),
-                "display_name": str(theme_data.get(
-                    "display_name", theme_data.get("name", "Unknown")
-                )),
+                "display_name": str(
+                    theme_data.get("display_name", theme_data.get("name", "Unknown"))
+                ),
                 "description": str(theme_data.get("description", "")),
                 "primaryColor": str(colors.get("primary", "#007acc")),
-                "accentColor": str(colors.get("accent", colors.get("primary", "#007acc"))),
+                "accentColor": str(
+                    colors.get("accent", colors.get("primary", "#007acc"))
+                ),
                 "backgroundColor": str(colors.get("background", "#ffffff")),
                 "textColor": str(colors.get("text", "#333333")),
                 "button": {
-                    "background": str(colors.get(
-                        "button_background", colors.get("primary", "#007acc")
-                    )),
-                    "text": str(colors.get("button_text", colors.get("text", "#ffffff"))),
+                    "background": str(
+                        colors.get(
+                            "button_background", colors.get("primary", "#007acc")
+                        )
+                    ),
+                    "text": str(
+                        colors.get("button_text", colors.get("text", "#ffffff"))
+                    ),
                 },
                 "input": {
-                    "background": str(colors.get(
-                        "input_background", colors.get("background", "#ffffff")
-                    )),
-                    "text": str(colors.get("input_text", colors.get("text", "#333333"))),
-                    "border": str(colors.get(
-                        "input_border", colors.get("primary", "#007acc")
-                    )),
+                    "background": str(
+                        colors.get(
+                            "input_background", colors.get("background", "#ffffff")
+                        )
+                    ),
+                    "text": str(
+                        colors.get("input_text", colors.get("text", "#333333"))
+                    ),
+                    "border": str(
+                        colors.get("input_border", colors.get("primary", "#007acc"))
+                    ),
                 },
                 "status": {
-                    "background": str(colors.get(
-                        "status_background", colors.get("background", "#ffffff")
-                    )),
-                    "text": str(colors.get("status_text", colors.get("text", "#333333"))),
+                    "background": str(
+                        colors.get(
+                            "status_background", colors.get("background", "#ffffff")
+                        )
+                    ),
+                    "text": str(
+                        colors.get("status_text", colors.get("text", "#333333"))
+                    ),
                     "border": str(colors.get("status_border", "#dee2e6")),
                 },
             }
@@ -979,11 +997,17 @@ class PreviewWindow:
         try:
             if self.widget_showcase:
                 self.widget_showcase.apply_theme(theme_data)
-                self.logger.info("プレビューウィンドウにテーマを適用しました", LogCategory.UI)
+                self.logger.info(
+                    "プレビューウィンドウにテーマを適用しました", LogCategory.UI
+                )
             else:
-                self.logger.warning("ウィジェットショーケースが作成されていません", LogCategory.UI)
+                self.logger.warning(
+                    "ウィジェットショーケースが作成されていません", LogCategory.UI
+                )
         except Exception as e:
-            self.logger.error(f"プレビューウィンドウへのテーマ適用エラー: {e}", LogCategory.UI)
+            self.logger.error(
+                f"プレビューウィンドウへのテーマ適用エラー: {e}", LogCategory.UI
+            )
 
     def create_widget(self) -> Any:
         """プレビューウィンドウウィジェットを作成します
@@ -1194,7 +1218,7 @@ class PreviewWindow:
         results: dict[str, Any] = {
             "tested_sizes": [],
             "layout_issues": [],
-            "performance_data": []
+            "performance_data": [],
         }
 
         original_size = self.widget.size()

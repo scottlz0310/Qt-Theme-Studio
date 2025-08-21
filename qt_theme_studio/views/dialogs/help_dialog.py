@@ -6,26 +6,19 @@ Qt-Theme-Studioのアプリケーション内ヘルプシステムを提供し�
 """
 
 from typing import Any
-from qt_theme_studio.adapters.qt_adapter import QtAdapter
 
-# Qt モジュールの動的インポート
-qt_modules = QtAdapter().get_qt_modules()
-QDialog = qt_modules["QtWidgets"].QDialog
-QVBoxLayout = qt_modules["QtWidgets"].QVBoxLayout
-QHBoxLayout = qt_modules["QtWidgets"].QHBoxLayout
-QTextBrowser = qt_modules["QtWidgets"].QTextBrowser
-QTreeWidget = qt_modules["QtWidgets"].QTreeWidget
-QTreeWidgetItem = qt_modules["QtWidgets"].QTreeWidgetItem
-QPushButton = qt_modules["QtWidgets"].QPushButton
-QSplitter = qt_modules["QtWidgets"].QSplitter
-QLabel = qt_modules["QtWidgets"].QLabel
-QFrame = qt_modules["QtWidgets"].QFrame
-Qt = qt_modules["QtCore"].Qt
-QSize = qt_modules["QtCore"].QSize
-pyqt_signal = (
-    qt_modules["QtCore"].pyqtSignal
-    if "pyqtSignal" in qt_modules["QtCore"].__dict__
-    else qt_modules["QtCore"].Signal
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtWidgets import (
+    QDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSplitter,
+    QTextBrowser,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QVBoxLayout,
 )
 
 
@@ -184,7 +177,7 @@ class HelpDialog(QDialog):
         """初期コンテンツを読み込み"""
         self.content_browser.setHtml(self.help_content["welcome"])
 
-    def _on_toc_item_clicked(self, item: QTreeWidgetItem, _column: int) -> None:
+    def _on_toc_item_clicked(self, item: "QTreeWidgetItem", _column: int) -> None:
         """
         目次アイテムクリック時の処理
 

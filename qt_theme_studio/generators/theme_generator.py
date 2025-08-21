@@ -4,7 +4,7 @@
 背景色から自動的に調和の取れたテーマを生成
 """
 
-from typing import Any, Tuple
+from typing import Any
 
 from PySide6.QtGui import QColor
 

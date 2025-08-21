@@ -16,7 +16,7 @@ from contextlib import contextmanager, suppress
 from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Optional, Union, TextIO
+from typing import Any, Optional, TextIO, Union
 
 
 class LogLevel(Enum):
@@ -501,7 +501,9 @@ class QtThemeStudioLogger:
         )
 
     @contextmanager
-    def performance_timer(self, operation: str, context: Optional[LogContext] = None) -> Any:
+    def performance_timer(
+        self, operation: str, context: Optional[LogContext] = None
+    ) -> Any:
         """パフォーマンス測定用コンテキストマネージャー"""
         start_time = time.time()
         try:

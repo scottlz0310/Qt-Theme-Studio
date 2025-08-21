@@ -211,10 +211,14 @@ class ThemeAdapter:
             ThemeLoadError: インポートに失敗した場合
         """
         try:
-            # 一時的なダミー実装（import_serviceが存在しないため）
+            # 一時的なダミー実装(import_serviceが存在しないため)
             # TODO: import_serviceを実装後に置き換える
-            theme_data = {"name": "imported_theme", "version": "1.0.0", "type": "imported"}
-            
+            theme_data = {
+                "name": "imported_theme",
+                "version": "1.0.0",
+                "type": "imported",
+            }
+
             self.logger.info(f"テーマファイルをインポートしました: {file_path}")
             return theme_data
 
@@ -245,9 +249,9 @@ class ThemeAdapter:
 
         try:
             self._validate_theme_data(theme_data)
-        except ThemeValidationError:
+        except ThemeValidationError as e:
             result["is_valid"] = False
-            result["errors"].append("")
+            result["errors"].append(str(e))
 
         # 追加の検証ロジック
         self._validate_theme_structure(theme_data, result)
@@ -283,7 +287,7 @@ class ThemeAdapter:
             colors = self._extract_colors_from_qss(qss_content)
             if not isinstance(colors, dict):
                 colors = {}
-            
+
             theme_data: dict[str, Any] = {
                 "name": theme_path.stem,
                 "version": "1.0.0",
@@ -311,7 +315,7 @@ class ThemeAdapter:
             colors = self._extract_colors_from_css(css_content)
             if not isinstance(colors, dict):
                 colors = {}
-            
+
             theme_data: dict[str, Any] = {
                 "name": theme_path.stem,
                 "version": "1.0.0",
@@ -346,7 +350,6 @@ class ThemeAdapter:
                 content = theme_data["content"]
                 if isinstance(content, str):
                     return content
-                # contentが文字列でない場合は生成する
 
             # テーマデータからQSSを生成
             return self._generate_qss_from_theme(theme_data)
@@ -364,7 +367,6 @@ class ThemeAdapter:
                 content = theme_data["content"]
                 if isinstance(content, str):
                     return content
-                # contentが文字列でない場合は生成する
 
             # テーマデータからCSSを生成
             return self._generate_css_from_theme(theme_data)
@@ -430,7 +432,7 @@ class ThemeAdapter:
                     return True
                 except ValueError:
                     # 16進数として解析できない場合は次のチェックに進む
-                    pass  # noqa: B901, E501, W0612, S110
+                    pass
 
         # RGB/RGBA形式の確認(簡易版)
         if color_value.startswith(("rgb(", "rgba(")):
@@ -454,7 +456,7 @@ class ThemeAdapter:
             "lightgrey",
             "transparent",
         }
-        
+
         # 名前付き色に一致するかチェック
         return color_value.lower() in named_colors
 

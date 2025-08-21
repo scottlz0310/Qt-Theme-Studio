@@ -226,6 +226,9 @@ ignore = [
     "N802",  # Function name should be lowercase (継承元のdoRollover)
     "N803",  # Argument name should be lowercase (継承元のmaxBytes, backupCount)
 ]
+"qt_theme_studio/adapters/qt_adapter.py" = [
+    "N806",  # Variable name should be lowercase (Qtモジュール名の統一性のため)
+]
 
 # インポート整理設定
 [tool.ruff.lint.isort]
@@ -279,3 +282,15 @@ module = [
     "PyQt5.*",
 ]
 ignore_missing_imports = true
+
+# 外部ライブラリ制約の除外設定
+[[tool.mypy.overrides]]
+module = "qt_theme_studio.generators.theme_generator"
+# QColor.getHsl()の型定義不備による除外
+disallow_untyped_calls = false
+disallow_any_expr = false
+
+[[tool.mypy.overrides]]
+module = "qt_theme_studio.logger"
+# logging.StreamHandlerの型制約による除外
+disallow_any_expr = false
