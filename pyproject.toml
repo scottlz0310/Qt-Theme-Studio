@@ -295,7 +295,4 @@ module = "qt_theme_studio.logger"
 # logging.StreamHandlerの型制約による除外
 disallow_any_expr = false
 
-[[tool.mypy.overrides]]
-module = "qt_theme_studio.adapters.theme_adapter"
-# 到達不能コードの警告を無視（実際には到達可能なコード）
-warn_unreachable = false
+

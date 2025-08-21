@@ -416,9 +416,6 @@ class ThemeAdapter:
 
     def _is_valid_color(self, color_value: str) -> bool:
         """色値が有効かどうかを確認する"""
-        if not isinstance(color_value, str):
-            return False
-
         color_value = color_value.strip()
 
         # 16進数カラーコードの確認
@@ -426,8 +423,8 @@ class ThemeAdapter:
             hex_part = color_value[1:]
             if len(hex_part) in [3, 6, 8]:  # #RGB, #RRGGBB, #RRGGBBAA
                 # 16進数として有効かチェック
-                if all(c in "0123456789abcdefABCDEF" for c in hex_part):
-                    return True
+                return all(c in "0123456789abcdefABCDEF" for c in hex_part)
+            return False  # 無効な長さの16進数
 
         # RGB/RGBA形式の確認(簡易版)
         if color_value.startswith(("rgb(", "rgba(")):
