@@ -7,7 +7,6 @@ Qt-Theme-Studio CLI
 import json
 import sys
 from pathlib import Path
-from typing import Any
 
 import qt_theme_manager
 
@@ -15,7 +14,7 @@ import qt_theme_manager
 def quality_check(theme_file: str) -> int:
     """テーマ品質チェック"""
     try:
-        with open(theme_file, encoding="utf-8") as f:
+        with Path(theme_file).open(encoding="utf-8") as f:
             theme_data = json.load(f)
 
         errors = []
@@ -31,9 +30,8 @@ def quality_check(theme_file: str) -> int:
             for error in errors:
                 print(f"  - {error}")
             return 1
-        else:
-            print("✅ 品質チェック合格")
-            return 0
+        print("✅ 品質チェック合格")
+        return 0
 
     except Exception as e:
         print(f"❌ エラー: {e}")
@@ -43,7 +41,7 @@ def quality_check(theme_file: str) -> int:
 def test_theme(theme_file: str) -> int:
     """テーマ統合テスト"""
     try:
-        with open(theme_file, encoding="utf-8") as f:
+        with Path(theme_file).open(encoding="utf-8") as f:
             theme_data = json.load(f)
 
         print("🧪 Qt-Theme-Manager統合テスト")
@@ -52,19 +50,19 @@ def test_theme(theme_file: str) -> int:
 
         try:
             # ThemeLoaderテスト
-            loader = qt_theme_manager.ThemeLoader()
+            qt_theme_manager.ThemeLoader()
             print("✅ ThemeLoader初期化成功")
 
             # StylesheetGeneratorテスト
             if "colors" in theme_data:
-                generator = qt_theme_manager.StylesheetGenerator(theme_data)
+                qt_theme_manager.StylesheetGenerator(theme_data)
                 print("✅ StylesheetGenerator初期化成功")
 
             print("✅ 全テスト合格")
             return 0
         except Exception as qt_error:
             print(f"⚠️ Qt-Theme-Manager テストスキップ: {qt_error}")
-            print("✅ 基本テスト合格（CI環境）")
+            print("✅ 基本テスト合格(CI環境)")
             return 0
 
     except Exception as e:
@@ -77,7 +75,7 @@ def ci_report(theme_file: str, output: str = "ci_report.json") -> int:
     try:
         from datetime import datetime
 
-        with open(theme_file, encoding="utf-8") as f:
+        with Path(theme_file).open(encoding="utf-8") as f:
             theme_data = json.load(f)
 
         # 品質スコア計算
@@ -112,7 +110,7 @@ def ci_report(theme_file: str, output: str = "ci_report.json") -> int:
             "theme_file": theme_file,
         }
 
-        with open(output, "w", encoding="utf-8") as f:
+        with Path(output).open("w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
 
         print("✅ CI/CDレポート生成完了")
@@ -133,7 +131,7 @@ def main() -> None:
         sys.exit(1)
 
     command = sys.argv[1]
-    
+
     if command == "quality-check" and len(sys.argv) >= 3:
         sys.exit(quality_check(sys.argv[2]))
     elif command == "test" and len(sys.argv) >= 3:

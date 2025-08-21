@@ -229,6 +229,9 @@ ignore = [
 "qt_theme_studio/adapters/qt_adapter.py" = [
     "N806",  # Variable name should be lowercase (Qtモジュール名の統一性のため)
 ]
+"qt_theme_studio/cli.py" = [
+    "T201",  # print found (CLI出力のため必要)
+]
 
 # インポート整理設定
 [tool.ruff.lint.isort]
