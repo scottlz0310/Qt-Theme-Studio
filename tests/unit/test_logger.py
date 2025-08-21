@@ -326,6 +326,7 @@ class TestLoggerFunctions:
         """setup_logging関数のテスト"""
         with patch("qt_theme_studio.logger.get_logger") as mock_get_logger:
             mock_logger = Mock()
+            mock_logger.logger = Mock()
             mock_get_logger.return_value = mock_logger
 
             setup_logging(LogLevel.DEBUG)

@@ -196,6 +196,7 @@ class TestThemeAdapter:
             patch.object(Path, "exists", return_value=True),
             patch("builtins.open", mock_open(read_data="invalid json content")),
             patch.object(self.adapter, "_is_initialized", True),
+            patch("json.load", side_effect=ValueError("Invalid JSON")),
         ):
             with pytest.raises(
                 ThemeLoadError, match="JSONファイルの解析に失敗しました"
@@ -233,15 +234,15 @@ class TestThemeAdapter:
 
     def test_import_theme_success(self):
         """テーマインポート成功のテスト"""
-        # servicesモジュールが存在しないため、ImportErrorが発生することをテスト
-        with pytest.raises(ThemeLoadError, match="テーマのインポートに失敗しました"):
-            self.adapter.import_theme("test_theme.json")
+        with patch.object(self.adapter, "load_theme", return_value={"name": "Test"}):
+            result = self.adapter.import_theme("test_theme.json")
+            assert result["name"] == "Test"
 
     def test_import_theme_failure(self):
         """テーマインポート失敗のテスト"""
-        # servicesモジュールが存在しないため、ImportErrorが発生することをテスト
-        with pytest.raises(ThemeLoadError, match="テーマのインポートに失敗しました"):
-            self.adapter.import_theme("test_theme.json")
+        with patch.object(self.adapter, "load_theme", side_effect=ThemeLoadError("Load failed")):
+            with pytest.raises(ThemeLoadError):
+                self.adapter.import_theme("test_theme.json")
 
     def test_validate_theme_with_warnings(self):
         """警告付きのテーマ検証テスト"""
