@@ -38,12 +38,21 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Qt依存関係のセットアップ
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb libegl1-mesa-dev libgl1-mesa-dev libglib2.0-0 libxkbcommon-x11-0
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        sleep 3
+
     - name: 依存関係のインストール
       run: |
         python -m pip install --upgrade pip
-        pip install -e .[dev]
-        # qt-theme-managerをGitHubから直接インストール
         pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+        pip install -e .[dev]
+      env:
+        QT_QPA_PLATFORM: offscreen
+        DISPLAY: ":99"
 
     - name: テーマファイル検索
       id: find-themes
