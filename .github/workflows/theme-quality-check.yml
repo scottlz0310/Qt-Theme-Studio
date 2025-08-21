@@ -89,8 +89,8 @@ jobs:
             echo "品質チェック: $theme_file"
             echo "===================="
 
-            # テーマ品質チェック実行
-            python -c "import json,sys; data=json.load(open('$theme_file')); errors=[f'必須フィールドが不足: {f}' for f in ['name','colors'] if f not in data]; print(f'✅ テーマファイル: $theme_file'); print(f'📊 エラー: {len(errors)}個'); [print(f'  - {e}') for e in errors] if errors else print('✅ 品質チェック合格'); sys.exit(1 if errors else 0)"
+            # 品質チェック実行
+            python -m qt_theme_studio.cli quality-check "$theme_file"
 
             # 終了コードを保存
             if [ $? -ne 0 ]; then
@@ -125,8 +125,8 @@ jobs:
             echo "自動テスト: $theme_file"
             echo "===================="
 
-            # Qt-Theme-Manager統合テスト
-            python -c "import json,qt_theme_manager; data=json.load(open('$theme_file')); print('🧪 Qt-Theme-Manager統合テスト'); print(f'📁 テーマファイル: $theme_file'); print(f'🎨 テーマ名: {data.get(\"name\", \"不明\")}'); loader=qt_theme_manager.ThemeLoader(); print('✅ ThemeLoader初期化成功'); generator=qt_theme_manager.StylesheetGenerator(data) if 'colors' in data else None; print('✅ StylesheetGenerator初期化成功' if generator else '⚠️ colorsフィールドなし'); print('✅ 全テスト合格')"
+            # 統合テスト実行
+            python -m qt_theme_studio.cli test "$theme_file"
 
             echo ""
           fi
@@ -141,7 +141,7 @@ jobs:
           echo "CI/CDレポート生成: $first_theme"
 
           # CI/CDレポート生成
-          python -c "import json; from datetime import datetime; data=json.load(open('$first_theme')); score=70+sum([5 for f in ['name','version','fonts','metadata'] if f in data])+[10 if 'colors' in data and len(data['colors'])>5 else 0][0]; report={'ci_summary':{'overall_status':'PASS' if score>=70 else 'FAIL','quality_score':min(score,100.0),'test_success_rate':100.0,'recommendations':['テーマファイルの構造は適切です','継続的な品質向上を推奨します'] if score>=70 else ['テーマファイルに必須フィールドを追加してください','より詳細な色設定を追加してください']},'generated_at':datetime.now().isoformat(),'theme_file':'$first_theme'}; json.dump(report,open('ci_report.json','w',encoding='utf-8'),indent=2,ensure_ascii=False); print('✅ CI/CDレポート生成完了')"
+          python -m qt_theme_studio.cli ci-report "$first_theme" --output "ci_report.json"
         fi
 
     - name: レポートファイルのアップロード
