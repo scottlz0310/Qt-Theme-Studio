@@ -53,7 +53,7 @@ class HelpDialog(QDialog):
 
         # ヘッダー
         header_frame = QFrame()
-        header_frame.setFrameStyle(QFrame.StyledPanel)
+        header_frame.setFrameStyle(QFrame.StyledPanel)  # type: ignore
         header_layout = QHBoxLayout(header_frame)
 
         title_label = QLabel("Qt-Theme-Studio ヘルプシステム")
@@ -63,7 +63,7 @@ class HelpDialog(QDialog):
         main_layout.addWidget(header_frame)
 
         # スプリッター(左:目次、右:コンテンツ)
-        splitter = QSplitter(Qt.Horizontal)
+        splitter = QSplitter(Qt.Horizontal)  # type: ignore
 
         # 左側:目次ツリー
         self.toc_tree = QTreeWidget()

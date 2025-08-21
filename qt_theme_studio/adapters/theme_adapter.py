@@ -266,7 +266,7 @@ class ThemeAdapter:
                 theme_data = json.load(f)
 
             self.logger.info(f"JSONテーマファイルを読み込みました: {theme_path}")
-            return theme_data
+            return theme_data  # type: ignore[no-any-return]
 
         except json.JSONDecodeError as e:
             error_msg = f"JSONファイルの解析に失敗しました: {e}"
@@ -284,9 +284,8 @@ class ThemeAdapter:
                 qss_content = f.read()
 
             # QSSをテーマデータに変換(基本的な実装)
-            colors = self._extract_colors_from_qss(qss_content)
-            if not isinstance(colors, dict):
-                colors = {}
+            colors_raw = self._extract_colors_from_qss(qss_content)
+            colors = colors_raw if isinstance(colors_raw, dict) else {}
 
             theme_data: dict[str, Any] = {
                 "name": theme_path.stem,
@@ -312,9 +311,8 @@ class ThemeAdapter:
                 css_content = f.read()
 
             # CSSをテーマデータに変換(基本的な実装)
-            colors = self._extract_colors_from_css(css_content)
-            if not isinstance(colors, dict):
-                colors = {}
+            colors_raw = self._extract_colors_from_css(css_content)
+            colors = colors_raw if isinstance(colors_raw, dict) else {}
 
             theme_data: dict[str, Any] = {
                 "name": theme_path.stem,
@@ -427,12 +425,9 @@ class ThemeAdapter:
         if color_value.startswith("#"):
             hex_part = color_value[1:]
             if len(hex_part) in [3, 6, 8]:  # #RGB, #RRGGBB, #RRGGBBAA
-                try:
-                    int(hex_part, 16)
+                # 16進数として有効かチェック
+                if all(c in "0123456789abcdefABCDEF" for c in hex_part):
                     return True
-                except ValueError:
-                    # 16進数として解析できない場合は次のチェックに進む
-                    pass
 
         # RGB/RGBA形式の確認(簡易版)
         if color_value.startswith(("rgb(", "rgba(")):

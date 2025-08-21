@@ -4,7 +4,7 @@
 背景色から自動的に調和の取れたテーマを生成
 """
 
-from typing import Any
+from typing import Any, Tuple
 
 from PySide6.QtGui import QColor
 
@@ -154,7 +154,10 @@ class ThemeGenerator:
     ) -> QColor:
         """基準色から指定されたコントラスト比の色を生成"""
         hsl_values = base_color.getHsl()
-        h, s, lightness, a = hsl_values  # type: ignore
+        h: int = hsl_values[0]  # type: ignore
+        s: int = hsl_values[1]  # type: ignore
+        lightness: int = hsl_values[2]  # type: ignore
+        a: int = hsl_values[3]  # type: ignore
 
         # コントラスト比に基づいて明度を調整
         if contrast_ratio > 0.5:
@@ -175,16 +178,19 @@ class ThemeGenerator:
     def _adjust_color(self, color: QColor, brightness: int, saturation: int) -> QColor:
         """色の明度・彩度を調整"""
         hsl_values = color.getHsl()
-        h, s, lightness, a = hsl_values  # type: ignore
+        h: int = hsl_values[0]  # type: ignore
+        s: int = hsl_values[1]  # type: ignore
+        lightness: int = hsl_values[2]  # type: ignore
+        a: int = hsl_values[3]  # type: ignore
 
         # 明度調整(-50 to 50)
-        lightness = max(0, min(255, lightness + brightness * 2.55))
+        new_lightness = max(0, min(255, lightness + brightness * 2.55))
 
         # 彩度調整(-50 to 50)
-        s = max(0, min(255, s + saturation * 2.55))
+        new_s = max(0, min(255, s + saturation * 2.55))
 
         adjusted_color = QColor()
-        adjusted_color.setHsl(int(h), int(s), int(lightness), int(a))
+        adjusted_color.setHsl(int(h), int(new_s), int(new_lightness), int(a))
         return adjusted_color
 
     def get_preset_themes(self) -> dict[str, dict[str, str]]:

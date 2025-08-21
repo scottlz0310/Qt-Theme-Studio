@@ -135,7 +135,7 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
         self.compress_backups = compress_backups
         # streamの型を明示的に指定
-        self.stream: Optional[TextIO] = None
+        self.stream: Optional[TextIO] = None  # type: ignore
 
     def doRollover(self) -> None:
         """ローテーション実行時の処理をオーバーライド"""
