@@ -100,7 +100,7 @@ class ThemeAdapter:
         theme_path = Path(theme_path)
 
         if not theme_path.exists():
-            error_msg = "テーマファイルが見つかりません: {theme_path}"
+            error_msg = f"テーマファイルが見つかりません: {theme_path}"
             self.logger.error(error_msg)
             raise ThemeLoadError(error_msg)
 
@@ -113,7 +113,7 @@ class ThemeAdapter:
                 return self._load_qss_theme(theme_path)
             if file_extension == ".css":
                 return self._load_css_theme(theme_path)
-            error_msg = "サポートされていないテーマファイル形式: {file_extension}"
+            error_msg = f"サポートされていないテーマファイル形式: {file_extension}"
             self.logger.error(error_msg)
             raise ThemeLoadError(error_msg)
 
@@ -155,13 +155,13 @@ class ThemeAdapter:
             with Path(save_path).open("w", encoding="utf-8") as f:
                 json.dump(theme_data, f, ensure_ascii=False, indent=2)
 
-            self.logger.info("テーマファイルを保存しました: {save_path}")
+            self.logger.info(f"テーマファイルを保存しました: {save_path}")
             return True
 
         except Exception as e:
             if isinstance(e, (ThemeSaveError, ThemeValidationError)):
                 raise
-            error_msg = "テーマファイルの保存に失敗しました: {str(e)}"
+            error_msg = f"テーマファイルの保存に失敗しました: {e!s}"
             self.logger.error(error_msg)
             raise ThemeSaveError(error_msg) from e
 
@@ -383,7 +383,7 @@ class ThemeAdapter:
         required_fields = ["name"]
         for field in required_fields:
             if field not in theme_data:
-                raise ThemeValidationError("必須フィールドが不足しています: {field}")
+                raise ThemeValidationError(f"必須フィールドが不足しています: {field}")
 
         # 名前の検証
         if not isinstance(theme_data["name"], str) or not theme_data["name"].strip():
@@ -411,7 +411,7 @@ class ThemeAdapter:
                 for _color_name, color_value in colors.items():
                     if not self._is_valid_color(color_value):
                         result["warnings"].append(
-                            "無効な色値が検出されました: {color_name} = {color_value}"
+                            f"無効な色値が検出されました: {_color_name} = {color_value}"
                         )
 
     def _is_valid_color(self, color_value: str) -> bool:
