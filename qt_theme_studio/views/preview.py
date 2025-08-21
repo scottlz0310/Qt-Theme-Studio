@@ -854,7 +854,7 @@ class WidgetShowcase:
             self.logger.info(f"色のデバッグ中にエラー: {e}")
 
     def _generate_stylesheet_from_theme(self, theme_data: dict[str, Any]) -> str:
-        """テーマデータからスタイルシートを生成します(qt-theme-manager使用)
+        """テーマデータからスタイルシートを生成します
 
         Args:
             theme_data: テーマデータ
@@ -862,31 +862,48 @@ class WidgetShowcase:
         Returns:
             str: 生成されたスタイルシート
         """
+        # まずフォールバックスタイルシートを生成
+        fallback_stylesheet = self._generate_fallback_stylesheet(theme_data)
+        
         try:
             # qt-theme-managerのStylesheetGeneratorを使用
             import qt_theme_manager
 
+            # テーマデータの検証
+            converted_theme = self._convert_to_qt_theme_manager_format(theme_data)
+            validation_result = self._validate_theme_for_qt_manager(converted_theme)
+            
+            if not validation_result["is_valid"]:
+                # エラーをユーザーに表示
+                self._show_theme_error_dialog(validation_result)
+                return fallback_stylesheet
+
             # 基本モードでスタイルシート生成(プレビュー用)
             generator = qt_theme_manager.StylesheetGenerator(
-                self._convert_to_qt_theme_manager_format(theme_data),
+                converted_theme,
                 advanced_mode=False,
             )
             stylesheet = generator.generate_qss()
 
-            self.logger.debug(
-                "qt-theme-managerでスタイルシートを生成しました", LogCategory.UI
-            )
-            if isinstance(stylesheet, str):
+            if isinstance(stylesheet, str) and stylesheet.strip():
+                self.logger.info(
+                    "qt-theme-managerでスタイルシートを正常生成しました", LogCategory.UI
+                )
                 return stylesheet
-            # スタイルシートが文字列でない場合は空文字列を返す
-            return ""
+            else:
+                error_msg = "qt-theme-managerが空のスタイルシートを返しました"
+                self._show_theme_warning_dialog(error_msg, "フォールバックスタイルを使用します")
+                return fallback_stylesheet
 
         except Exception as e:
-            self.logger.error(
-                f"qt-theme-managerでのスタイルシート生成に失敗: {e}", LogCategory.UI
-            )
-            # エラーの場合は空のスタイルシートを返す
-            return ""
+            error_msg = f"qt-theme-managerでのスタイルシート生成エラー: {e}"
+            self._show_theme_error_dialog({
+                "is_valid": False,
+                "errors": [str(e)],
+                "theme_data": theme_data,
+                "converted_theme": self._convert_to_qt_theme_manager_format(theme_data)
+            })
+            return fallback_stylesheet
 
     def _convert_to_qt_theme_manager_format(
         self, theme_data: dict[str, Any]
@@ -955,6 +972,190 @@ class WidgetShowcase:
                 "backgroundColor": "#ffffff",
                 "textColor": "#333333",
             }
+    
+    def _generate_fallback_stylesheet(self, theme_data: dict[str, Any]) -> str:
+        """フォールバックスタイルシートを生成"""
+        colors = theme_data.get("colors", {})
+        
+        # 基本色の取得
+        bg_color = colors.get("background", "#ffffff")
+        text_color = colors.get("text", "#333333")
+        primary_color = colors.get("primary", "#007acc")
+        accent_color = colors.get("accent", primary_color)
+        
+        return f"""
+/* フォールバックスタイルシート */
+QWidget {{
+    background-color: {bg_color};
+    color: {text_color};
+    font-family: 'Segoe UI', 'Meiryo', sans-serif;
+}}
+
+QPushButton {{
+    background-color: {primary_color};
+    color: #ffffff;
+    border: 2px solid {primary_color};
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: bold;
+}}
+
+QPushButton:hover {{
+    background-color: {accent_color};
+    border-color: {accent_color};
+}}
+
+QLineEdit, QTextEdit {{
+    background-color: {bg_color};
+    color: {text_color};
+    border: 2px solid {primary_color};
+    border-radius: 4px;
+    padding: 6px;
+}}
+
+QGroupBox {{
+    color: {text_color};
+    border: 2px solid {primary_color};
+    border-radius: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    font-weight: bold;
+}}
+
+QGroupBox::title {{
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px 0 5px;
+    background-color: {bg_color};
+    color: {text_color};
+}}
+        """.strip()
+    
+    def _validate_theme_for_qt_manager(self, theme_data: dict[str, Any]) -> dict[str, Any]:
+        """テーマデータがqt-theme-managerで使用可能か検証"""
+        errors = []
+        warnings = []
+        
+        # 必須フィールドのチェック
+        required_fields = ["name", "primaryColor", "backgroundColor", "textColor"]
+        for field in required_fields:
+            if field not in theme_data or not theme_data[field]:
+                errors.append(f"必須フィールドが不足: {field}")
+        
+        # 色値のフォーマットチェック
+        color_fields = ["primaryColor", "backgroundColor", "textColor", "accentColor"]
+        for field in color_fields:
+            if field in theme_data:
+                color_value = theme_data[field]
+                if not self._is_valid_color_format(color_value):
+                    errors.append(f"無効な色形式: {field} = {color_value}")
+        
+        # ネストされたオブジェクトのチェック
+        nested_objects = ["button", "input", "status"]
+        for obj_name in nested_objects:
+            if obj_name in theme_data and isinstance(theme_data[obj_name], dict):
+                obj_data = theme_data[obj_name]
+                for key, value in obj_data.items():
+                    if key in ["background", "text", "border"] and not self._is_valid_color_format(value):
+                        errors.append(f"無効な色形式: {obj_name}.{key} = {value}")
+        
+        return {
+            "is_valid": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings,
+            "theme_data": theme_data
+        }
+    
+    def _is_valid_color_format(self, color_value: str) -> bool:
+        """色値のフォーマットが有効かチェック"""
+        if not isinstance(color_value, str):
+            return False
+        
+        color_value = color_value.strip()
+        
+        # 16進数カラーコードのチェック
+        if color_value.startswith("#"):
+            hex_part = color_value[1:]
+            if len(hex_part) in [3, 6, 8]:  # #RGB, #RRGGBB, #RRGGBBAA
+                return all(c in "0123456789abcdefABCDEF" for c in hex_part)
+        
+        # RGB/RGBA形式のチェック
+        if color_value.startswith(("rgb(", "rgba(")):
+            return True
+        
+        # 名前付き色のチェック
+        named_colors = {"black", "white", "red", "green", "blue", "yellow", "cyan", "magenta", "gray", "transparent"}
+        return color_value.lower() in named_colors
+    
+    def _show_theme_error_dialog(self, validation_result: dict[str, Any]) -> None:
+        """テーマエラーダイアログを表示"""
+        try:
+            errors = validation_result.get("errors", [])
+            theme_data = validation_result.get("theme_data", {})
+            
+            error_text = "\n".join([f"• {error}" for error in errors])
+            
+            msg_box = self.QtWidgets.QMessageBox()
+            msg_box.setIcon(self.QtWidgets.QMessageBox.Icon.Critical)
+            msg_box.setWindowTitle("テーマ生成エラー")
+            msg_box.setText("テーマデータにqt-theme-managerで使用できない問題があります:")
+            msg_box.setDetailedText(f"エラー詳細:\n{error_text}\n\nテーマデータ:\n{theme_data}")
+            msg_box.setStandardButtons(
+                self.QtWidgets.QMessageBox.StandardButton.Ok |
+                self.QtWidgets.QMessageBox.StandardButton.Help
+            )
+            
+            result = msg_box.exec()
+            if result == self.QtWidgets.QMessageBox.StandardButton.Help:
+                self._show_theme_help_dialog()
+                
+        except Exception as e:
+            self.logger.error(f"エラーダイアログ表示エラー: {e}")
+    
+    def _show_theme_warning_dialog(self, warning: str, action: str) -> None:
+        """テーマ警告ダイアログを表示"""
+        try:
+            msg_box = self.QtWidgets.QMessageBox()
+            msg_box.setIcon(self.QtWidgets.QMessageBox.Icon.Warning)
+            msg_box.setWindowTitle("テーマ生成警告")
+            msg_box.setText(warning)
+            msg_box.setInformativeText(action)
+            msg_box.setStandardButtons(self.QtWidgets.QMessageBox.StandardButton.Ok)
+            msg_box.exec()
+        except Exception as e:
+            self.logger.error(f"警告ダイアログ表示エラー: {e}")
+    
+    def _show_theme_help_dialog(self) -> None:
+        """テーマ作成ヘルプダイアログを表示"""
+        try:
+            help_text = """
+テーマ作成のガイドライン:
+
+必須フィールド:
+• name: テーマ名 (文字列)
+• primaryColor: プライマリ色 (#RRGGBB形式)
+• backgroundColor: 背景色 (#RRGGBB形式)
+• textColor: テキスト色 (#RRGGBB形式)
+
+色の指定方法:
+• 16進数: #FF0000, #ff0000
+• RGB: rgb(255, 0, 0)
+• RGBA: rgba(255, 0, 0, 0.5)
+• 名前付き: red, blue, green, etc.
+
+推奨事項:
+• コントラスト比を適切に設定してください
+• アクセシビリティを考慮してください
+            """.strip()
+            
+            msg_box = self.QtWidgets.QMessageBox()
+            msg_box.setIcon(self.QtWidgets.QMessageBox.Icon.Information)
+            msg_box.setWindowTitle("テーマ作成ヘルプ")
+            msg_box.setText(help_text)
+            msg_box.setStandardButtons(self.QtWidgets.QMessageBox.StandardButton.Ok)
+            msg_box.exec()
+        except Exception as e:
+            self.logger.error(f"ヘルプダイアログ表示エラー: {e}")
 
 
 class PreviewWindow:
