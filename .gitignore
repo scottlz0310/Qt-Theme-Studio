@@ -287,3 +287,12 @@ credentials.json
 cache/
 .cache/
 __cache__/
+
+# Added by add-autogen-gitignore.ps1 on 2025-09-03T15:56:26.3590558+09:00
+*.pyo
+*.pyd
+.env.*
+.vscode.bak.*
+uv.lock
+node_modules/
+requirements.txt
