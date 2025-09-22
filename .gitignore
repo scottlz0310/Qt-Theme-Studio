@@ -352,3 +352,9 @@ temp/
 tmp/
 yarn-debug.log*
 yarn-error.log*
+
+# Auto-generated entries from templates
+*.vsix
+.history/
+.vscode/*.code-snippets
+.vscode/extensions.json
