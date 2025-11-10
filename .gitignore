@@ -293,7 +293,6 @@ __cache__/
 *.pyd
 .env.*
 .vscode.bak.*
-uv.lock
 node_modules/
 requirements.txt
 

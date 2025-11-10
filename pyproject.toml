@@ -39,8 +39,8 @@ dependencies = [
     "colorama>=0.4.0",
 ]
 
-# オプション依存関係
-[project.optional-dependencies]
+# 依存関係グループの定義（PEP 735形式）
+[dependency-groups]
 dev = [
     # テスト関連
     "pytest>=7.0.0",
