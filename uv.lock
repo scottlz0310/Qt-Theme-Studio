@@ -1616,29 +1616,29 @@ qt6 = [
 [package.metadata]
 requires-dist = [
     { name = "colorama", specifier = ">=0.4.6" },
-    { name = "pillow", specifier = ">=8.0.1" },
-    { name = "pyside6", specifier = ">=6.0.4" },
+    { name = "pillow", specifier = ">=12.0.0" },
+    { name = "pyside6", specifier = ">=6.10.1" },
     { name = "qt-theme-manager", git = "https://github.com/scottlz0310/Qt-Theme-Manager.git" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "autoflake", specifier = ">=2.3.1" },
-    { name = "bandit", specifier = ">=1.7.10" },
+    { name = "bandit", specifier = ">=1.9.2" },
     { name = "black", specifier = ">=25.11.0" },
-    { name = "flake8", specifier = ">=5.0.4" },
+    { name = "flake8", specifier = ">=7.3.0" },
     { name = "isort", specifier = ">=7.0.0" },
-    { name = "mypy", specifier = ">=1.0.1" },
+    { name = "mypy", specifier = ">=1.19.0" },
     { name = "pre-commit", specifier = ">=2.20.0" },
-    { name = "pytest", specifier = ">=7.0.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-benchmark", specifier = ">=5.2.3" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
-    { name = "pytest-qt", specifier = ">=4.0.2" },
-    { name = "ruff", specifier = ">=0.3.7" },
-    { name = "safety", specifier = ">=2.3.5" },
+    { name = "pytest-qt", specifier = ">=4.5.0" },
+    { name = "ruff", specifier = ">=0.14.8" },
+    { name = "safety", specifier = ">=3.7.0" },
 ]
 qt5 = [{ name = "pyqt5", specifier = ">=5.15.11" }]
-qt6 = [{ name = "pyqt6", specifier = ">=6.0.3" }]
+qt6 = [{ name = "pyqt6", specifier = ">=6.10.1" }]
 
 [[package]]
 name = "regex"

@@ -32,9 +32,9 @@ dependencies = [
     # qt-theme-managerは必ずGitHubリポジトリから直接インストール
     "qt-theme-manager @ git+https://github.com/scottlz0310/Qt-Theme-Manager.git",
     # Qt フレームワーク（PySide6を推奨、PyQt6/PyQt5はフォールバック）
-    "PySide6>=6.0.4",
+    "PySide6>=6.10.1",
     # 画像処理・プレビュー生成
-    "Pillow>=8.0.1",
+    "Pillow>=12.0.0",
     # コンソール出力の色付け
     "colorama>=0.4.6",
 ]
@@ -43,25 +43,25 @@ dependencies = [
 [dependency-groups]
 dev = [
     # テスト関連
-    "pytest>=7.0.1",
-    "pytest-qt>=4.0.2",
+    "pytest>=9.0.2",
+    "pytest-qt>=4.5.0",
     "pytest-cov>=7.0.0",
     "pytest-benchmark>=5.2.3",
     # コード品質
-    "ruff>=0.3.7",  # 高速なPythonリンター・フォーマッター
+    "ruff>=0.14.8",  # 高速なPythonリンター・フォーマッター
     "black>=25.11.0",  # フォールバック用
     "isort>=7.0.0",  # フォールバック用
-    "flake8>=5.0.4",  # フォールバック用
+    "flake8>=7.3.0",  # フォールバック用
     "autoflake>=2.3.1",
-    "mypy>=1.0.1",
+    "mypy>=1.19.0",
     # セキュリティ
-    "bandit>=1.7.10",
-    "safety>=2.3.5",
+    "bandit>=1.9.2",
+    "safety>=3.7.0",
     # Pre-commit
     "pre-commit>=2.20.0",
 ]
 qt6 = [
-    "PyQt6>=6.0.3",
+    "PyQt6>=6.10.1",
 ]
 qt5 = [
     "PyQt5>=5.15.11",
