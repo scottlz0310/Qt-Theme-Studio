@@ -392,3 +392,6 @@ PATCHES/
 go.work
 out/
 vendor/
+
+# Auto-generated entries from templates
+.pyrightcache/
