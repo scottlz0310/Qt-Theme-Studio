@@ -97,7 +97,7 @@ class QtAdapter:
                     PySide6_QtWidgets,
                 )
             elif framework == "PyQt6":
-                from PyQt6 import (
+                from PyQt6 import (  # pyright: ignore[reportMissingImports]
                     QtCore as PyQt6_QtCore,
                     QtGui as PyQt6_QtGui,
                     QtWidgets as PyQt6_QtWidgets,
@@ -105,7 +105,7 @@ class QtAdapter:
 
                 QtCore, QtGui, QtWidgets = PyQt6_QtCore, PyQt6_QtGui, PyQt6_QtWidgets
             elif framework == "PyQt5":
-                from PyQt5 import (
+                from PyQt5 import (  # pyright: ignore[reportMissingImports]
                     QtCore as PyQt5_QtCore,
                     QtGui as PyQt5_QtGui,
                     QtWidgets as PyQt5_QtWidgets,

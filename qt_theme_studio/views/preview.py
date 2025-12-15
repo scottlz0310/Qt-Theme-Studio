@@ -913,7 +913,7 @@ class WidgetShowcase:
             )
             stylesheet = generator.generate_qss()
 
-            if isinstance(stylesheet, str) and stylesheet.strip():
+            if stylesheet.strip():
                 self.logger.info(
                     "qt-theme-managerでスタイルシートを正常生成しました", LogCategory.UI
                 )
@@ -1105,7 +1105,7 @@ QGroupBox::title {{
             "theme_data": theme_data,
         }
 
-    def _is_valid_color_format(self, color_value: str) -> bool:
+    def _is_valid_color_format(self, color_value: object) -> bool:
         """色値のフォーマットが有効かチェック"""
         if not isinstance(color_value, str):
             return False
@@ -1438,9 +1438,10 @@ class PreviewWindow:
 
     def _setup_update_timer(self) -> None:
         """更新タイマーを設定します"""
-        self.update_timer = self.QtCore.QTimer()
-        self.update_timer.setSingleShot(True)
-        self.update_timer.timeout.connect(self._apply_pending_theme)
+        timer = self.QtCore.QTimer()
+        timer.setSingleShot(True)
+        timer.timeout.connect(self._apply_pending_theme)
+        self.update_timer = timer
 
         self.logger.debug("更新タイマーを設定しました", LogCategory.UI)
 
@@ -1590,7 +1591,7 @@ class PreviewWindow:
         return self.widget
 
     def test_responsive_layout(
-        self, sizes: Optional[list[tuple]] = None
+        self, sizes: list[tuple[int, int]] | None = None
     ) -> dict[str, Any]:
         """レスポンシブレイアウトテストを実行します
 

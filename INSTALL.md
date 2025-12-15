@@ -11,13 +11,13 @@
 ### 1. PyPI からのインストール（推奨）
 
 ```bash
-pip install qt-theme-studio
+uv add qt-theme-studio
 ```
 
 ### 2. GitHubからの開発版インストール
 
 ```bash
-pip install git+https://github.com/your-username/Qt-Theme-Studio.git
+uv tool install git+https://github.com/your-username/Qt-Theme-Studio.git
 ```
 
 ### 3. ソースからのインストール
@@ -25,7 +25,7 @@ pip install git+https://github.com/your-username/Qt-Theme-Studio.git
 ```bash
 git clone https://github.com/your-username/Qt-Theme-Studio.git
 cd Qt-Theme-Studio
-pip install -e .
+uv add -e .
 ```
 
 ## 依存関係のインストール
@@ -33,13 +33,13 @@ pip install -e .
 ### qt-theme-manager（必須）
 
 ```bash
-pip install git+https://github.com/scottlz0310/Qt-Theme-Manager.git
+uv add git+https://github.com/scottlz0310/Qt-Theme-Manager.git
 ```
 
 ### 開発用依存関係（開発者向け）
 
 ```bash
-pip install -e .[dev]
+uv sync --dev
 ```
 
 ## 動作確認
@@ -48,13 +48,13 @@ pip install -e .[dev]
 
 ```bash
 # バージョン確認
-python -m qt_theme_studio --version
+uv run qt_theme_studio --version
 
 # ヘルプ表示
-python -m qt_theme_studio --help
+uv run qt_theme_studio --help
 
 # GUI起動
-python -m qt_theme_studio
+uv run qt_theme_studio
 ```
 
 ## トラブルシューティング
@@ -63,36 +63,35 @@ python -m qt_theme_studio
 
 ```bash
 # PySide6をインストール
-pip install PySide6
+uv add PySide6
 
 # または PyQt6
-pip install PyQt6
-
+uv add PyQt6
 # または PyQt5
-pip install PyQt5
+uv add PyQt5
 ```
 
 ### 権限エラーが発生する場合
 
 ```bash
 # ユーザーディレクトリにインストール
-pip install --user qt-theme-studio
+uv add --user qt-theme-studio
 ```
 
 ### 仮想環境での使用（推奨）
 
 ```bash
 # 仮想環境作成
-python -m venv qt-theme-studio-env
+uv venv
 
 # 仮想環境有効化
 # Windows:
-qt-theme-studio-env\Scripts\activate
+.venv\Scripts\activate
 # macOS/Linux:
-source qt-theme-studio-env/bin/activate
+source .venv/bin/activate
 
 # インストール
-pip install qt-theme-studio
+uv add qt-theme-studio
 ```
 
 ## アンインストール

@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Optional, TextIO, Union
+from typing import Any, Optional, Union, cast
 
 
 class LogLevel(Enum):
@@ -81,22 +81,21 @@ class StructuredFormatter(logging.Formatter):
         }
 
         # カスタム属性を追加
-        if hasattr(record, "category"):
+        category = getattr(record, "category", None)
+        if category is not None:
             log_entry["category"] = (
-                record.category.value
-                if hasattr(record.category, "value")
-                else str(record.category)
+                category.value if hasattr(category, "value") else str(category)
             )
 
-        if hasattr(record, "context"):
+        context = getattr(record, "context", None)
+        if context is not None:
             log_entry["context"] = (
-                record.context.to_dict()
-                if hasattr(record.context, "to_dict")
-                else record.context
+                context.to_dict() if hasattr(context, "to_dict") else context
             )
 
-        if hasattr(record, "performance_data"):
-            log_entry["performance"] = record.performance_data
+        performance_data = getattr(record, "performance_data", None)
+        if performance_data is not None:
+            log_entry["performance"] = performance_data
 
         return json.dumps(log_entry, ensure_ascii=False, indent=2)
 
@@ -134,14 +133,12 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
     ) -> None:
         super().__init__(filename, mode, maxBytes, backupCount, encoding, delay)
         self.compress_backups = compress_backups
-        # streamの型を明示的に指定
-        self.stream: Optional[TextIO] = None  # type: ignore
 
     def doRollover(self) -> None:
         """ローテーション実行時の処理をオーバーライド"""
         if self.stream:
             self.stream.close()
-            self.stream = None
+            cast(Any, self).stream = None
 
         if self.backupCount > 0:
             for i in range(self.backupCount - 1, 0, -1):
@@ -166,7 +163,7 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
                     self._compress_backup(dfn)
 
         if not self.delay:
-            self.stream = self._open()
+            cast(Any, self).stream = self._open()
 
     def _compress_backup(self, backup_file: str) -> None:
         """バックアップファイルを圧縮"""
@@ -385,9 +382,7 @@ class QtThemeStudioLogger:
 
     def _performance_filter(self, record: logging.LogRecord) -> bool:
         """パフォーマンスログ用フィルター"""
-        return (
-            hasattr(record, "category") and record.category == LogCategory.PERFORMANCE
-        )
+        return getattr(record, "category", None) == LogCategory.PERFORMANCE
 
     def _log_with_category(
         self,

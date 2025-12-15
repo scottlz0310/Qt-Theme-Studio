@@ -340,7 +340,7 @@ class DependencyChecker:
                         "pytest",
                         "ruff",
                         "black",
-                        "mypy",
+                        "basedpyright",
                         "safety",
                         "bandit",
                     ]

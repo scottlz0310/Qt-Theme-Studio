@@ -4,6 +4,7 @@ Qt-Theme-Studio メインウィンドウ
 クリーンなアーキテクチャによる高度なテーマ管理・生成・編集
 """
 
+import json
 from pathlib import Path
 from typing import Any, Union
 
@@ -70,7 +71,7 @@ class QtThemeStudioMainWindow(QMainWindow):
 
             self.logger.debug("テーマ管理初期化中...")
             # テーマ管理
-            self.themes: dict[str, dict] = {}  # テーマ辞書
+            self.themes: dict[str, dict[str, Any]] = {}  # テーマ辞書
             self.current_theme_name: Union[str, None] = None
             self.logger.debug("テーマ管理初期化完了")
 
@@ -235,9 +236,10 @@ class QtThemeStudioMainWindow(QMainWindow):
                 f"color: {'white' if is_dark else 'black'}; "
                 f"padding: 5px;"
             )
-            preset_btn.clicked.connect(
-                lambda _checked, c=color: self.apply_preset_color(c)
-            )
+            def _on_preset_clicked(_checked: bool = False, *, c: str = color) -> None:
+                self.apply_preset_color(c)
+
+            preset_btn.clicked.connect(_on_preset_clicked)
             preset_layout.addWidget(preset_btn)
 
         quick_layout.addLayout(preset_layout)
@@ -348,8 +350,6 @@ class QtThemeStudioMainWindow(QMainWindow):
         """生成テーマのプレビューを更新"""
         if self.current_theme_name and self.current_theme_name in self.themes:
             theme = self.themes[self.current_theme_name]
-            import json
-
             theme_json = json.dumps(theme, indent=2, ensure_ascii=False)
             self.generated_theme_preview.setPlainText(theme_json)
 
@@ -377,8 +377,6 @@ class QtThemeStudioMainWindow(QMainWindow):
         """ファイルからテーマを読み込み"""
         try:
             with Path(file_path).open(encoding="utf-8") as f:
-                import json
-
                 theme_data = json.load(f)
 
             # 単一テーマか複数テーマかを判定
@@ -614,8 +612,6 @@ class QtThemeStudioMainWindow(QMainWindow):
 
                     # テーマデータを保存
                     with Path(file_path).open("w", encoding="utf-8") as f:
-                        import json
-
                         json.dump(theme_data, f, indent=2, ensure_ascii=False)
 
                     self.logger.info(
@@ -666,8 +662,6 @@ class QtThemeStudioMainWindow(QMainWindow):
                     file_path = Path(folder_path) / f"{theme_name}.json"
 
                     with Path(file_path).open("w", encoding="utf-8") as f:
-                        import json
-
                         json.dump(theme_data, f, indent=2, ensure_ascii=False)
 
                     exported_count += 1

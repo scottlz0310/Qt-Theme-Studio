@@ -1,0 +1,13 @@
+from __future__ import annotations
+
+from typing import Any, Mapping
+
+
+class ThemeLoader:
+    def __init__(self) -> None: ...
+
+
+class StylesheetGenerator:
+    def __init__(self, theme_data: Mapping[str, Any], advanced_mode: bool = ...) -> None: ...
+    def generate_qss(self) -> str: ...
+

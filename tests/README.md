@@ -131,13 +131,11 @@ def test_qt_specific():
 
 ### GitHub Actions
 
-`.github/workflows/test.yml` で以下の処理が自動実行されます：
+`.github/workflows/mvp-ci.yml` で以下の処理が自動実行されます：
 
 1. **コード品質チェック**
-   - Black（コードフォーマット）
-   - isort（インポート順序）
-   - flake8（リンター）
-   - mypy（型チェック）
+   - Ruff（リンター/フォーマッター）
+   - basedpyright（型チェック / Strict）
 
 2. **セキュリティチェック**
    - bandit（セキュリティ脆弱性）
@@ -154,17 +152,12 @@ def test_qt_specific():
 ### ローカルでの事前チェック
 
 ```bash
-# コードフォーマット
-black qt_theme_studio tests
-
-# インポート順序
-isort qt_theme_studio tests
-
-# リンター
-flake8 qt_theme_studio tests
+# リンター/フォーマット（ruff推奨）
+ruff check qt_theme_studio tests
+ruff format --check qt_theme_studio tests
 
 # 型チェック
-mypy qt_theme_studio tests
+basedpyright
 
 # セキュリティチェック
 bandit -r qt_theme_studio

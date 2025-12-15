@@ -285,7 +285,7 @@ class ThemeAdapter:
 
             # QSSをテーマデータに変換(基本的な実装)
             colors_raw = self._extract_colors_from_qss(qss_content)
-            colors = colors_raw if isinstance(colors_raw, dict) else {}
+            colors = colors_raw
 
             theme_data: dict[str, Any] = {
                 "name": theme_path.stem,
@@ -312,7 +312,7 @@ class ThemeAdapter:
 
             # CSSをテーマデータに変換(基本的な実装)
             colors_raw = self._extract_colors_from_css(css_content)
-            colors = colors_raw if isinstance(colors_raw, dict) else {}
+            colors = colors_raw
 
             theme_data: dict[str, Any] = {
                 "name": theme_path.stem,
@@ -376,9 +376,6 @@ class ThemeAdapter:
 
     def _validate_theme_data(self, theme_data: dict[str, Any]) -> None:
         """テーマデータの基本的な検証を行う"""
-        if not isinstance(theme_data, dict):
-            raise ThemeValidationError("テーマデータは辞書形式である必要があります")
-
         # 必須フィールドの確認
         required_fields = ["name"]
         for field in required_fields:

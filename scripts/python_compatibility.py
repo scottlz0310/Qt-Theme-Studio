@@ -326,10 +326,9 @@ commands =
 
 [testenv:type-check]
 deps =
-    mypy>=1.0.0
-    types-requests
+    basedpyright>=1.36.1
 commands =
-    mypy qt_theme_studio/
+    basedpyright
 
 [testenv:security]
 deps =

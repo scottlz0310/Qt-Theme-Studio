@@ -1,0 +1,26 @@
+{
+  "include": ["qt_theme_studio"],
+  "exclude": [
+    "**/__pycache__",
+    ".benchmarks",
+    ".git",
+    ".tox",
+    ".venv",
+    "build",
+    "dist",
+    "docs",
+    "examples",
+    "qt_theme_studio.egg-info",
+    "scripts",
+    "tests"
+  ],
+  "typeCheckingMode": "strict",
+  "reportUnknownArgumentType": "warning",
+  "reportUnknownMemberType": "warning",
+  "reportUnknownParameterType": "warning",
+  "reportUnknownVariableType": "warning",
+  "pythonVersion": "3.14",
+  "venvPath": ".",
+  "venv": ".venv",
+  "stubPath": "typings"
+}

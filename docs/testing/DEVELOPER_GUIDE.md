@@ -15,7 +15,7 @@ git clone https://github.com/scottlz0310/Qt-Theme-Studio.git
 cd Qt-Theme-Studio
 
 # 2. 仮想環境の作成
-python -m venv venv
+uv venv
 
 # 3. 仮想環境の有効化
 # Windows
@@ -24,11 +24,10 @@ venv\Scripts\activate
 source venv/bin/activate
 
 # 4. 依存関係のインストール
-pip install -e .
-pip install -e ".[dev]"
+uv sync --all-groups
 
 # 5. テストの実行
-python -m pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 ## 🧪 テスト環境の構成
@@ -50,43 +49,7 @@ Qt-Theme-Studio/
 
 ### **設定ファイル**
 
-#### **pytest.ini**
-```ini
-[tool:pytest]
-testpaths = tests
-python_files = test_*.py
-python_classes = Test*
-python_functions = test_*
-addopts =
-    --strict-markers
-    --strict-config
-    --cov=qt_theme_studio
-    --cov-report=term-missing
-    --cov-report=html
-    --cov-report=xml
-markers =
-    unit: Unit tests
-    integration: Integration tests
-    slow: Slow running tests
-    gui: GUI tests
-```
-
-#### **pyproject.toml**
-```toml
-[tool.black]
-line-length = 88
-target-version = ['py311', 'py312', 'py313']
-
-[tool.isort]
-profile = "black"
-line_length = 88
-
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-```
+pyproject.toml
 
 ## 📋 テスト実行コマンド
 
@@ -94,65 +57,64 @@ disallow_untyped_defs = true
 
 ```bash
 # 全テスト実行
-python -m pytest tests/ -v
+uv run pytest tests/ -v
 
 # 特定のディレクトリ
-python -m pytest tests/unit/ -v
-python -m pytest tests/integration/ -v
-
+uv run pytest tests/unit/ -v
+uv run pytest tests/integration/ -v
 # 特定のファイル
-python -m pytest tests/unit/test_theme_adapter.py -v
+uv run pytest tests/unit/test_theme_adapter.py -v
 
 # 特定のテストクラス
-python -m pytest tests/unit/test_theme_adapter.py::TestThemeAdapter -v
+uv run pytest tests/unit/test_theme_adapter.py::TestThemeAdapter -v
 
 # 特定のテストメソッド
-python -m pytest tests/unit/test_theme_adapter.py::TestThemeAdapter::test_init -v
+uv run pytest tests/unit/test_theme_adapter.py::TestThemeAdapter::test_init -v
 ```
 
 ### **マーカーを使用したテスト実行**
 
 ```bash
 # 単体テストのみ
-python -m pytest tests/ -m unit -v
+uv run pytest tests/ -m unit -v
 
 # 統合テストのみ
-python -m pytest tests/ -m integration -v
+uv run pytest tests/ -m integration -v
 
 # 遅いテストを除外
-python -m pytest tests/ -m "not slow" -v
+uv run pytest tests/ -m "not slow" -v
 
 # GUIテストを除外
-python -m pytest tests/ -m "not gui" -v
+uv run pytest tests/ -m "not gui" -v
 ```
 
 ### **カバレッジ測定**
 
 ```bash
 # 基本カバレッジ
-python -m pytest tests/ --cov=qt_theme_studio --cov-report=term-missing
+uv run pytest tests/ --cov=qt_theme_studio --cov-report=term-missing
 
 # 特定モジュールのカバレッジ
-python -m pytest tests/ --cov=qt_theme_studio.adapters.theme_adapter --cov-report=term-missing
+uv run pytest tests/ --cov=qt_theme_studio.adapters.theme_adapter --cov-report=term-missing
 
 # HTMLレポート生成
-python -m pytest tests/ --cov=qt_theme_studio --cov-report=html
+uv run pytest tests/ --cov=qt_theme_studio --cov-report=html
 
 # XMLレポート生成（CI/CD用）
-python -m pytest tests/ --cov=qt_theme_studio --cov-report=xml
+uv run pytest tests/ --cov=qt_theme_studio --cov-report=xml
 ```
 
 ### **パフォーマンステスト**
 
 ```bash
 # ベンチマークテスト
-python -m pytest tests/ --benchmark-only
+uv run pytest tests/ --benchmark-only
 
 # 特定のパフォーマンステスト
-python -m pytest tests/integration/test_comprehensive_integration.py::TestComprehensiveIntegration::test_performance_under_load -v --benchmark-only
+uv run pytest tests/integration/test_comprehensive_integration.py::TestComprehensiveIntegration::test_performance_under_load -v --benchmark-only
 
 # メモリ効率テスト
-python -m pytest tests/integration/test_comprehensive_integration.py::TestComprehensiveIntegration::test_memory_efficiency_workflow -v
+uv run pytest tests/integration/test_comprehensive_integration.py::TestComprehensiveIntegration::test_memory_efficiency_workflow -v
 ```
 
 ## 🔧 テスト開発ガイド
@@ -208,10 +170,10 @@ def mock_service():
 #### **3. テストの実行と確認**
 ```bash
 # 新しいテストの実行
-python -m pytest tests/unit/test_new_feature.py -v
+uv run pytest tests/unit/test_new_feature.py -v
 
 # カバレッジの確認
-python -m pytest tests/unit/test_new_feature.py --cov=qt_theme_studio.new_feature --cov-report=term-missing
+uv run pytest tests/unit/test_new_feature.py --cov=qt_theme_studio.new_feature --cov-report=term-missing
 ```
 
 ### **テストのベストプラクティス**
@@ -281,24 +243,24 @@ export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 ```bash
 # 問題: カバレッジが0%になる
 # 解決: ソースディレクトリの指定
-python -m pytest tests/ --cov=qt_theme_studio --cov-report=term-missing
+uv run pytest tests/ --cov=qt_theme_studio --cov-report=term-missing
 ```
 
 #### **3. テストが遅い**
 ```bash
 # 問題: テストの実行が遅い
 # 解決: 並行実行の使用
-python -m pytest tests/ -n auto
+uv run pytest tests/ -n auto
 
 # または、遅いテストを除外
-python -m pytest tests/ -m "not slow"
+uv run pytest tests/ -m "not slow"
 ```
 
 #### **4. メモリ不足**
 ```bash
 # 問題: メモリ不足でテストが失敗
 # 解決: メモリ効率テストの除外
-python -m pytest tests/ -m "not memory_intensive"
+uv run pytest tests/ -m "not memory_intensive"
 ```
 
 ## 📊 テスト結果の分析
@@ -307,8 +269,7 @@ python -m pytest tests/ -m "not memory_intensive"
 
 ```bash
 # HTMLレポートの生成
-python -m pytest tests/ --cov=qt_theme_studio --cov-report=html
-
+uv run pytest tests/ --cov=qt_theme_studio --cov-report=html
 # ブラウザでレポートを開く
 # htmlcov/index.html
 ```
@@ -322,10 +283,10 @@ python -m pytest tests/ --cov=qt_theme_studio --cov-report=html
 
 ```bash
 # 実行時間の詳細表示
-python -m pytest tests/ --durations=10
+uv run pytest tests/ --durations=10
 
 # 遅いテストの特定
-python -m pytest tests/ --durations=0
+uv run pytest tests/ --durations=0
 ```
 
 ## 🚀 CI/CDでのテスト実行
@@ -347,18 +308,11 @@ python -m pytest tests/ --durations=0
 
 ```bash
 # CI/CDと同じ環境でのテスト実行
-python -m pytest tests/ --cov=qt_theme_studio --cov-report=xml --cov-report=html --cov-report=term-missing
-
+uv run pytest tests/ --cov=qt_theme_studio --cov-report=xml --cov-report=html --cov-report=term-missing
 # コード品質チェック（ruff推奨）
-ruff check qt_theme_studio/ tests/
-ruff format --check qt_theme_studio/ tests/
-
-# フォールバック用（必要に応じて）
-python -m black --check --diff qt_theme_studio/ tests/
-python -m isort --check-only --diff qt_theme_studio/ tests/
-python -m flake8 qt_theme_studio/ tests/
-python -m mypy qt_theme_studio/
-```
+uv run ruff check qt_theme_studio/ tests/
+uv run ruff format --check qt_theme_studio/ tests/
+uv run basedpyright
 
 ## 📚 参考資料
 

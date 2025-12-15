@@ -50,7 +50,7 @@ dev = [
     "isort>=7.0.0",  # フォールバック用
     "flake8>=7.3.0",  # フォールバック用
     "autoflake>=2.3.1",
-    "mypy>=1.19.1",
+    "basedpyright>=1.36.1",
     # セキュリティ
     "bandit>=1.9.2",
     "safety>=3.7.0",
@@ -264,40 +264,3 @@ line-ending = "auto"
 #     ".mypy_cache",
 #     ".pytest_cache"
 # ]
-
-# mypy設定
-[tool.mypy]
-python_version = "3.9"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
-
-[[tool.mypy.overrides]]
-module = [
-    "qt_theme_manager.*",
-    "PySide6.*",
-    "PyQt6.*",
-    "PyQt5.*",
-]
-ignore_missing_imports = true
-
-# 外部ライブラリ制約の除外設定
-[[tool.mypy.overrides]]
-module = "qt_theme_studio.generators.theme_generator"
-# QColor.getHsl()の型定義不備による除外
-disallow_untyped_calls = false
-disallow_any_expr = false
-
-[[tool.mypy.overrides]]
-module = "qt_theme_studio.logger"
-# logging.StreamHandlerの型制約による除外
-disallow_any_expr = false

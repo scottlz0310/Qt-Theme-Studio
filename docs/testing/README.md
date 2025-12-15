@@ -96,10 +96,8 @@ python tests/run_tests.py --verbose
 - **pytest-benchmark**: パフォーマンステスト
 
 ### コード品質ツール
-- **Black**: コードフォーマッター
-- **isort**: インポートソーター
-- **flake8**: リンター
-- **mypy**: 静的型チェッカー
+- **Ruff**: 高速リンター/フォーマッター
+- **basedpyright**: 静的型チェッカー（Strict）
 
 ## 🔧 設定ファイル
 

@@ -117,10 +117,10 @@ venv.bak/
 # mkdocs関連
 /site
 
-# mypy関連
+# Type checker caches
 .mypy_cache/
-.dmypy.json
-dmypy.json
+.pyright/
+.basedpyright/
 
 # Pyre関連
 .pyre/
