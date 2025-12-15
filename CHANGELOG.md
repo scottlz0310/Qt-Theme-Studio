@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PySide6/PyQt6/PyQt5 対応
 - Pre-commit フック設定
 - GitHub Actions ワークフロー統合
-- コード品質ツール統合（Black, isort, Flake8, MyPy）
+- コード品質ツール統合（Ruff, basedpyright）
 - テストカバレッジ向上
 
 ### Development

@@ -339,7 +339,6 @@ class DependencyChecker:
                     important_packages = [
                         "pytest",
                         "ruff",
-                        "black",
                         "basedpyright",
                         "safety",
                         "bandit",
