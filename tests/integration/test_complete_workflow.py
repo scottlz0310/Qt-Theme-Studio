@@ -305,7 +305,10 @@ class TestCompleteWorkflow:
         assert True
 
 
-@pytest.mark.skipif(QtAdapter is None, reason="QtAdapterモジュールが利用できません")
+@pytest.mark.skipif(
+    any(cls is None for cls in [QtAdapter, ThemeAdapter, ThemeController]),
+    reason="必要なモジュールが利用できません",
+)
 class TestQtFrameworkCompatibility:
     """Qtフレームワーク互換性テスト"""
 
