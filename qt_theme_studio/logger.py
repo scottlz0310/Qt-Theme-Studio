@@ -138,7 +138,7 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
         """ローテーション実行時の処理をオーバーライド"""
         if self.stream:
             self.stream.close()
-            cast(Any, self).stream = None
+            cast("Any", self).stream = None
 
         if self.backupCount > 0:
             for i in range(self.backupCount - 1, 0, -1):
@@ -163,7 +163,7 @@ class AdvancedRotatingFileHandler(logging.handlers.RotatingFileHandler):
                     self._compress_backup(dfn)
 
         if not self.delay:
-            cast(Any, self).stream = self._open()
+            cast("Any", self).stream = self._open()
 
     def _compress_backup(self, backup_file: str) -> None:
         """バックアップファイルを圧縮"""

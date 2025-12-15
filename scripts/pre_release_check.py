@@ -173,73 +173,50 @@ class PreReleaseChecker:
         checks = {}
         overall_pass = True
 
-        # Black (フォーマット)
+        # Ruff format (チェックのみ)
         try:
             result = self.run_command(
-                ["black", "--check", "--diff", "qt_theme_studio/", "tests/"],
+                ["uv", "run", "ruff", "format", "--check", "."],
                 check=False,
             )
-
             if result.returncode == 0:
-                print("✅ Black: コードフォーマットOK")
-                checks["black"] = {"status": "PASS", "message": "フォーマットOK"}
+                print("✅ Ruff format: フォーマットOK")
+                checks["ruff_format"] = {"status": "PASS", "message": "フォーマットOK"}
             else:
-                print("⚠️ Black: フォーマット要修正")
-                checks["black"] = {"status": "WARN", "message": "フォーマット要修正"}
-
+                print("⚠️ Ruff format: フォーマット要修正")
+                checks["ruff_format"] = {
+                    "status": "WARN",
+                    "message": "フォーマット要修正",
+                }
+                overall_pass = False
         except FileNotFoundError:
-            print("⚠️ Black: インストールされていません")
-            checks["black"] = {
+            print("⚠️ Ruff format: 実行できません (uv/ruff が見つかりません)")
+            checks["ruff_format"] = {
                 "status": "SKIP",
-                "message": "インストールされていません",
+                "message": "uv/ruff が見つかりません",
             }
 
-        # isort (インポート順序)
+        # Ruff check (チェックのみ)
         try:
             result = self.run_command(
-                ["isort", "--check-only", "--diff", "qt_theme_studio/", "tests/"],
+                ["uv", "run", "ruff", "check", "."],
                 check=False,
             )
-
             if result.returncode == 0:
-                print("✅ isort: インポート順序OK")
-                checks["isort"] = {"status": "PASS", "message": "インポート順序OK"}
+                print("✅ Ruff check: リンティングOK")
+                checks["ruff_check"] = {"status": "PASS", "message": "リンティングOK"}
             else:
-                print("⚠️ isort: インポート順序要修正")
-                checks["isort"] = {"status": "WARN", "message": "インポート順序要修正"}
-
+                print("⚠️ Ruff check: リンティング要修正")
+                checks["ruff_check"] = {
+                    "status": "WARN",
+                    "message": "リンティング要修正",
+                }
+                overall_pass = False
         except FileNotFoundError:
-            print("⚠️ isort: インストールされていません")
-            checks["isort"] = {
+            print("⚠️ Ruff check: 実行できません (uv/ruff が見つかりません)")
+            checks["ruff_check"] = {
                 "status": "SKIP",
-                "message": "インストールされていません",
-            }
-
-        # flake8 (リンティング)
-        try:
-            result = self.run_command(
-                [
-                    "flake8",
-                    "qt_theme_studio/",
-                    "tests/",
-                    "--max-line-length=88",
-                    "--extend-ignore=E203,W503",
-                ],
-                check=False,
-            )
-
-            if result.returncode == 0:
-                print("✅ flake8: リンティングOK")
-                checks["flake8"] = {"status": "PASS", "message": "リンティングOK"}
-            else:
-                print("⚠️ flake8: リンティング警告あり")
-                checks["flake8"] = {"status": "WARN", "message": "リンティング警告あり"}
-
-        except FileNotFoundError:
-            print("⚠️ flake8: インストールされていません")
-            checks["flake8"] = {
-                "status": "SKIP",
-                "message": "インストールされていません",
+                "message": "uv/ruff が見つかりません",
             }
 
         self.results["checks"]["code_quality"] = {

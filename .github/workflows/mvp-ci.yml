@@ -89,5 +89,5 @@ jobs:
 
     - name: Run Ruff
       run: |
-        ruff check qt_theme_studio/
-        ruff format --check qt_theme_studio/
+        ruff check .
+        ruff format --check .

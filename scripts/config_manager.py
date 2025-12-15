@@ -143,12 +143,12 @@ class ConfigManager:
                     "steps": [
                         {
                             "name": "ruff_lint",
-                            "command": "ruff check .",
+                            "command": "uv run ruff check . --fix",
                             "required": True,
                         },
                         {
                             "name": "ruff_format",
-                            "command": "ruff format --check .",
+                            "command": "uv run ruff format .",
                             "required": True,
                         },
                     ],

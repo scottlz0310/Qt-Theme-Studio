@@ -316,13 +316,9 @@ commands =
 [testenv:lint]
 deps =
     ruff>=0.3.0
-    black>=22.0.0
-    isort>=5.10.0
 commands =
-    ruff check qt_theme_studio/ tests/ scripts/
-    ruff format --check qt_theme_studio/ tests/ scripts/
-    black --check qt_theme_studio/ tests/ scripts/
-    isort --check-only qt_theme_studio/ tests/ scripts/
+    ruff check .
+    ruff format --check .
 
 [testenv:type-check]
 deps =

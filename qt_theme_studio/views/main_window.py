@@ -236,6 +236,7 @@ class QtThemeStudioMainWindow(QMainWindow):
                 f"color: {'white' if is_dark else 'black'}; "
                 f"padding: 5px;"
             )
+
             def _on_preset_clicked(_checked: bool = False, *, c: str = color) -> None:
                 self.apply_preset_color(c)
 

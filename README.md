@@ -83,9 +83,11 @@ pre-commit install
 ### コード品質チェック
 
 ```bash
-# Ruffによるリンティングとフォーマット
-ruff check qt_theme_studio/
-ruff format qt_theme_studio/
+# format
+uv run ruff format .
+
+# lint
+uv run ruff check . --fix
 ```
 
 ### テスト実行

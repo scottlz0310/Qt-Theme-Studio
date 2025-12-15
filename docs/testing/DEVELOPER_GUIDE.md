@@ -310,8 +310,8 @@ uv run pytest tests/ --durations=0
 # CI/CDと同じ環境でのテスト実行
 uv run pytest tests/ --cov=qt_theme_studio --cov-report=xml --cov-report=html --cov-report=term-missing
 # コード品質チェック（ruff推奨）
-uv run ruff check qt_theme_studio/ tests/
-uv run ruff format --check qt_theme_studio/ tests/
+uv run ruff format .
+uv run ruff check . --fix
 uv run basedpyright
 
 ## 📚 参考資料

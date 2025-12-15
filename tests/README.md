@@ -152,9 +152,11 @@ def test_qt_specific():
 ### ローカルでの事前チェック
 
 ```bash
-# リンター/フォーマット（ruff推奨）
-ruff check qt_theme_studio tests
-ruff format --check qt_theme_studio tests
+# format
+uv run ruff format .
+
+# lint
+uv run ruff check . --fix
 
 # 型チェック
 basedpyright
