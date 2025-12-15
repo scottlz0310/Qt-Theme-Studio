@@ -61,12 +61,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv pip install --system -e .
-        uv pip install --system basedpyright
+        uv venv
+        uv pip install --python .venv/bin/python -e .
+        uv pip install --python .venv/bin/python basedpyright
 
     - name: Run basedpyright (strict)
       run: |
-        basedpyright
+        .venv/bin/basedpyright
 
   quality:
     runs-on: ubuntu-latest
