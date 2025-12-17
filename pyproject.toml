@@ -51,7 +51,7 @@ dev = [
     "bandit>=1.9.2",
     "safety>=3.7.0",
     # Pre-commit
-    "pre-commit>=4.5.0",
+    "pre-commit>=4.5.1",
 ]
 qt6 = [
     "PyQt6>=6.10.1",
