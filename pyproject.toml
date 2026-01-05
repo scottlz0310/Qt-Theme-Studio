@@ -31,7 +31,7 @@ dependencies = [
     # Qt フレームワーク（PySide6を推奨、PyQt6/PyQt5はフォールバック）
     "PySide6>=6.10.1",
     # 画像処理・プレビュー生成
-    "Pillow>=12.0.0",
+    "Pillow>=12.1.0",
     # コンソール出力の色付け
     "colorama>=0.4.6",
 ]
