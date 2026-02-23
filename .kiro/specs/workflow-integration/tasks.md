@@ -55,7 +55,7 @@
   - _要件: 3.1, 3.2, 3.3, 3.4_
 
 - [x] 3.1 セキュリティスキャン自動化の実装
-  - `scripts/security_scanner.py`を作成し、banditとsafetyを統合実行する
+  - `scripts/security_scanner.py`を作成し、banditとpip-auditを統合実行する
   - 既存の`scripts/pre_release_check.py`のセキュリティ機能を拡張
   - 脆弱性検出時の日本語アラート機能
   - _要件: 3.1_

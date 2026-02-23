@@ -123,7 +123,7 @@ class SystemInfo:
         dependencies = {}
 
         # 主要な依存関係をチェック
-        important_packages = ["qt-theme-manager", "pytest", "ruff", "bandit", "safety"]
+        important_packages = ["qt-theme-manager", "pytest", "ruff", "bandit", "pip-audit"]
 
         for package in important_packages:
             try:

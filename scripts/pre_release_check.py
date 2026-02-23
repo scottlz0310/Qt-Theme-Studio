@@ -265,29 +265,35 @@ class PreReleaseChecker:
                 "message": "インストールされていません",
             }
 
-        # Safety (依存関係の脆弱性)
+        # pip-audit (依存関係の脆弱性)
         try:
             result = self.run_command(
                 [
-                    "safety",
-                    "check",
-                    "--json",
+                    "pip-audit",
+                    "--format",
+                    "json",
                     "--output",
-                    str(logs_dir / "safety-report.json"),
+                    str(logs_dir / "pip-audit-report.json"),
                 ],
                 check=False,
             )
 
             if result.returncode == 0:
-                print("✅ Safety: 依存関係の脆弱性なし")
-                checks["safety"] = {"status": "PASS", "message": "依存関係の脆弱性なし"}
+                print("✅ pip-audit: 依存関係の脆弱性なし")
+                checks["pip-audit"] = {
+                    "status": "PASS",
+                    "message": "依存関係の脆弱性なし",
+                }
             else:
-                print("⚠️ Safety: 依存関係に脆弱性あり")
-                checks["safety"] = {"status": "WARN", "message": "依存関係に脆弱性あり"}
+                print("⚠️ pip-audit: 依存関係に脆弱性あり")
+                checks["pip-audit"] = {
+                    "status": "WARN",
+                    "message": "依存関係に脆弱性あり",
+                }
 
         except FileNotFoundError:
-            print("⚠️ Safety: インストールされていません")
-            checks["safety"] = {
+            print("⚠️ pip-audit: インストールされていません")
+            checks["pip-audit"] = {
                 "status": "SKIP",
                 "message": "インストールされていません",
             }

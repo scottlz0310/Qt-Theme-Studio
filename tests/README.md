@@ -139,7 +139,7 @@ def test_qt_specific():
 
 2. **セキュリティチェック**
    - bandit（セキュリティ脆弱性）
-   - safety（依存関係の脆弱性）
+   - pip-audit（依存関係の脆弱性）
 
 3. **テスト実行**
    - 単体テスト
@@ -163,7 +163,7 @@ basedpyright
 
 # セキュリティチェック
 bandit -r qt_theme_studio
-safety check
+pip-audit
 ```
 
 ## カバレッジ

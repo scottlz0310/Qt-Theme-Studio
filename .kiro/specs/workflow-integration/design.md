@@ -343,7 +343,7 @@ class SecurityScanner:
 
     def scan_dependencies(self) -> SecurityReport:
         """依存関係の脆弱性スキャン"""
-        # Bandit + Safety の統合
+        # Bandit + pip-audit の統合
         pass
 
     def scan_code(self) -> CodeSecurityReport:

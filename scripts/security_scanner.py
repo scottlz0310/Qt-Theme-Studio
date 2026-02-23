@@ -4,7 +4,7 @@ Qt-Theme-Studio セキュリティスキャナー
 
 このスクリプトは以下のセキュリティチェックを実行します:
 1. Banditによるコードセキュリティスキャン
-2. Safetyによる依存関係脆弱性チェック
+2. pip-auditによる依存関係脆弱性チェック
 3. 脆弱性検出時の日本語アラート機能
 4. 統合セキュリティレポート生成
 """
@@ -42,7 +42,7 @@ class SecurityScanner:
         self.scan_results = {
             "timestamp": datetime.now().isoformat(),
             "bandit": {"status": "未実行", "issues": [], "summary": {}},
-            "safety": {"status": "未実行", "vulnerabilities": [], "summary": {}},
+            "pip_audit": {"status": "未実行", "vulnerabilities": [], "summary": {}},
             "overall": {
                 "status": "未実行",
                 "risk_level": "不明",
@@ -196,91 +196,125 @@ class SecurityScanner:
             self.scan_results["bandit"]["status"] = f"エラー: {e}"
             return False
 
-    def scan_with_safety(self) -> bool:
+    def scan_with_pip_audit(self) -> bool:
         """
-        Safetyによる依存関係脆弱性チェックを実行
+        pip-auditによる依存関係脆弱性チェックを実行
 
         Returns:
             スキャンが成功したかどうか
         """
-        self.logger.info("🛡️ Safety依存関係脆弱性チェックを開始します")
+        self.logger.info("🛡️ pip-audit依存関係脆弱性チェックを開始します")
 
         # 出力ファイルパス
-        json_output = self.output_dir / "safety-vulnerability-report.json"
+        json_output = self.output_dir / "pip-audit-vulnerability-report.json"
 
         try:
-            # Safetyチェック実行（新しいscanコマンドを使用）
+            # pip-auditチェック実行
             return_code, stdout, stderr = self._run_command(
-                ["safety", "scan", "--json"]
+                ["pip-audit", "--format", "json", "--output", str(json_output)]
             )
 
-            # 結果をファイルに保存
-            with open(json_output, "w", encoding="utf-8") as f:
-                f.write(stdout)
+            if return_code == -1:
+                raise FileNotFoundError(stderr or "pip-auditコマンドが見つかりません")
+            if return_code not in [0, 1]:
+                raise RuntimeError(stderr.strip() or "pip-auditの実行に失敗しました")
 
-            # 結果解析
-            try:
-                safety_data = json.loads(stdout) if stdout.strip() else []
-            except json.JSONDecodeError:
-                # JSONでない場合（エラーメッセージなど）
-                safety_data = []
-                if stdout.strip():
-                    self.logger.warning(f"Safety出力: {stdout}")
+            if json_output.exists():
+                with open(json_output, encoding="utf-8") as f:
+                    audit_data = json.load(f)
+            elif stdout.strip():
+                audit_data = json.loads(stdout)
+            else:
+                audit_data = []
 
-            # 結果を保存
-            vulnerabilities = safety_data if isinstance(safety_data, list) else []
+            dependencies = []
+            if isinstance(audit_data, list):
+                dependencies = audit_data
+            elif isinstance(audit_data, dict):
+                dependencies = audit_data.get("dependencies", [])
 
-            self.scan_results["safety"] = {
+            vulnerabilities = []
+            for dependency in dependencies:
+                if not isinstance(dependency, dict):
+                    continue
+                package_name = dependency.get("name", "不明")
+                installed_version = dependency.get("version", "不明")
+                for vuln in dependency.get("vulns", []):
+                    if not isinstance(vuln, dict):
+                        continue
+                    vulnerabilities.append(
+                        {
+                            "package_name": package_name,
+                            "installed_version": installed_version,
+                            "vulnerability_id": vuln.get("id", "不明"),
+                        }
+                    )
+
+            critical_count = len(
+                [
+                    vuln
+                    for vuln in vulnerabilities
+                    if isinstance(vuln, dict)
+                    and str(vuln.get("vulnerability_id", "")).startswith("CVE")
+                ]
+            )
+            affected_packages = {
+                vuln.get("package_name", "不明")
+                for vuln in vulnerabilities
+                if isinstance(vuln, dict) and vuln.get("package_name")
+            }
+            package_count = (
+                len(affected_packages) if affected_packages else len(vulnerabilities)
+            )
+
+            self.scan_results["pip_audit"] = {
                 "status": "完了",
                 "vulnerabilities": vulnerabilities,
                 "summary": {
                     "total_vulnerabilities": len(vulnerabilities),
-                    "critical": len(
-                        [
-                            vuln
-                            for vuln in vulnerabilities
-                            if vuln.get("vulnerability_id", "").startswith("CVE")
-                        ]
-                    ),
-                    "packages_affected": len(
-                        set([vuln.get("package_name", "") for vuln in vulnerabilities])
-                    ),
+                    "critical": critical_count,
+                    "packages_affected": package_count,
                 },
             }
 
             # 結果表示
-            total_vulns = self.scan_results["safety"]["summary"][
+            total_vulns = self.scan_results["pip_audit"]["summary"][
                 "total_vulnerabilities"
             ]
 
             if total_vulns == 0:
-                self.logger.info("✅ Safety: 依存関係に脆弱性は検出されませんでした")
+                self.logger.info("✅ pip-audit: 依存関係に脆弱性は検出されませんでした")
             else:
-                affected_packages = self.scan_results["safety"]["summary"][
+                affected_package_count = self.scan_results["pip_audit"]["summary"][
                     "packages_affected"
                 ]
                 self.logger.warning(
-                    f"⚠️ Safety: {total_vulns}件の脆弱性を検出しました（{affected_packages}パッケージ）"
+                    f"⚠️ pip-audit: {total_vulns}件の脆弱性を検出しました（{affected_package_count}パッケージ）"
                 )
 
                 # 詳細表示
                 for vuln in vulnerabilities[:5]:  # 最初の5件のみ表示
-                    package = vuln.get("package_name", "不明")
-                    version = vuln.get("installed_version", "不明")
-                    vuln_id = vuln.get("vulnerability_id", "不明")
+                    if isinstance(vuln, dict):
+                        package = vuln.get("package_name", "不明")
+                        version = vuln.get("installed_version", "不明")
+                        vuln_id = vuln.get("vulnerability_id", "不明")
+                    else:
+                        package = "不明"
+                        version = "不明"
+                        vuln_id = str(vuln)
                     self.logger.warning(f"  - {package} v{version}: {vuln_id}")
 
             return True
 
         except Exception as e:
-            self.logger.error(f"❌ Safetyスキャンエラー: {e}")
-            self.scan_results["safety"]["status"] = f"エラー: {e}"
+            self.logger.error(f"❌ pip-auditスキャンエラー: {e}")
+            self.scan_results["pip_audit"]["status"] = f"エラー: {e}"
             return False
 
     def _assess_overall_risk(self) -> None:
         """総合リスク評価を実行"""
         bandit_summary = self.scan_results["bandit"]["summary"]
-        safety_summary = self.scan_results["safety"]["summary"]
+        pip_audit_summary = self.scan_results["pip_audit"]["summary"]
 
         # リスクレベル計算
         risk_score = 0
@@ -302,9 +336,9 @@ class SecurityScanner:
                     f"中リスクのセキュリティ問題{medium_issues}件の修正を検討してください"
                 )
 
-        # Safetyリスク評価
-        if safety_summary:
-            total_vulns = safety_summary.get("total_vulnerabilities", 0)
+        # pip-auditリスク評価
+        if pip_audit_summary:
+            total_vulns = pip_audit_summary.get("total_vulnerabilities", 0)
             risk_score += total_vulns * 2
 
             if total_vulns > 0:
@@ -371,18 +405,18 @@ class SecurityScanner:
                 f.write(f"  - ステータス: {bandit['status']}\n")
             f.write("\n")
 
-            # Safety結果
-            safety = self.scan_results["safety"]
-            f.write("依存関係脆弱性 (Safety):\n")
-            if safety["summary"]:
+            # pip-audit結果
+            pip_audit = self.scan_results["pip_audit"]
+            f.write("依存関係脆弱性 (pip-audit):\n")
+            if pip_audit["summary"]:
                 f.write(
-                    f"  - 総脆弱性数: {safety['summary']['total_vulnerabilities']}\n"
+                    f"  - 総脆弱性数: {pip_audit['summary']['total_vulnerabilities']}\n"
                 )
                 f.write(
-                    f"  - 影響パッケージ数: {safety['summary']['packages_affected']}\n"
+                    f"  - 影響パッケージ数: {pip_audit['summary']['packages_affected']}\n"
                 )
             else:
-                f.write(f"  - ステータス: {safety['status']}\n")
+                f.write(f"  - ステータス: {pip_audit['status']}\n")
             f.write("\n")
 
             # 推奨事項
@@ -413,8 +447,8 @@ class SecurityScanner:
         if not self.scan_with_bandit():
             success = False
 
-        # Safetyスキャン
-        if not self.scan_with_safety():
+        # pip-auditスキャン
+        if not self.scan_with_pip_audit():
             success = False
 
         # レポート生成
@@ -454,7 +488,7 @@ def main():
         "--bandit-only", action="store_true", help="Banditスキャンのみ実行"
     )
     parser.add_argument(
-        "--safety-only", action="store_true", help="Safetyスキャンのみ実行"
+        "--pip-audit-only", action="store_true", help="pip-auditスキャンのみ実行"
     )
 
     args = parser.parse_args()
@@ -464,8 +498,8 @@ def main():
 
         if args.bandit_only:
             success = scanner.scan_with_bandit()
-        elif args.safety_only:
-            success = scanner.scan_with_safety()
+        elif args.pip_audit_only:
+            success = scanner.scan_with_pip_audit()
         else:
             success = scanner.run_full_scan()
 
