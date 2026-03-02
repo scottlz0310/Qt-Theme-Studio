@@ -29,9 +29,9 @@ dependencies = [
     # qt-theme-managerは必ずGitHubリポジトリから直接インストール
     "qt-theme-manager @ git+https://github.com/scottlz0310/Qt-Theme-Manager.git",
     # Qt フレームワーク（PySide6を推奨、PyQt6/PyQt5はフォールバック）
-    "PySide6>=6.10.1",
+    "PySide6>=6.10.2",
     # 画像処理・プレビュー生成
-    "Pillow>=12.1.0",
+    "Pillow>=12.1.1",
     # コンソール出力の色付け
     "colorama>=0.4.6",
 ]
@@ -46,10 +46,10 @@ dev = [
     "pytest-benchmark>=5.2.3",
     # コード品質
     "ruff>=0.14.14",  # 高速なPythonリンター・フォーマッター
-    "basedpyright>=1.37.3",
+    "basedpyright>=1.37.4",
     # セキュリティ
-    "bandit>=1.9.3",
-    "pip-audit>=2.9.0",
+    "bandit>=1.9.4",
+    "pip-audit>=2.10.0",
     # Pre-commit
     "pre-commit>=4.5.1",
 ]
