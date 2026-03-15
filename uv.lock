@@ -709,7 +709,7 @@ wheels = [
 [[package]]
 name = "qt-theme-manager"
 version = "1.1.0"
-source = { git = "https://github.com/scottlz0310/Qt-Theme-Manager.git#d4a39c25b73c540034a03368b281746e0295a872" }
+source = { git = "https://github.com/scottlz0310/Qt-Theme-Manager.git#2c5f61b38c2ff832fcaf3a4bbeea8889d93f91d7" }
 
 [[package]]
 name = "qt-theme-studio"
