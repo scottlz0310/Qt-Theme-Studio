@@ -29,7 +29,7 @@ dependencies = [
     # qt-theme-managerは必ずGitHubリポジトリから直接インストール
     "qt-theme-manager @ git+https://github.com/scottlz0310/Qt-Theme-Manager.git",
     # Qt フレームワーク（PySide6を推奨、PyQt6/PyQt5はフォールバック）
-    "PySide6>=6.11.0",
+    "PySide6>=6.11.1",
     # 画像処理・プレビュー生成
     "Pillow>=12.2.0",
     # コンソール出力の色付け
