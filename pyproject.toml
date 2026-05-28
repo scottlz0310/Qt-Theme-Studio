@@ -45,7 +45,7 @@ dev = [
     "pytest-cov>=7.1.0",
     "pytest-benchmark>=5.2.3",
     # コード品質
-    "ruff>=0.15.14",  # 高速なPythonリンター・フォーマッター
+    "ruff>=0.15.15",  # 高速なPythonリンター・フォーマッター
     "basedpyright>=1.39.6",
     # セキュリティ
     "bandit>=1.9.4",
